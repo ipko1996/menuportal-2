@@ -1,5 +1,6 @@
+/* eslint-disable unicorn/prefer-module */
 const { NxAppWebpackPlugin } = require('@nx/webpack/app-plugin');
-const { join } = require('path');
+const { join } = require('node:path');
 
 module.exports = {
   output: {
