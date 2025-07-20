@@ -10,4 +10,14 @@ export default [
     // Override or add rules here
     rules: {},
   },
+  {
+    overrides: [
+      {
+        files: ['src/routeTree.gen.ts'],
+        rules: {
+          'unicorn/no-abusive-eslint-disable': 'off',
+        },
+      },
+    ],
+  },
 ];
