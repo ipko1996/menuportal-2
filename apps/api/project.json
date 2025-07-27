@@ -34,6 +34,21 @@
           "buildTarget": "api:build:production"
         }
       }
-    }
+    },
+    "database:migrate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm drizzle-kit migrate --config=apps/api/drizzle.config.ts",
+        "cwd": "apps/api"
+      }
+    },
+    "database:generate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm drizzle-kit generate --config=apps/api/drizzle.config.ts",
+        "cwd": "apps/api"
+      }
+    },
+    "database:seed": {}
   }
 }
