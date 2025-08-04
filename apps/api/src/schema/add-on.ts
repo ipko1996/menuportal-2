@@ -1,6 +1,6 @@
 import { relations } from 'drizzle-orm';
 import {
-  bigint,
+  decimal,
   index,
   integer,
   pgTable,
@@ -17,12 +17,15 @@ export const addOn = pgTable(
   {
     id: serial('id').primaryKey(),
     addOnName: varchar('name', { length: 255 }).notNull(),
-    price: integer('price').notNull(),
-    restaurantId: bigint('restaurant_id', { mode: 'number' })
+    price: decimal('price', {
+      precision: 5,
+      scale: 0,
+    }).notNull(),
+    restaurantId: integer('restaurant_id')
       .notNull()
       .references(() => restaurant.id),
   },
-  (table) => [
+  table => [
     index('add_on_name_idx').on(table.addOnName),
     unique('add_on_restaurant_name_idx').on(
       table.addOnName,

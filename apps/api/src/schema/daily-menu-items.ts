@@ -1,6 +1,5 @@
 import { relations } from 'drizzle-orm';
 import {
-  date,
   index,
   numeric,
   pgTable,
@@ -20,8 +19,9 @@ export const dailyMenuItems = pgTable(
     weeklyMenuId: uuid('weekly_menu_id')
       .notNull()
       .references(() => weeklyMenus.id, { onDelete: 'cascade' }),
-    date: date('date', {
+    date: timestamp('date', {
       mode: 'string',
+      withTimezone: true,
     }).notNull(),
     displayGroupId: uuid('display_group_id').notNull(),
     entityType: entityTypeEnum('entity_type').notNull(),
@@ -30,8 +30,8 @@ export const dailyMenuItems = pgTable(
     itemName: varchar('item_name', { length: 255 }).notNull(),
     itemPosition: smallint('item_position').notNull().default(0),
     createdAt: timestamp('created_at', {
-      withTimezone: true,
       mode: 'string',
+      withTimezone: true,
     })
       .notNull()
       .defaultNow(),

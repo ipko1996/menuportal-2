@@ -1,7 +1,7 @@
 import { relations } from 'drizzle-orm';
 import {
+  decimal,
   index,
-  integer,
   pgTable,
   serial,
   timestamp,
@@ -15,22 +15,22 @@ export const menu = pgTable(
   'menu',
   {
     id: serial('id').primaryKey(),
-    restaurantId: integer('restaurant_id')
+    restaurantId: serial('restaurant_id')
       .notNull()
       .references(() => restaurant.id),
-    menuName: varchar('menuName'),
-    price: integer('price'),
+    menuName: varchar('menuName').notNull(),
+    price: decimal('price', {
+      precision: 5,
+      scale: 0,
+    }).notNull(),
     createdAt: timestamp('created_at', {
       mode: 'string',
+      withTimezone: true,
     })
       .defaultNow()
       .notNull(),
-    updatedAt: timestamp('updated_at', {
-      mode: 'string',
-      precision: 3,
-    }).$onUpdate(() => new Date().toISOString()),
   },
-  (table) => [
+  table => [
     index('menu_name_idx').on(table.menuName),
     index('menu_restaurant_id_idx').on(table.restaurantId),
   ]

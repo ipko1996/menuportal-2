@@ -1,6 +1,6 @@
 import { relations } from 'drizzle-orm';
 import {
-  bigint,
+  decimal,
   index,
   integer,
   pgTable,
@@ -19,19 +19,21 @@ export const offer = pgTable(
     restaurantId: integer('restaurant_id')
       .notNull()
       .references(() => restaurant.id),
-    dishId: bigint('dish_id', { mode: 'number' }).references(() => dish.id),
-    price: integer('price'),
+    dishId: integer('dish_id')
+      .references(() => dish.id)
+      .notNull(),
+    price: decimal('price', {
+      precision: 5,
+      scale: 0,
+    }).notNull(),
     createdAt: timestamp('created_at', {
       mode: 'string',
+      withTimezone: true,
     })
       .defaultNow()
       .notNull(),
-    updatedAt: timestamp('updated_at', {
-      mode: 'string',
-      precision: 3,
-    }).$onUpdate(() => new Date().toISOString()),
   },
-  (table) => [index('offer_dish_id_idx').on(table.dishId)]
+  table => [index('offer_dish_id_idx').on(table.dishId)]
 );
 
 export const offerRelations = relations(offer, ({ one, many }) => ({

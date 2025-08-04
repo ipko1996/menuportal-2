@@ -56,6 +56,7 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
+    "@clerk/fastify": "^2.4.13",
     "@fastify/static": "^8.2.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.2",
@@ -95,12 +96,15 @@
     "@tailwindcss/vite": "^4.1.11",
     "@tanstack/react-router": "^1.128.6",
     "@tanstack/react-router-devtools": "^1.128.6",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "dotenv": "^17.2.1",
     "drizzle-orm": "^0.44.3",
     "embla-carousel-react": "^8.6.0",
+    "fastify": "^5.4.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.525.0",
     "next-themes": "^0.4.6",

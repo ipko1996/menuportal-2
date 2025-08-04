@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { bigint, pgTable, primaryKey, unique } from 'drizzle-orm/pg-core';
+import { integer, pgTable, primaryKey, unique } from 'drizzle-orm/pg-core';
 
 import { dish } from './dish';
 import { dishType } from './dish-type';
@@ -8,17 +8,17 @@ import { menu } from './menu';
 export const dishMenu = pgTable(
   'dish_menu',
   {
-    dishId: bigint('dish_id', { mode: 'number' })
+    dishId: integer('dish_id')
       .notNull()
       .references(() => dish.id),
-    menuId: bigint('menu_id', { mode: 'number' })
+    menuId: integer('menu_id')
       .notNull()
       .references(() => menu.id),
-    dishTypeId: bigint('dish_type_id', { mode: 'number' })
+    dishTypeId: integer('dish_type_id')
       .notNull()
       .references(() => dishType.id),
   },
-  (table) => [
+  table => [
     primaryKey({ columns: [table.dishId, table.menuId] }),
     // We can't have a menu with two dishes of the same type e.g. two main dishes
     unique('unique_dish_type_per_menu').on(table.menuId, table.dishTypeId),

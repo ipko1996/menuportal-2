@@ -51,6 +51,20 @@ export default [
       promise: promisePlugin,
     },
     rules: {
+      // Typescript specific rules
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          args: 'all',
+          argsIgnorePattern: '^_',
+          caughtErrors: 'all',
+          caughtErrorsIgnorePattern: '^_',
+          destructuredArrayIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+        },
+      ],
+
       // Simple import sort rules
       'simple-import-sort/imports': 'error',
       'simple-import-sort/exports': 'error',

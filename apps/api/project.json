@@ -49,6 +49,13 @@
         "cwd": "apps/api"
       }
     },
+    "database:push": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm drizzle-kit push --config=apps/api/drizzle.config.ts",
+        "cwd": "apps/api"
+      }
+    },
     "database:seed": {}
   }
 }

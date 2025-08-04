@@ -1,3 +1,5 @@
+import { pgEnum } from 'drizzle-orm/pg-core';
+
 export const dishTypeValues = [
   'SOUP',
   'MEAT_SOUP',
@@ -19,3 +21,5 @@ export const dishTypeValues = [
 ] as const;
 
 export type DishType = (typeof dishTypeValues)[number];
+
+export const DishTypeValueEnum = pgEnum('dish_type_value', dishTypeValues);

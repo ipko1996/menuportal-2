@@ -1,7 +1,7 @@
 import { relations } from 'drizzle-orm';
 import {
-  bigint,
   index,
+  integer,
   pgTable,
   serial,
   timestamp,
@@ -19,23 +19,20 @@ export const dish = pgTable(
   {
     id: serial('id').primaryKey(),
     dishName: varchar('dish_name').notNull(),
-    restaurantId: bigint('restaurant_id', { mode: 'number' })
+    restaurantId: serial('restaurant_id')
       .notNull()
       .references(() => restaurant.id),
-    dishTypeId: bigint('dish_type_id', { mode: 'number' })
+    dishTypeId: integer('dish_type_id')
       .notNull()
       .references(() => dishType.id),
     createdAt: timestamp('created_at', {
       mode: 'string',
+      withTimezone: true,
     })
       .defaultNow()
       .notNull(),
-    updatedAt: timestamp('updated_at', {
-      mode: 'string',
-      precision: 3,
-    }).$onUpdate(() => new Date().toISOString()),
   },
-  (table) => [
+  table => [
     index('dish_restaurant_id_idx').on(table.restaurantId),
     index('dish_dish_type_id_idx').on(table.dishTypeId),
     index('dish_name_idx').on(table.dishName),

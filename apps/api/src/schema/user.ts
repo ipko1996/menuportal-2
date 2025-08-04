@@ -1,34 +1,33 @@
 import { relations } from 'drizzle-orm';
 import {
   pgTable,
-  serial,
   timestamp,
   uniqueIndex,
+  uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
 
+import { RoleEnum } from '../constants/user-role';
 import { restaurant } from './restaurant';
 
 export const user = pgTable(
   'user',
   {
-    id: serial('id').primaryKey(),
+    id: uuid('id').defaultRandom().primaryKey(),
     externalId: varchar('external_user_id', { length: 255 }).notNull(),
+    role: RoleEnum('role').notNull().default('CUSTOMER'),
     createdAt: timestamp('created_at', {
       mode: 'string',
+      withTimezone: true,
     })
       .defaultNow()
       .notNull(),
-    updatedAt: timestamp('updated_at', {
-      mode: 'string',
-      precision: 3,
-    }).$onUpdate(() => new Date().toISOString()),
   },
-  (table) => [uniqueIndex('user_external_id_idx').on(table.externalId)]
+  table => [uniqueIndex('user_external_id_idx').on(table.externalId)]
 );
 
 export const userRelations = relations(user, ({ one }) => ({
-  ownedRestaurant: one(restaurant),
+  restaurant: one(restaurant),
 }));
 
 export type UserSelect = typeof user.$inferSelect;

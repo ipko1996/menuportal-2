@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { integer, pgTable, unique } from 'drizzle-orm/pg-core';
+import { decimal, integer, pgTable, unique } from 'drizzle-orm/pg-core';
 
 import { dishType } from './dish-type';
 import { restaurant } from './restaurant';
@@ -13,9 +13,12 @@ export const restaurantDishType = pgTable(
     dishTypeId: integer('dish_type_id')
       .notNull()
       .references(() => dishType.id),
-    price: integer('price').notNull(),
+    price: decimal('price', {
+      precision: 5,
+      scale: 0,
+    }).notNull(),
   },
-  (table) => [
+  table => [
     unique('dish_type_restaurant_unique').on(
       table.dishTypeId,
       table.restaurantId
