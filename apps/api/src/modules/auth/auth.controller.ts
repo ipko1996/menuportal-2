@@ -8,9 +8,9 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 
-import { AppUser } from '@/common/types/user.types';
 import { CurrentUser } from '@/decorators/user.decorator';
 import { RoleAuthGuard, Roles } from '@/guards/role.guard';
+import { AppUser } from '@/shared/types';
 
 import { AuthService } from './auth.service';
 import { UserDto } from './dto/user.dto';

@@ -11,11 +11,11 @@ import { Reflector } from '@nestjs/core';
 import { eq } from 'drizzle-orm';
 import { FastifyRequest } from 'fastify';
 
-import { AppUser } from '@/common/types/user.types';
 import type { Role } from '@/constants/user-role';
+import { AppUser } from '@/shared/types';
 
 import { ClerkService } from '../modules/auth/clerk.service';
-import { restaurant, RestaurantSelect, user, userRestaurant } from '../schema';
+import { restaurant, user, userRestaurant } from '../schema';
 import { DatabaseService } from '../shared/database/database.service';
 
 const whitelist: Set<string> = new Set();

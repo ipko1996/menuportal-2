@@ -2,7 +2,7 @@ import { User } from '@clerk/fastify';
 import { createParamDecorator, ExecutionContext, Logger } from '@nestjs/common';
 import { FastifyRequest } from 'fastify';
 
-import { AppUser } from '@/common/types/user.types';
+import { AppUser } from '@/shared/types';
 
 export const CurrentUser = createParamDecorator(
   (_data: unknown, ctx: ExecutionContext): AppUser => {

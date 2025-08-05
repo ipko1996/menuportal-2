@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 
-import { AppUser } from '@/common/types/user.types';
+import { DatabaseService } from '@/shared/database/database.service';
+import { AppUser } from '@/shared/types';
 
-import { DatabaseService } from '../../shared/database/database.service';
 import { UserDto } from './dto/user.dto';
 
 @Injectable()
