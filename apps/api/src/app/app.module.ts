@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 
 import { ClerkMiddleware } from '@/middleware/auth.middleware';
 import { AuthModule } from '@/modules/auth/auth.module';
+import { DishModule } from '@/modules/dish/dish.module';
 
 import { DrizzleModule } from '../shared/database/database.module';
 
@@ -13,6 +14,7 @@ import { DrizzleModule } from '../shared/database/database.module';
       isGlobal: true,
     }),
     AuthModule,
+    DishModule,
   ],
   controllers: [],
   providers: [],

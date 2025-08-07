@@ -2,6 +2,7 @@ import { User } from '@clerk/fastify';
 import {
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
   Logger,
   SetMetadata,
@@ -134,6 +135,14 @@ export class RoleAuthGuard implements CanActivate {
         } requiring roles: ${requiredRoles.join(', ')}`
       );
       throw new UnauthorizedException('Insufficient permissions');
+    }
+
+    // If role is not CUSTOMER user should have restaurant
+    if (userRole !== 'CUSTOMER' && !userData.restaurant) {
+      this.logger.warn(
+        `User ${userData.id} with role ${userRole} does not belong to a restaurant`
+      );
+      throw new ForbiddenException('User does not belong to a restaurant');
     }
 
     this.logger.debug(

@@ -10,10 +10,10 @@ import {
 
 import { CurrentUser } from '@/decorators/user.decorator';
 import { RoleAuthGuard, Roles } from '@/guards/role.guard';
-import { AppUser } from '@/shared/types';
+import type { AppUser } from '@/shared/types';
 
 import { AuthService } from './auth.service';
-import { UserDto } from './dto/user.dto';
+import { UserDto, UserDtoWithRestaurant } from './dto/user.dto';
 
 @ApiBearerAuth()
 @Controller('auth')
@@ -21,11 +21,10 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @UseGuards(RoleAuthGuard)
-  @Roles('ADMIN', 'MANAGER')
-  @ApiBearerAuth()
+  @Roles('CUSTOMER')
   @ApiOperation({
     summary: 'Get the current user',
-    operationId: 'getCurrentRestaurantOwner',
+    operationId: 'getCurrentUser',
   })
   @ApiOkResponse({ type: UserDto })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
@@ -34,5 +33,22 @@ export class AuthController {
   @Get()
   getUser(@CurrentUser() user: AppUser) {
     return this.authService.getUser(user);
+  }
+
+  @UseGuards(RoleAuthGuard)
+  @Roles('MANAGER', 'ADMIN')
+  @ApiOperation({
+    summary: 'Get the current user with restaurant',
+    operationId: 'getCurrentUserWithRestaurant',
+  })
+  @ApiOkResponse({ type: UserDtoWithRestaurant })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiForbiddenResponse({ description: 'Forbidden: User is banned' })
+  @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+  @Get('with-restaurant')
+  getUserWithRestaurant(
+    @CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>
+  ): Promise<UserDtoWithRestaurant> {
+    return this.authService.getUserWithRestaurant(user);
   }
 }

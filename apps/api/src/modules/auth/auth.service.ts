@@ -1,9 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { eq } from 'drizzle-orm';
 
+import { RestaurantSelect, UserSelect } from '@/schema';
 import { DatabaseService } from '@/shared/database/database.service';
 import { AppUser } from '@/shared/types';
 
-import { UserDto } from './dto/user.dto';
+import { UserDto, UserDtoWithRestaurant } from './dto/user.dto';
 
 @Injectable()
 export class AuthService {
@@ -17,25 +19,15 @@ export class AuthService {
     };
   }
 
-  // async addUser(userDto: User): Promise<UserDto> {
-  //   const [existingUser] = await this.databaseService.db
-  //     .select()
-  //     .from(user)
-  //     .where(eq(user.externalId, userDto.externalId));
+  async getUserWithRestaurant(
+    user: AppUser<'MANAGER' | 'ADMIN'>
+  ): Promise<UserDtoWithRestaurant> {
+    this.logger.log(`Getting user with restaurant for user ${user.db.id}`);
 
-  //   if (existingUser) {
-  //     throw new ConflictException('User already exists');
-  //   }
-
-  //   this.logger.log(`Adding user ${userDto.id}`);
-
-  //   const [newUser] = await this.databaseService.db
-  //     .insert(user)
-  //     .values({
-  //       externalId: userDto.externalId,
-  //     })
-  //     .returning({ id: user.id, externalId: user.externalId });
-  //   this.logger.log(`Added user ${newUser.id}`);
-  //   return newUser;
-  // }
+    return {
+      id: user.db.id,
+      externalId: user.db.externalId,
+      restaurant: user.restaurant,
+    };
+  }
 }
