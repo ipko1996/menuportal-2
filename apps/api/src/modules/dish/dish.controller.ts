@@ -26,7 +26,7 @@ import type { AppUser } from '@/shared/types';
 
 import { DishService } from './dish.service';
 import { CreateDishDto } from './dto/create-dish.dto';
-import { DishResponseDto } from './dto/dish-response';
+import { DishResponseDto } from './dto/dish-response.dto';
 import { UpdateDishDto } from './dto/update-dish.dto';
 
 @ApiTags('dish')

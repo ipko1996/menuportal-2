@@ -14,6 +14,7 @@ export const restaurantDishType = pgTable(
       .notNull()
       .references(() => dishType.id),
     price: decimal('price', {
+      mode: 'number',
       precision: 5,
       scale: 0,
     }).notNull(),

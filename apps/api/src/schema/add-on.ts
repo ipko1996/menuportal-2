@@ -18,6 +18,7 @@ export const addOn = pgTable(
     id: serial('id').primaryKey(),
     addOnName: varchar('name', { length: 255 }).notNull(),
     price: decimal('price', {
+      mode: 'number',
       precision: 5,
       scale: 0,
     }).notNull(),

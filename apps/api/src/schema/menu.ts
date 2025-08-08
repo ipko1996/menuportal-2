@@ -20,6 +20,7 @@ export const menu = pgTable(
       .references(() => restaurant.id),
     menuName: varchar('menuName').notNull(),
     price: decimal('price', {
+      mode: 'number',
       precision: 5,
       scale: 0,
     }).notNull(),

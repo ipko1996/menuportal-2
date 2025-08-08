@@ -24,6 +24,7 @@ export const restaurant = pgTable(
     phoneNumber: varchar('phone_number').notNull(),
     address: varchar('address').notNull(),
     takeawayPrice: decimal('takeaway_price', {
+      mode: 'number',
       precision: 5,
       scale: 0,
     }),

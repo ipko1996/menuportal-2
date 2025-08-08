@@ -23,6 +23,7 @@ export const offer = pgTable(
       .references(() => dish.id)
       .notNull(),
     price: decimal('price', {
+      mode: 'number',
       precision: 5,
       scale: 0,
     }).notNull(),

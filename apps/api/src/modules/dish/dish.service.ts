@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
@@ -10,7 +11,7 @@ import { dish, dishType } from '@/schema';
 import { DatabaseService } from '@/shared/database/database.service';
 
 import { CreateDishDto } from './dto/create-dish.dto';
-import { DishResponseDto } from './dto/dish-response';
+import { DishResponseDto } from './dto/dish-response.dto';
 import { UpdateDishDto } from './dto/update-dish.dto';
 
 @Injectable()
@@ -71,7 +72,7 @@ export class DishService {
       return newDish;
     } catch (error) {
       this.logger.error('Failed to create new dish', error);
-      throw new BadRequestException('Failed to create new dish');
+      throw new InternalServerErrorException('Failed to create new dish');
     }
   }
 
@@ -91,6 +92,14 @@ export class DishService {
       .where(whereCondition);
   }
 
+  /**
+   * Finds a dish by its ID, optionally filtering by restaurant ID.
+   * @param id - The ID of the dish to find.
+   * @param restaurantId - Optional restaurant ID to filter the dish.
+   * @returns {Promise<DishResponseDto>} - The found dish.
+   *
+   * @throws NotFoundException if the dish does not exist or is not active.
+   */
   async findDishById(
     id: number,
     restaurantId: number

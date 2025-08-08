@@ -1,4 +1,5 @@
 import {
+  date,
   index,
   integer,
   pgTable,
@@ -13,9 +14,8 @@ export const availability = pgTable(
   'availability',
   {
     id: serial('id'),
-    date: timestamp('date', {
+    date: date('date', {
       mode: 'string',
-      withTimezone: true,
     }).notNull(),
     entityType: entityTypeEnum('entity_type').notNull(),
     entityId: integer('entity_id').notNull(),

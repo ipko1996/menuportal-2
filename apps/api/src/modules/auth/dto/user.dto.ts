@@ -39,7 +39,7 @@ export class RestaurantDto
   })
   @IsOptional()
   @IsString()
-  takeawayPrice!: string | null;
+  takeawayPrice!: number | null;
   @ApiProperty({
     example: 1,
     description: 'Unique identifier of the restaurant',
