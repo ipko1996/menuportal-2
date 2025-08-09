@@ -2,9 +2,9 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsISO8601, IsString, Matches } from 'class-validator';
 
 export class Dish {
-  id: number;
-  dishName: string;
-  dishTypeId: number;
+  dishId: number | null;
+  dishName: string | null;
+  dishTypeId: number | null;
 }
 
 export class DayOffersDto {
@@ -25,6 +25,7 @@ export class WeekMenuDayDto {
 }
 
 export class WeekMenuResponseDto {
-  week: string;
+  weekStart: string;
+  weekEnd: string;
   days: Record<string, WeekMenuDayDto>;
 }
