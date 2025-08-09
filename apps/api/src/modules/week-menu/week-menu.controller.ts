@@ -1,45 +1,36 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-} from '@nestjs/common';
+import { Controller, Get, Param, ValidationPipe } from '@nestjs/common';
+import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+
+import { DateRange, WeekToDateRangePipe } from '@/shared/pipes';
+
+import { WeekMenuResponseDto } from './dto/week-menu-response.dto';
 import { WeekMenuService } from './week-menu.service';
-import { CreateWeekMenuDto } from './dto/create-week-menu.dto';
-import { UpdateWeekMenuDto } from './dto/update-week-menu.dto';
 
 @Controller('week-menu')
 export class WeekMenuController {
   constructor(private readonly weekMenuService: WeekMenuService) {}
 
-  @Post()
-  create(@Body() createWeekMenuDto: CreateWeekMenuDto) {
-    return this.weekMenuService.create(createWeekMenuDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.weekMenuService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.weekMenuService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateWeekMenuDto: UpdateWeekMenuDto
-  ) {
-    return this.weekMenuService.update(+id, updateWeekMenuDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.weekMenuService.remove(+id);
+  @Get(':weekNumber')
+  @ApiOperation({ summary: 'Get all menus for a specific week' })
+  @ApiParam({
+    name: 'weekNumber',
+    description: 'The week in ISO format (YYYY-Www), e.g., 2025-W32',
+    example: '2025-W32',
+    required: true,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'The menu for the specified week.',
+    type: WeekMenuResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request: Invalid weekNumber format or non-existent week.',
+  })
+  async getMenusForWeek(
+    @Param('weekNumber', WeekToDateRangePipe) dateRange: DateRange
+  ): Promise<WeekMenuResponseDto> {
+    console.log('Received date range:', dateRange);
+    return this.weekMenuService.getMenusForWeek(dateRange);
   }
 }

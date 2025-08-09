@@ -6,6 +6,7 @@ import { AuthModule } from '@/modules/auth/auth.module';
 import { DishModule } from '@/modules/dish/dish.module';
 import { MenuModule } from '@/modules/menu/menu.module';
 import { OfferModule } from '@/modules/offer/offer.module';
+import { WeekMenuModule } from '@/modules/week-menu/week-menu.module';
 
 import { DrizzleModule } from '../shared/database/database.module';
 
@@ -19,6 +20,7 @@ import { DrizzleModule } from '../shared/database/database.module';
     DishModule,
     MenuModule,
     OfferModule,
+    WeekMenuModule,
   ],
   controllers: [],
   providers: [],

@@ -1,26 +1,22 @@
-import { Injectable } from '@nestjs/common';
-import { CreateWeekMenuDto } from './dto/create-week-menu.dto';
-import { UpdateWeekMenuDto } from './dto/update-week-menu.dto';
+import { Injectable, Logger, NotImplementedException } from '@nestjs/common';
+
+import { DatabaseService } from '@/shared/database/database.service';
+import { DateRange } from '@/shared/pipes/week-to-date-range.pipe';
+
+import { WeekMenuResponseDto } from './dto/week-menu-response.dto';
 
 @Injectable()
 export class WeekMenuService {
-  create(createWeekMenuDto: CreateWeekMenuDto) {
-    return 'This action adds a new weekMenu';
-  }
+  private readonly logger = new Logger(WeekMenuService.name);
 
-  findAll() {
-    return `This action returns all weekMenu`;
-  }
+  constructor(private readonly databaseService: DatabaseService) {}
 
-  findOne(id: number) {
-    return `This action returns a #${id} weekMenu`;
-  }
-
-  update(id: number, updateWeekMenuDto: UpdateWeekMenuDto) {
-    return `This action updates a #${id} weekMenu`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} weekMenu`;
+  async getMenusForWeek(dateRange: DateRange): Promise<WeekMenuResponseDto> {
+    this.logger.log(
+      `Fetching menus for week: ${dateRange.start} to ${dateRange.end}`
+    );
+    throw new NotImplementedException(
+      'getMenusForWeek method is not implemented yet'
+    );
   }
 }
