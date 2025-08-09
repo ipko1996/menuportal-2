@@ -3,7 +3,7 @@ import { and, between, eq } from 'drizzle-orm';
 
 import { availability, dish, dishMenu, dishType, menu, offer } from '@/schema';
 import { DatabaseService } from '@/shared/database/database.service';
-import { DateRange } from '@/shared/pipes/week-to-date-range.pipe';
+import type { DateRange } from '@/shared/pipes/week-to-date-range.pipe';
 
 import { WeekMenuResponseDto } from './dto/week-menu-response.dto';
 
@@ -36,7 +36,10 @@ export class WeekMenuService {
 
   constructor(private readonly databaseService: DatabaseService) {}
 
-  async getMenusForWeek(dateRange: DateRange) {
+  async getMenusForWeek(
+    dateRange: DateRange,
+    restaurantId: number
+  ): Promise<WeekMenuResponseDto> {
     this.logger.log(
       `Fetching menus for week: ${dateRange.start} to ${dateRange.end}`
     );
@@ -63,7 +66,12 @@ export class WeekMenuService {
             eq(availability.entityType, 'OFFER')
           )
         )
-        .where(between(availability.date, startOfWeek, endOfWeek)),
+        .where(
+          and(
+            eq(offer.restaurantId, restaurantId),
+            between(availability.date, startOfWeek, endOfWeek)
+          )
+        ),
 
       this.databaseService.db
         .select({
@@ -88,7 +96,12 @@ export class WeekMenuService {
             eq(availability.entityType, 'MENU')
           )
         )
-        .where(between(availability.date, startOfWeek, endOfWeek)),
+        .where(
+          and(
+            eq(menu.restaurantId, restaurantId),
+            between(availability.date, startOfWeek, endOfWeek)
+          )
+        ),
     ]);
 
     const days: WeekMenuResponseDto['days'] = this.initializeDays(

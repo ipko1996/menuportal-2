@@ -1,12 +1,30 @@
-import { Controller, Get, Param, ValidationPipe } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Param,
+  UseGuards,
+  ValidationPipe,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+} from '@nestjs/swagger';
 
-import { DateRange, WeekToDateRangePipe } from '@/shared/pipes';
+import { CurrentUser } from '@/decorators/user.decorator';
+import { RoleAuthGuard, Roles } from '@/guards/role.guard';
+import type { DateRange } from '@/shared/pipes';
+import { WeekToDateRangePipe } from '@/shared/pipes';
+import type { AppUser } from '@/shared/types';
 
 import { WeekMenuResponseDto } from './dto/week-menu-response.dto';
 import { WeekMenuService } from './week-menu.service';
 
 @Controller('week-menu')
+@UseGuards(RoleAuthGuard)
+@Roles('ADMIN', 'MANAGER')
+@ApiBearerAuth()
 export class WeekMenuController {
   constructor(private readonly weekMenuService: WeekMenuService) {}
 
@@ -28,9 +46,10 @@ export class WeekMenuController {
     description: 'Bad Request: Invalid weekNumber format or non-existent week.',
   })
   async getMenusForWeek(
-    @Param('weekNumber', WeekToDateRangePipe) dateRange: DateRange
+    @Param('weekNumber', WeekToDateRangePipe) dateRange: DateRange,
+    @CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>
   ): Promise<WeekMenuResponseDto> {
     console.log('Received date range:', dateRange);
-    return this.weekMenuService.getMenusForWeek(dateRange);
+    return this.weekMenuService.getMenusForWeek(dateRange, user.restaurant.id);
   }
 }
