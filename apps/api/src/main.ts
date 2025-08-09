@@ -54,7 +54,9 @@ async function bootstrap() {
     .build();
 
   const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, documentFactory);
+  SwaggerModule.setup('docs', app, documentFactory, {
+    jsonDocumentUrl: `/${globalPrefix}/docs-json`,
+  });
 
   app.useGlobalPipes(new ValidationPipe());
   const port = process.env.PORT ?? 3000;

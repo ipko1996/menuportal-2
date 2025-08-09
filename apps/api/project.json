@@ -56,6 +56,14 @@
         "cwd": "apps/api"
       }
     },
-    "database:seed": {}
+    "database:seed": {},
+    "generate-client": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm dlx orval",
+        "cwd": "apps/api"
+      },
+      "outputs": ["{projectRoot}/libs/api-client"]
+    }
   }
 }
