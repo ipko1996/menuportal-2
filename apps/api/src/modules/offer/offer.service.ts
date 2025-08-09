@@ -173,9 +173,9 @@ export class OfferService {
     }
   }
 
-  remove(id: number, restaurantId: number): Promise<void> {
+  async remove(id: number, restaurantId: number): Promise<void> {
     // First check if offer exists
-    const existingOffer = this.databaseService.db.query.offer.findFirst({
+    const existingOffer = await this.databaseService.db.query.offer.findFirst({
       where: and(eq(offer.id, id), eq(offer.restaurantId, restaurantId)),
     });
 
@@ -201,7 +201,7 @@ export class OfferService {
         .returning({ id: offer.id });
 
       if (result.length === 0) {
-        throw new NotFoundException(`Offer with ID ${id} not found`);
+        throw new InternalServerErrorException('Failed to delete offer');
       }
     });
   }

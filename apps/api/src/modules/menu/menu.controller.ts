@@ -70,7 +70,11 @@ export class MenuController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.menuService.remove(+id);
+  @ApiOperation({ summary: 'Delete a menu' })
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>
+  ) {
+    return this.menuService.remove(id, user.restaurant.id);
   }
 }

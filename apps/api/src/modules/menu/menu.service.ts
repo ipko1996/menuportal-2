@@ -238,7 +238,36 @@ export class MenuService {
     }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} menu`;
+  async remove(id: number, restaurantId: number) {
+    // First check if menu exists
+    const existingMenu = await this.databaseService.db.query.menu.findFirst({
+      where: and(eq(menu.id, id), eq(menu.restaurantId, restaurantId)),
+    });
+
+    if (!existingMenu) {
+      throw new NotFoundException('Menu not found');
+    }
+
+    return this.databaseService.db.transaction(async tx => {
+      // Delete the availability first
+      await tx
+        .delete(availability)
+        .where(
+          and(
+            eq(availability.entityId, id),
+            eq(availability.entityType, 'MENU')
+          )
+        );
+
+      // Then delete the menu
+      const result = await tx
+        .delete(menu)
+        .where(eq(menu.id, id))
+        .returning({ id: menu.id });
+
+      if (result.length === 0) {
+        throw new InternalServerErrorException('Failed to delete menu');
+      }
+    });
   }
 }
