@@ -1,5 +1,4 @@
 /// <reference types='vitest' />
-// import { resolve } from 'node:path';
 
 import { nxCopyAssetsPlugin } from '@nx/vite/plugins/nx-copy-assets.plugin';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
@@ -7,6 +6,7 @@ import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react-swc';
 import { defineConfig } from 'vite';
+import path from 'path';
 
 export default defineConfig(() => ({
   root: import.meta.dirname,
@@ -41,9 +41,13 @@ export default defineConfig(() => ({
       transformMixedEsModules: true,
     },
   },
-  // resolve: {
-  //   alias: {
-  //     '@': resolve(import.meta.dirname, './src'),
-  //   },
-  // },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+
+      // fix loading all icon chunks in dev mode
+      // https://github.com/tabler/tabler-icons/issues/1233
+      '@tabler/icons-react': '@tabler/icons-react/dist/esm/icons/index.mjs',
+    },
+  },
 }));

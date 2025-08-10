@@ -1,13 +1,30 @@
-import { createRootRoute, HeadContent, Outlet } from '@tanstack/react-router';
+import { QueryClient } from '@tanstack/react-query';
+import { createRootRouteWithContext, Outlet } from '@tanstack/react-router';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
+import { Toaster } from '@mono-repo/ui/sonner';
+import { NavigationProgress } from '@/components/navigation-progress';
+import GeneralError from '@/features/errors/general-error';
+import NotFoundError from '@/features/errors/not-found-error';
 
-export const Route = createRootRoute({
-  component: () => (
-    <>
-      <HeadContent />
-
-      <Outlet />
-      <TanStackRouterDevtools />
-    </>
-  ),
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient;
+}>()({
+  component: () => {
+    return (
+      <>
+        <NavigationProgress />
+        <Outlet />
+        <Toaster duration={50000} />
+        {import.meta.env.MODE === 'development' && (
+          <>
+            {/* <ReactQueryDevtools /> */}
+            <TanStackRouterDevtools position="bottom-right" />
+          </>
+        )}
+      </>
+    );
+  },
+  notFoundComponent: NotFoundError,
+  errorComponent: GeneralError,
 });
