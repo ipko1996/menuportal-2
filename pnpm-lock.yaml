@@ -122,12 +122,18 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4.1.11
         version: 4.1.11(vite@6.3.5(@types/node@20.19.8)(jiti@2.4.2)(less@4.1.3)(lightningcss@1.30.1)(sass-embedded@1.89.2)(sass@1.89.2)(stylus@0.64.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0))
+      '@tanstack/react-query':
+        specifier: ^5.84.2
+        version: 5.84.2(react@19.0.0)
       '@tanstack/react-router':
         specifier: ^1.128.6
         version: 1.128.6(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@tanstack/react-router-devtools':
         specifier: ^1.128.6
         version: 1.128.6(@tanstack/react-router@1.128.6(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(@tanstack/router-core@1.128.6)(csstype@3.1.3)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(solid-js@1.9.7)(tiny-invariant@1.3.3)
+      axios:
+        specifier: ^1.11.0
+        version: 1.11.0
       class-transformer:
         specifier: ^0.5.1
         version: 0.5.1
@@ -3920,6 +3926,14 @@ packages:
     resolution: {integrity: sha512-YL8dGi5ZU+xvtav2boRlw4zrRghkY6hvdcmHhA0RGSJ/CBgzv+cbADW9eYJLx74XMZvIQ1pp6VMbrpXnnM5gHA==}
     engines: {node: '>=12'}
 
+  '@tanstack/query-core@5.83.1':
+    resolution: {integrity: sha512-OG69LQgT7jSp+5pPuCfzltq/+7l2xoweggjme9vlbCPa/d7D7zaqv5vN/S82SzSYZ4EDLTxNO1PWrv49RAS64Q==}
+
+  '@tanstack/react-query@5.84.2':
+    resolution: {integrity: sha512-cZadySzROlD2+o8zIfbD978p0IphuQzRWiiH3I2ugnTmz4jbjc0+TdibpwqxlzynEen8OulgAg+rzdNF37s7XQ==}
+    peerDependencies:
+      react: ^18 || ^19
+
   '@tanstack/react-router-devtools@1.128.6':
     resolution: {integrity: sha512-7yumiLYxG4HTtSFRwudctSywnQ3UYgN5C6Zr3ABniwf0EimCNXQcAR0SCVlWTgx5OUKpfFmyzI0/7dRgHuOctA==}
     engines: {node: '>=12'}
@@ -4657,8 +4671,8 @@ packages:
     resolution: {integrity: sha512-Xm7bpRXnDSX2YE2YFfBk2FnF0ep6tmG7xPh8iHee8MIcrgq762Nkce856dYtJYLkuIoYZvGfTs/PbZhideTcEg==}
     engines: {node: '>=4'}
 
-  axios@1.10.0:
-    resolution: {integrity: sha512-/1xYAC4MP/HEG+3duIhFr4ZQXR4sQXOIe+o6sdqzeykGLx6Upp/1p8MHqhINOvGeP7xyNHe7tsiJByc4SSVUxw==}
+  axios@1.11.0:
+    resolution: {integrity: sha512-1Lx3WLFQWm3ooKDYZD1eXmoGO9fxYQjrycfHFC8P0sCfQVXyROp0p9PFWBehewBOdCwHc+f/b8I0fMto5eSfwA==}
 
   axobject-query@4.1.0:
     resolution: {integrity: sha512-qIj0G9wZbMGNLjLmg1PT6v2mE9AH2zlnADJD/2tC6E00hgmhUOfEB6greHPAfLRSufHqROIUTkw6E+M3lH0PTQ==}
@@ -6209,6 +6223,10 @@ packages:
 
   form-data@4.0.3:
     resolution: {integrity: sha512-qsITQPfmvMOSAdeyZ+12I1c+CKSstAFAwu+97zrnWAbIr5u8wfsExUzCesVLC8NgHuRUqNN4Zy6UPWUTRGslcA==}
+    engines: {node: '>= 6'}
+
+  form-data@4.0.4:
+    resolution: {integrity: sha512-KrGhL9Q4zjj0kiUt5OO4Mr/A/jlI2jDYs5eHBpYHPcBEVSiipAvn2Ko2HnPe20rmcuuvMHNdZFp+4IlGTMF0Ow==}
     engines: {node: '>= 6'}
 
   forwarded@0.2.0:
@@ -11697,7 +11715,7 @@ snapshots:
       '@module-federation/third-party-dts-extractor': 0.15.0
       adm-zip: 0.5.16
       ansi-colors: 4.1.3
-      axios: 1.10.0
+      axios: 1.11.0
       chalk: 3.0.0
       fs-extra: 9.1.0
       isomorphic-ws: 5.0.0(ws@8.18.0)
@@ -11722,7 +11740,7 @@ snapshots:
       '@module-federation/third-party-dts-extractor': 0.17.0
       adm-zip: 0.5.16
       ansi-colors: 4.1.3
-      axios: 1.10.0
+      axios: 1.11.0
       chalk: 3.0.0
       fs-extra: 9.1.0
       isomorphic-ws: 5.0.0(ws@8.18.0)
@@ -14108,6 +14126,13 @@ snapshots:
 
   '@tanstack/history@1.121.34': {}
 
+  '@tanstack/query-core@5.83.1': {}
+
+  '@tanstack/react-query@5.84.2(react@19.0.0)':
+    dependencies:
+      '@tanstack/query-core': 5.83.1
+      react: 19.0.0
+
   '@tanstack/react-router-devtools@1.128.6(@tanstack/react-router@1.128.6(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(@tanstack/router-core@1.128.6)(csstype@3.1.3)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(solid-js@1.9.7)(tiny-invariant@1.3.3)':
     dependencies:
       '@tanstack/react-router': 1.128.6(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -14996,10 +15021,10 @@ snapshots:
 
   axe-core@4.10.3: {}
 
-  axios@1.10.0:
+  axios@1.11.0:
     dependencies:
       follow-redirects: 1.15.9(debug@4.4.1)
-      form-data: 4.0.3
+      form-data: 4.0.4
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
       - debug
@@ -16824,6 +16849,14 @@ snapshots:
       hasown: 2.0.2
       mime-types: 2.1.35
 
+  form-data@4.0.4:
+    dependencies:
+      asynckit: 0.4.0
+      combined-stream: 1.0.8
+      es-set-tostringtag: 2.1.0
+      hasown: 2.0.2
+      mime-types: 2.1.35
+
   forwarded@0.2.0: {}
 
   fraction.js@4.3.7: {}
@@ -18438,7 +18471,7 @@ snapshots:
       '@yarnpkg/lockfile': 1.1.0
       '@yarnpkg/parsers': 3.0.2
       '@zkochan/js-yaml': 0.0.7
-      axios: 1.10.0
+      axios: 1.11.0
       chalk: 4.1.2
       cli-cursor: 3.1.0
       cli-spinners: 2.6.1

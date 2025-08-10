@@ -15,6 +15,7 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@mono-repo/clients": ["libs/clients/src/index.ts"],
       "@mono-repo/ui": ["libs/ui/src/index.ts"]
     }
   },

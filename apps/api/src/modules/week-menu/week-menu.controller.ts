@@ -29,7 +29,10 @@ export class WeekMenuController {
   constructor(private readonly weekMenuService: WeekMenuService) {}
 
   @Get(':weekNumber')
-  @ApiOperation({ summary: 'Get all menus for a specific week' })
+  @ApiOperation({
+    summary: 'Get all menus for a specific week',
+    operationId: 'getMenusForWeek',
+  })
   @ApiParam({
     name: 'weekNumber',
     description: 'The week in ISO format (YYYY-Www), e.g., 2025-W32',

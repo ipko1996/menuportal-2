@@ -6,10 +6,12 @@ export default defineConfig({
       target: 'http://localhost:3000/api/docs-json',
     },
     output: {
+      namingConvention: 'kebab-case',
       client: 'react-query',
       mode: 'tags-split',
       prettier: true,
-      target: '../../libs/api-client/src/api.ts',
+      target: '../../libs/clients/src/lib/api/',
+      schemas: '../../libs/clients/src/lib/api/schemas',
     },
   },
 });

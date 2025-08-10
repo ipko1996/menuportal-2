@@ -60,7 +60,7 @@
     "generate-client": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "pnpm dlx orval",
+        "command": "pnpm dlx orval && pnpm exec nx run clients:lint",
         "cwd": "apps/api"
       },
       "outputs": ["{projectRoot}/libs/api-client"]

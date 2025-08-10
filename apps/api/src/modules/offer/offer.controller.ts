@@ -33,7 +33,7 @@ export class OfferController {
   constructor(private readonly offerService: OfferService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a new offer' })
+  @ApiOperation({ summary: 'Create a new offer', operationId: 'createOffer' })
   @ApiCreatedResponse({
     description: 'Offer has been successfully created',
     type: OfferResponseDto,
@@ -46,12 +46,13 @@ export class OfferController {
   }
 
   @Get()
+  @ApiOperation({ summary: 'Get all offers', operationId: 'getAllOffers' })
   findAll() {
     return this.offerService.findAll();
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get an offer by ID' })
+  @ApiOperation({ summary: 'Get an offer by ID', operationId: 'getOfferById' })
   @ApiOkResponse({
     description: 'Offer found',
     type: OfferResponseDto,
@@ -61,7 +62,10 @@ export class OfferController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update an existing offer' })
+  @ApiOperation({
+    summary: 'Update an existing offer',
+    operationId: 'updateOffer',
+  })
   @ApiOkResponse({
     description: 'Offer has been successfully updated',
     type: OfferResponseDto,
@@ -75,7 +79,7 @@ export class OfferController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete an offer' })
+  @ApiOperation({ summary: 'Delete an offer', operationId: 'deleteOffer' })
   remove(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>

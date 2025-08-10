@@ -33,7 +33,7 @@ export class MenuController {
   constructor(private readonly menuService: MenuService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a new menu' })
+  @ApiOperation({ summary: 'Create a new menu', operationId: 'createMenu' })
   @ApiCreatedResponse({
     description: 'Menu has been successfully created',
     type: MenuResponseDto,
@@ -46,17 +46,22 @@ export class MenuController {
   }
 
   @Get()
+  @ApiOperation({ summary: 'Get all menus', operationId: 'getAllMenus' })
   findAll() {
     return this.menuService.findAll();
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get a menu by ID', operationId: 'getMenuById' })
   findOne(@Param('id') id: string) {
     return this.menuService.findOne(+id);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update an existing menu' })
+  @ApiOperation({
+    summary: 'Update an existing menu',
+    operationId: 'updateMenu',
+  })
   @ApiOkResponse({
     description: 'Menu has been successfully updated',
     type: MenuResponseDto,
@@ -70,7 +75,7 @@ export class MenuController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a menu' })
+  @ApiOperation({ summary: 'Delete a menu', operationId: 'deleteMenu' })
   remove(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>

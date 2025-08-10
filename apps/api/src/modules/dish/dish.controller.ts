@@ -38,7 +38,7 @@ export class DishController {
   constructor(private readonly dishService: DishService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a new dish' })
+  @ApiOperation({ summary: 'Create a new dish', operationId: 'createDish' })
   @ApiResponse({
     status: 201,
     description: 'Dish created successfully',
@@ -60,7 +60,7 @@ export class DishController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all dishes' })
+  @ApiOperation({ summary: 'Get all dishes', operationId: 'getAllDishes' })
   @ApiResponse({
     status: 200,
     description: 'List of dishes retrieved successfully',
@@ -73,7 +73,10 @@ export class DishController {
   }
 
   @Get('search')
-  @ApiOperation({ summary: 'Search for dishes by name (fuzzy search)' })
+  @ApiOperation({
+    summary: 'Search for dishes by name (fuzzy search)',
+    operationId: 'searchDishesByName',
+  })
   @ApiQuery({
     name: 'name',
     required: true,
@@ -100,7 +103,7 @@ export class DishController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get a dish by ID' })
+  @ApiOperation({ summary: 'Get a dish by ID', operationId: 'getDishById' })
   @ApiResponse({
     status: 200,
     description: 'Dish retrieved successfully',
@@ -119,7 +122,10 @@ export class DishController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update a dish by ID' })
+  @ApiOperation({
+    summary: 'Update a dish by ID',
+    operationId: 'updateDishById',
+  })
   @ApiResponse({
     status: 200,
     description: 'Dish updated successfully',
@@ -144,7 +150,10 @@ export class DishController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete a dish by ID' })
+  @ApiOperation({
+    summary: 'Delete a dish by ID',
+    operationId: 'deleteDishById',
+  })
   @ApiResponse({
     status: 204,
     description: 'Dish deleted successfully',
