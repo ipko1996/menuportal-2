@@ -8,8 +8,9 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
+import { createFileRoute } from '@tanstack/react-router'
+
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ClerkRouteRouteImport } from './routes/clerk/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as errors503RouteImport } from './routes/(errors)/503'
@@ -36,7 +37,9 @@ import { Route as AuthenticatedSettingsDisplayRouteImport } from './routes/_auth
 import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
 
-const ClerkRouteRoute = ClerkRouteRouteImport.update({
+const ClerkRouteImport = createFileRoute('/clerk')()
+
+const ClerkRoute = ClerkRouteImport.update({
   id: '/clerk',
   path: '/clerk',
   getParentRoute: () => rootRouteImport,
@@ -102,11 +105,12 @@ const authForgotPasswordRoute = authForgotPasswordRouteImport.update({
 } as any)
 const ClerkAuthenticatedRouteRoute = ClerkAuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
-  getParentRoute: () => ClerkRouteRoute,
+  getParentRoute: () => ClerkRoute,
 } as any)
 const ClerkauthRouteRoute = ClerkauthRouteRouteImport.update({
-  id: '/(auth)',
-  getParentRoute: () => ClerkRouteRoute,
+  id: '/clerk/(auth)',
+  path: '/clerk/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedSettingsRouteRoute =
   AuthenticatedSettingsRouteRouteImport.update({
@@ -172,9 +176,8 @@ const AuthenticatedSettingsAccountRoute =
   } as any)
 
 export interface FileRoutesByFullPath {
-  '/clerk': typeof ClerkAuthenticatedRouteRoute
   '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
-  '/clerk/': typeof ClerkauthRouteRouteWithChildren
+  '/clerk': typeof ClerkAuthenticatedRouteRoute
   '/forgot-password': typeof authForgotPasswordRoute
   '/otp': typeof authOtpRoute
   '/sign-in': typeof authSignInRoute
@@ -224,9 +227,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/clerk': typeof ClerkRouteRouteWithChildren
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/clerk/(auth)': typeof ClerkauthRouteRouteWithChildren
+  '/clerk': typeof ClerkRouteWithChildren
   '/clerk/_authenticated': typeof ClerkAuthenticatedRouteRoute
   '/(auth)/forgot-password': typeof authForgotPasswordRoute
   '/(auth)/otp': typeof authOtpRoute
@@ -253,9 +256,8 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/clerk'
     | '/settings'
-    | '/clerk/'
+    | '/clerk'
     | '/forgot-password'
     | '/otp'
     | '/sign-in'
@@ -304,9 +306,9 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_authenticated'
-    | '/clerk'
     | '/_authenticated/settings'
     | '/clerk/(auth)'
+    | '/clerk'
     | '/clerk/_authenticated'
     | '/(auth)/forgot-password'
     | '/(auth)/otp'
@@ -333,7 +335,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  ClerkRouteRoute: typeof ClerkRouteRouteWithChildren
+  ClerkauthRouteRoute: typeof ClerkauthRouteRouteWithChildren
+  ClerkRoute: typeof ClerkRouteWithChildren
   authForgotPasswordRoute: typeof authForgotPasswordRoute
   authOtpRoute: typeof authOtpRoute
   authSignInRoute: typeof authSignInRoute
@@ -352,7 +355,7 @@ declare module '@tanstack/react-router' {
       id: '/clerk'
       path: '/clerk'
       fullPath: '/clerk'
-      preLoaderRoute: typeof ClerkRouteRouteImport
+      preLoaderRoute: typeof ClerkRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -441,17 +444,17 @@ declare module '@tanstack/react-router' {
     }
     '/clerk/_authenticated': {
       id: '/clerk/_authenticated'
-      path: ''
+      path: '/clerk'
       fullPath: '/clerk'
       preLoaderRoute: typeof ClerkAuthenticatedRouteRouteImport
-      parentRoute: typeof ClerkRouteRoute
+      parentRoute: typeof ClerkRoute
     }
     '/clerk/(auth)': {
       id: '/clerk/(auth)'
-      path: '/'
-      fullPath: '/clerk/'
+      path: '/clerk'
+      fullPath: '/clerk'
       preLoaderRoute: typeof ClerkauthRouteRouteImport
-      parentRoute: typeof ClerkRouteRoute
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
@@ -589,23 +592,20 @@ const ClerkauthRouteRouteWithChildren = ClerkauthRouteRoute._addFileChildren(
   ClerkauthRouteRouteChildren,
 )
 
-interface ClerkRouteRouteChildren {
-  ClerkauthRouteRoute: typeof ClerkauthRouteRouteWithChildren
+interface ClerkRouteChildren {
   ClerkAuthenticatedRouteRoute: typeof ClerkAuthenticatedRouteRoute
 }
 
-const ClerkRouteRouteChildren: ClerkRouteRouteChildren = {
-  ClerkauthRouteRoute: ClerkauthRouteRouteWithChildren,
+const ClerkRouteChildren: ClerkRouteChildren = {
   ClerkAuthenticatedRouteRoute: ClerkAuthenticatedRouteRoute,
 }
 
-const ClerkRouteRouteWithChildren = ClerkRouteRoute._addFileChildren(
-  ClerkRouteRouteChildren,
-)
+const ClerkRouteWithChildren = ClerkRoute._addFileChildren(ClerkRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  ClerkRouteRoute: ClerkRouteRouteWithChildren,
+  ClerkauthRouteRoute: ClerkauthRouteRouteWithChildren,
+  ClerkRoute: ClerkRouteWithChildren,
   authForgotPasswordRoute: authForgotPasswordRoute,
   authOtpRoute: authOtpRoute,
   authSignInRoute: authSignInRoute,

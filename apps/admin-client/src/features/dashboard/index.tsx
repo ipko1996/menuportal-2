@@ -15,6 +15,7 @@ import { Search } from '@/components/search';
 import { ThemeSwitch } from '@/components/theme-switch';
 import { Overview } from './components/overview';
 import { RecentSales } from './components/recent-sales';
+import { UserButton } from '@clerk/clerk-react';
 
 export default function Dashboard() {
   return (
@@ -25,7 +26,7 @@ export default function Dashboard() {
         <div className="ml-auto flex items-center space-x-4">
           <Search />
           <ThemeSwitch />
-          <ProfileDropdown />
+          <UserButton />
         </div>
       </Header>
 
