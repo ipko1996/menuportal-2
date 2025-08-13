@@ -17,19 +17,25 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
-import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
-import axios from 'axios';
 
+import type { ErrorType } from '../../../utils/axios-instance';
+import { axiosInstance } from '../../../utils/axios-instance';
 import type { WeekMenuResponseDto } from '../../schemas';
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 /**
  * @summary Get all menus for a specific week
  */
 export const getMenusForWeek = (
   weekNumber: unknown,
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<WeekMenuResponseDto>> => {
-  return axios.get(`/api/week-menu/${weekNumber}`, options);
+  options?: SecondParameter<typeof axiosInstance>,
+  signal?: AbortSignal
+) => {
+  return axiosInstance<WeekMenuResponseDto>(
+    { url: `/api/week-menu/${weekNumber}`, method: 'GET', signal },
+    options
+  );
 };
 
 export const getGetMenusForWeekQueryKey = (weekNumber?: unknown) => {
@@ -38,7 +44,7 @@ export const getGetMenusForWeekQueryKey = (weekNumber?: unknown) => {
 
 export const getGetMenusForWeekQueryOptions = <
   TData = Awaited<ReturnType<typeof getMenusForWeek>>,
-  TError = AxiosError<null>
+  TError = ErrorType<null>
 >(
   weekNumber: unknown,
   options?: {
@@ -49,17 +55,17 @@ export const getGetMenusForWeekQueryOptions = <
         TData
       >
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   }
 ) => {
-  const { query: queryOptions, axios: axiosOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getGetMenusForWeekQueryKey(weekNumber);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getMenusForWeek>>> = ({
     signal,
-  }) => getMenusForWeek(weekNumber, { signal, ...axiosOptions });
+  }) => getMenusForWeek(weekNumber, requestOptions, signal);
 
   return {
     queryKey,
@@ -76,11 +82,11 @@ export const getGetMenusForWeekQueryOptions = <
 export type GetMenusForWeekQueryResult = NonNullable<
   Awaited<ReturnType<typeof getMenusForWeek>>
 >;
-export type GetMenusForWeekQueryError = AxiosError<null>;
+export type GetMenusForWeekQueryError = ErrorType<null>;
 
 export function useGetMenusForWeek<
   TData = Awaited<ReturnType<typeof getMenusForWeek>>,
-  TError = AxiosError<null>
+  TError = ErrorType<null>
 >(
   weekNumber: unknown,
   options: {
@@ -99,7 +105,7 @@ export function useGetMenusForWeek<
         >,
         'initialData'
       >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -107,7 +113,7 @@ export function useGetMenusForWeek<
 };
 export function useGetMenusForWeek<
   TData = Awaited<ReturnType<typeof getMenusForWeek>>,
-  TError = AxiosError<null>
+  TError = ErrorType<null>
 >(
   weekNumber: unknown,
   options?: {
@@ -126,7 +132,7 @@ export function useGetMenusForWeek<
         >,
         'initialData'
       >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -134,7 +140,7 @@ export function useGetMenusForWeek<
 };
 export function useGetMenusForWeek<
   TData = Awaited<ReturnType<typeof getMenusForWeek>>,
-  TError = AxiosError<null>
+  TError = ErrorType<null>
 >(
   weekNumber: unknown,
   options?: {
@@ -145,7 +151,7 @@ export function useGetMenusForWeek<
         TData
       >
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -157,7 +163,7 @@ export function useGetMenusForWeek<
 
 export function useGetMenusForWeek<
   TData = Awaited<ReturnType<typeof getMenusForWeek>>,
-  TError = AxiosError<null>
+  TError = ErrorType<null>
 >(
   weekNumber: unknown,
   options?: {
@@ -168,7 +174,7 @@ export function useGetMenusForWeek<
         TData
       >
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {

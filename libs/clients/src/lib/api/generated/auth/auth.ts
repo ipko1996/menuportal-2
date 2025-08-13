@@ -17,18 +17,24 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
-import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
-import axios from 'axios';
 
+import type { ErrorType } from '../../../utils/axios-instance';
+import { axiosInstance } from '../../../utils/axios-instance';
 import type { UserDto, UserDtoWithRestaurant } from '../../schemas';
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 /**
  * @summary Get the current user
  */
 export const getCurrentUser = (
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<UserDto>> => {
-  return axios.get(`/api/auth`, options);
+  options?: SecondParameter<typeof axiosInstance>,
+  signal?: AbortSignal
+) => {
+  return axiosInstance<UserDto>(
+    { url: `/api/auth`, method: 'GET', signal },
+    options
+  );
 };
 
 export const getGetCurrentUserQueryKey = () => {
@@ -37,20 +43,20 @@ export const getGetCurrentUserQueryKey = () => {
 
 export const getGetCurrentUserQueryOptions = <
   TData = Awaited<ReturnType<typeof getCurrentUser>>,
-  TError = AxiosError<null | null | null>
+  TError = ErrorType<null | null | null>
 >(options?: {
   query?: Partial<
     UseQueryOptions<Awaited<ReturnType<typeof getCurrentUser>>, TError, TData>
   >;
-  axios?: AxiosRequestConfig;
+  request?: SecondParameter<typeof axiosInstance>;
 }) => {
-  const { query: queryOptions, axios: axiosOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getGetCurrentUserQueryKey();
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getCurrentUser>>> = ({
     signal,
-  }) => getCurrentUser({ signal, ...axiosOptions });
+  }) => getCurrentUser(requestOptions, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getCurrentUser>>,
@@ -62,11 +68,11 @@ export const getGetCurrentUserQueryOptions = <
 export type GetCurrentUserQueryResult = NonNullable<
   Awaited<ReturnType<typeof getCurrentUser>>
 >;
-export type GetCurrentUserQueryError = AxiosError<null | null | null>;
+export type GetCurrentUserQueryError = ErrorType<null | null | null>;
 
 export function useGetCurrentUser<
   TData = Awaited<ReturnType<typeof getCurrentUser>>,
-  TError = AxiosError<null | null | null>
+  TError = ErrorType<null | null | null>
 >(
   options: {
     query: Partial<
@@ -80,7 +86,7 @@ export function useGetCurrentUser<
         >,
         'initialData'
       >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -88,7 +94,7 @@ export function useGetCurrentUser<
 };
 export function useGetCurrentUser<
   TData = Awaited<ReturnType<typeof getCurrentUser>>,
-  TError = AxiosError<null | null | null>
+  TError = ErrorType<null | null | null>
 >(
   options?: {
     query?: Partial<
@@ -102,7 +108,7 @@ export function useGetCurrentUser<
         >,
         'initialData'
       >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -110,13 +116,13 @@ export function useGetCurrentUser<
 };
 export function useGetCurrentUser<
   TData = Awaited<ReturnType<typeof getCurrentUser>>,
-  TError = AxiosError<null | null | null>
+  TError = ErrorType<null | null | null>
 >(
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getCurrentUser>>, TError, TData>
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -128,13 +134,13 @@ export function useGetCurrentUser<
 
 export function useGetCurrentUser<
   TData = Awaited<ReturnType<typeof getCurrentUser>>,
-  TError = AxiosError<null | null | null>
+  TError = ErrorType<null | null | null>
 >(
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getCurrentUser>>, TError, TData>
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -156,9 +162,13 @@ export function useGetCurrentUser<
  * @summary Get the current user with restaurant
  */
 export const getCurrentUserWithRestaurant = (
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<UserDtoWithRestaurant>> => {
-  return axios.get(`/api/auth/with-restaurant`, options);
+  options?: SecondParameter<typeof axiosInstance>,
+  signal?: AbortSignal
+) => {
+  return axiosInstance<UserDtoWithRestaurant>(
+    { url: `/api/auth/with-restaurant`, method: 'GET', signal },
+    options
+  );
 };
 
 export const getGetCurrentUserWithRestaurantQueryKey = () => {
@@ -167,7 +177,7 @@ export const getGetCurrentUserWithRestaurantQueryKey = () => {
 
 export const getGetCurrentUserWithRestaurantQueryOptions = <
   TData = Awaited<ReturnType<typeof getCurrentUserWithRestaurant>>,
-  TError = AxiosError<null | null | null>
+  TError = ErrorType<null | null | null>
 >(options?: {
   query?: Partial<
     UseQueryOptions<
@@ -176,16 +186,16 @@ export const getGetCurrentUserWithRestaurantQueryOptions = <
       TData
     >
   >;
-  axios?: AxiosRequestConfig;
+  request?: SecondParameter<typeof axiosInstance>;
 }) => {
-  const { query: queryOptions, axios: axiosOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getGetCurrentUserWithRestaurantQueryKey();
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof getCurrentUserWithRestaurant>>
-  > = ({ signal }) => getCurrentUserWithRestaurant({ signal, ...axiosOptions });
+  > = ({ signal }) => getCurrentUserWithRestaurant(requestOptions, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getCurrentUserWithRestaurant>>,
@@ -197,13 +207,13 @@ export const getGetCurrentUserWithRestaurantQueryOptions = <
 export type GetCurrentUserWithRestaurantQueryResult = NonNullable<
   Awaited<ReturnType<typeof getCurrentUserWithRestaurant>>
 >;
-export type GetCurrentUserWithRestaurantQueryError = AxiosError<
+export type GetCurrentUserWithRestaurantQueryError = ErrorType<
   null | null | null
 >;
 
 export function useGetCurrentUserWithRestaurant<
   TData = Awaited<ReturnType<typeof getCurrentUserWithRestaurant>>,
-  TError = AxiosError<null | null | null>
+  TError = ErrorType<null | null | null>
 >(
   options: {
     query: Partial<
@@ -221,7 +231,7 @@ export function useGetCurrentUserWithRestaurant<
         >,
         'initialData'
       >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -229,7 +239,7 @@ export function useGetCurrentUserWithRestaurant<
 };
 export function useGetCurrentUserWithRestaurant<
   TData = Awaited<ReturnType<typeof getCurrentUserWithRestaurant>>,
-  TError = AxiosError<null | null | null>
+  TError = ErrorType<null | null | null>
 >(
   options?: {
     query?: Partial<
@@ -247,7 +257,7 @@ export function useGetCurrentUserWithRestaurant<
         >,
         'initialData'
       >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -255,7 +265,7 @@ export function useGetCurrentUserWithRestaurant<
 };
 export function useGetCurrentUserWithRestaurant<
   TData = Awaited<ReturnType<typeof getCurrentUserWithRestaurant>>,
-  TError = AxiosError<null | null | null>
+  TError = ErrorType<null | null | null>
 >(
   options?: {
     query?: Partial<
@@ -265,7 +275,7 @@ export function useGetCurrentUserWithRestaurant<
         TData
       >
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -277,7 +287,7 @@ export function useGetCurrentUserWithRestaurant<
 
 export function useGetCurrentUserWithRestaurant<
   TData = Awaited<ReturnType<typeof getCurrentUserWithRestaurant>>,
-  TError = AxiosError<null | null | null>
+  TError = ErrorType<null | null | null>
 >(
   options?: {
     query?: Partial<
@@ -287,7 +297,7 @@ export function useGetCurrentUserWithRestaurant<
         TData
       >
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {

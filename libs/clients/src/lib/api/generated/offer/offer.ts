@@ -20,58 +20,70 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
-import axios from 'axios';
 
+import type { BodyType,ErrorType } from '../../../utils/axios-instance';
+import { axiosInstance } from '../../../utils/axios-instance';
 import type {
   CreateOfferDto,
   OfferResponseDto,
   UpdateOfferDto,
 } from '../../schemas';
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
 /**
  * @summary Create a new offer
  */
 export const createOffer = (
-  createOfferDto: CreateOfferDto,
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<OfferResponseDto>> => {
-  return axios.post(`/api/offer`, createOfferDto, options);
+  createOfferDto: BodyType<CreateOfferDto>,
+  options?: SecondParameter<typeof axiosInstance>,
+  signal?: AbortSignal
+) => {
+  return axiosInstance<OfferResponseDto>(
+    {
+      url: `/api/offer`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: createOfferDto,
+      signal,
+    },
+    options
+  );
 };
 
 export const getCreateOfferMutationOptions = <
-  TError = AxiosError<unknown>,
+  TError = ErrorType<unknown>,
   TContext = unknown
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createOffer>>,
     TError,
-    { data: CreateOfferDto },
+    { data: BodyType<CreateOfferDto> },
     TContext
   >;
-  axios?: AxiosRequestConfig;
+  request?: SecondParameter<typeof axiosInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createOffer>>,
   TError,
-  { data: CreateOfferDto },
+  { data: BodyType<CreateOfferDto> },
   TContext
 > => {
   const mutationKey = ['createOffer'];
-  const { mutation: mutationOptions, axios: axiosOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, axios: undefined };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createOffer>>,
-    { data: CreateOfferDto }
+    { data: BodyType<CreateOfferDto> }
   > = props => {
     const { data } = props ?? {};
 
-    return createOffer(data, axiosOptions);
+    return createOffer(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -80,30 +92,27 @@ export const getCreateOfferMutationOptions = <
 export type CreateOfferMutationResult = NonNullable<
   Awaited<ReturnType<typeof createOffer>>
 >;
-export type CreateOfferMutationBody = CreateOfferDto;
-export type CreateOfferMutationError = AxiosError<unknown>;
+export type CreateOfferMutationBody = BodyType<CreateOfferDto>;
+export type CreateOfferMutationError = ErrorType<unknown>;
 
 /**
  * @summary Create a new offer
  */
-export const useCreateOffer = <
-  TError = AxiosError<unknown>,
-  TContext = unknown
->(
+export const useCreateOffer = <TError = ErrorType<unknown>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createOffer>>,
       TError,
-      { data: CreateOfferDto },
+      { data: BodyType<CreateOfferDto> },
       TContext
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
   Awaited<ReturnType<typeof createOffer>>,
   TError,
-  { data: CreateOfferDto },
+  { data: BodyType<CreateOfferDto> },
   TContext
 > => {
   const mutationOptions = getCreateOfferMutationOptions(options);
@@ -114,9 +123,13 @@ export const useCreateOffer = <
  * @summary Get all offers
  */
 export const getAllOffers = (
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<null>> => {
-  return axios.get(`/api/offer`, options);
+  options?: SecondParameter<typeof axiosInstance>,
+  signal?: AbortSignal
+) => {
+  return axiosInstance<null>(
+    { url: `/api/offer`, method: 'GET', signal },
+    options
+  );
 };
 
 export const getGetAllOffersQueryKey = () => {
@@ -125,20 +138,20 @@ export const getGetAllOffersQueryKey = () => {
 
 export const getGetAllOffersQueryOptions = <
   TData = Awaited<ReturnType<typeof getAllOffers>>,
-  TError = AxiosError<unknown>
+  TError = ErrorType<unknown>
 >(options?: {
   query?: Partial<
     UseQueryOptions<Awaited<ReturnType<typeof getAllOffers>>, TError, TData>
   >;
-  axios?: AxiosRequestConfig;
+  request?: SecondParameter<typeof axiosInstance>;
 }) => {
-  const { query: queryOptions, axios: axiosOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getGetAllOffersQueryKey();
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllOffers>>> = ({
     signal,
-  }) => getAllOffers({ signal, ...axiosOptions });
+  }) => getAllOffers(requestOptions, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getAllOffers>>,
@@ -150,11 +163,11 @@ export const getGetAllOffersQueryOptions = <
 export type GetAllOffersQueryResult = NonNullable<
   Awaited<ReturnType<typeof getAllOffers>>
 >;
-export type GetAllOffersQueryError = AxiosError<unknown>;
+export type GetAllOffersQueryError = ErrorType<unknown>;
 
 export function useGetAllOffers<
   TData = Awaited<ReturnType<typeof getAllOffers>>,
-  TError = AxiosError<unknown>
+  TError = ErrorType<unknown>
 >(
   options: {
     query: Partial<
@@ -168,7 +181,7 @@ export function useGetAllOffers<
         >,
         'initialData'
       >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -176,7 +189,7 @@ export function useGetAllOffers<
 };
 export function useGetAllOffers<
   TData = Awaited<ReturnType<typeof getAllOffers>>,
-  TError = AxiosError<unknown>
+  TError = ErrorType<unknown>
 >(
   options?: {
     query?: Partial<
@@ -190,7 +203,7 @@ export function useGetAllOffers<
         >,
         'initialData'
       >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -198,13 +211,13 @@ export function useGetAllOffers<
 };
 export function useGetAllOffers<
   TData = Awaited<ReturnType<typeof getAllOffers>>,
-  TError = AxiosError<unknown>
+  TError = ErrorType<unknown>
 >(
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getAllOffers>>, TError, TData>
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -216,13 +229,13 @@ export function useGetAllOffers<
 
 export function useGetAllOffers<
   TData = Awaited<ReturnType<typeof getAllOffers>>,
-  TError = AxiosError<unknown>
+  TError = ErrorType<unknown>
 >(
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getAllOffers>>, TError, TData>
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -245,9 +258,13 @@ export function useGetAllOffers<
  */
 export const getOfferById = (
   id: number,
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<OfferResponseDto>> => {
-  return axios.get(`/api/offer/${id}`, options);
+  options?: SecondParameter<typeof axiosInstance>,
+  signal?: AbortSignal
+) => {
+  return axiosInstance<OfferResponseDto>(
+    { url: `/api/offer/${id}`, method: 'GET', signal },
+    options
+  );
 };
 
 export const getGetOfferByIdQueryKey = (id?: number) => {
@@ -256,23 +273,23 @@ export const getGetOfferByIdQueryKey = (id?: number) => {
 
 export const getGetOfferByIdQueryOptions = <
   TData = Awaited<ReturnType<typeof getOfferById>>,
-  TError = AxiosError<unknown>
+  TError = ErrorType<unknown>
 >(
   id: number,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getOfferById>>, TError, TData>
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   }
 ) => {
-  const { query: queryOptions, axios: axiosOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getGetOfferByIdQueryKey(id);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getOfferById>>> = ({
     signal,
-  }) => getOfferById(id, { signal, ...axiosOptions });
+  }) => getOfferById(id, requestOptions, signal);
 
   return {
     queryKey,
@@ -289,11 +306,11 @@ export const getGetOfferByIdQueryOptions = <
 export type GetOfferByIdQueryResult = NonNullable<
   Awaited<ReturnType<typeof getOfferById>>
 >;
-export type GetOfferByIdQueryError = AxiosError<unknown>;
+export type GetOfferByIdQueryError = ErrorType<unknown>;
 
 export function useGetOfferById<
   TData = Awaited<ReturnType<typeof getOfferById>>,
-  TError = AxiosError<unknown>
+  TError = ErrorType<unknown>
 >(
   id: number,
   options: {
@@ -308,7 +325,7 @@ export function useGetOfferById<
         >,
         'initialData'
       >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -316,7 +333,7 @@ export function useGetOfferById<
 };
 export function useGetOfferById<
   TData = Awaited<ReturnType<typeof getOfferById>>,
-  TError = AxiosError<unknown>
+  TError = ErrorType<unknown>
 >(
   id: number,
   options?: {
@@ -331,7 +348,7 @@ export function useGetOfferById<
         >,
         'initialData'
       >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -339,14 +356,14 @@ export function useGetOfferById<
 };
 export function useGetOfferById<
   TData = Awaited<ReturnType<typeof getOfferById>>,
-  TError = AxiosError<unknown>
+  TError = ErrorType<unknown>
 >(
   id: number,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getOfferById>>, TError, TData>
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -358,14 +375,14 @@ export function useGetOfferById<
 
 export function useGetOfferById<
   TData = Awaited<ReturnType<typeof getOfferById>>,
-  TError = AxiosError<unknown>
+  TError = ErrorType<unknown>
 >(
   id: number,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getOfferById>>, TError, TData>
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -388,45 +405,53 @@ export function useGetOfferById<
  */
 export const updateOffer = (
   id: number,
-  updateOfferDto: UpdateOfferDto,
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<OfferResponseDto>> => {
-  return axios.patch(`/api/offer/${id}`, updateOfferDto, options);
+  updateOfferDto: BodyType<UpdateOfferDto>,
+  options?: SecondParameter<typeof axiosInstance>
+) => {
+  return axiosInstance<OfferResponseDto>(
+    {
+      url: `/api/offer/${id}`,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      data: updateOfferDto,
+    },
+    options
+  );
 };
 
 export const getUpdateOfferMutationOptions = <
-  TError = AxiosError<unknown>,
+  TError = ErrorType<unknown>,
   TContext = unknown
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateOffer>>,
     TError,
-    { id: number; data: UpdateOfferDto },
+    { id: number; data: BodyType<UpdateOfferDto> },
     TContext
   >;
-  axios?: AxiosRequestConfig;
+  request?: SecondParameter<typeof axiosInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateOffer>>,
   TError,
-  { id: number; data: UpdateOfferDto },
+  { id: number; data: BodyType<UpdateOfferDto> },
   TContext
 > => {
   const mutationKey = ['updateOffer'];
-  const { mutation: mutationOptions, axios: axiosOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, axios: undefined };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateOffer>>,
-    { id: number; data: UpdateOfferDto }
+    { id: number; data: BodyType<UpdateOfferDto> }
   > = props => {
     const { id, data } = props ?? {};
 
-    return updateOffer(id, data, axiosOptions);
+    return updateOffer(id, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -435,30 +460,27 @@ export const getUpdateOfferMutationOptions = <
 export type UpdateOfferMutationResult = NonNullable<
   Awaited<ReturnType<typeof updateOffer>>
 >;
-export type UpdateOfferMutationBody = UpdateOfferDto;
-export type UpdateOfferMutationError = AxiosError<unknown>;
+export type UpdateOfferMutationBody = BodyType<UpdateOfferDto>;
+export type UpdateOfferMutationError = ErrorType<unknown>;
 
 /**
  * @summary Update an existing offer
  */
-export const useUpdateOffer = <
-  TError = AxiosError<unknown>,
-  TContext = unknown
->(
+export const useUpdateOffer = <TError = ErrorType<unknown>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateOffer>>,
       TError,
-      { id: number; data: UpdateOfferDto },
+      { id: number; data: BodyType<UpdateOfferDto> },
       TContext
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
   Awaited<ReturnType<typeof updateOffer>>,
   TError,
-  { id: number; data: UpdateOfferDto },
+  { id: number; data: BodyType<UpdateOfferDto> },
   TContext
 > => {
   const mutationOptions = getUpdateOfferMutationOptions(options);
@@ -470,13 +492,16 @@ export const useUpdateOffer = <
  */
 export const deleteOffer = (
   id: number,
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<null>> => {
-  return axios.delete(`/api/offer/${id}`, options);
+  options?: SecondParameter<typeof axiosInstance>
+) => {
+  return axiosInstance<null>(
+    { url: `/api/offer/${id}`, method: 'DELETE' },
+    options
+  );
 };
 
 export const getDeleteOfferMutationOptions = <
-  TError = AxiosError<unknown>,
+  TError = ErrorType<unknown>,
   TContext = unknown
 >(options?: {
   mutation?: UseMutationOptions<
@@ -485,7 +510,7 @@ export const getDeleteOfferMutationOptions = <
     { id: number },
     TContext
   >;
-  axios?: AxiosRequestConfig;
+  request?: SecondParameter<typeof axiosInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteOffer>>,
   TError,
@@ -493,13 +518,13 @@ export const getDeleteOfferMutationOptions = <
   TContext
 > => {
   const mutationKey = ['deleteOffer'];
-  const { mutation: mutationOptions, axios: axiosOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, axios: undefined };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteOffer>>,
@@ -507,7 +532,7 @@ export const getDeleteOfferMutationOptions = <
   > = props => {
     const { id } = props ?? {};
 
-    return deleteOffer(id, axiosOptions);
+    return deleteOffer(id, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -517,15 +542,12 @@ export type DeleteOfferMutationResult = NonNullable<
   Awaited<ReturnType<typeof deleteOffer>>
 >;
 
-export type DeleteOfferMutationError = AxiosError<unknown>;
+export type DeleteOfferMutationError = ErrorType<unknown>;
 
 /**
  * @summary Delete an offer
  */
-export const useDeleteOffer = <
-  TError = AxiosError<unknown>,
-  TContext = unknown
->(
+export const useDeleteOffer = <TError = ErrorType<unknown>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deleteOffer>>,
@@ -533,7 +555,7 @@ export const useDeleteOffer = <
       { id: number },
       TContext
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<

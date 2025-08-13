@@ -20,9 +20,9 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
-import axios from 'axios';
 
+import type { BodyType,ErrorType } from '../../../utils/axios-instance';
+import { axiosInstance } from '../../../utils/axios-instance';
 import type {
   CreateDishDto,
   DishResponseDto,
@@ -30,49 +30,61 @@ import type {
   UpdateDishDto,
 } from '../../schemas';
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
 /**
  * @summary Create a new dish
  */
 export const createDish = (
-  createDishDto: CreateDishDto,
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<DishResponseDto>> => {
-  return axios.post(`/api/dish`, createDishDto, options);
+  createDishDto: BodyType<CreateDishDto>,
+  options?: SecondParameter<typeof axiosInstance>,
+  signal?: AbortSignal
+) => {
+  return axiosInstance<DishResponseDto>(
+    {
+      url: `/api/dish`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: createDishDto,
+      signal,
+    },
+    options
+  );
 };
 
 export const getCreateDishMutationOptions = <
-  TError = AxiosError<null | null>,
+  TError = ErrorType<null | null>,
   TContext = unknown
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createDish>>,
     TError,
-    { data: CreateDishDto },
+    { data: BodyType<CreateDishDto> },
     TContext
   >;
-  axios?: AxiosRequestConfig;
+  request?: SecondParameter<typeof axiosInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createDish>>,
   TError,
-  { data: CreateDishDto },
+  { data: BodyType<CreateDishDto> },
   TContext
 > => {
   const mutationKey = ['createDish'];
-  const { mutation: mutationOptions, axios: axiosOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, axios: undefined };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createDish>>,
-    { data: CreateDishDto }
+    { data: BodyType<CreateDishDto> }
   > = props => {
     const { data } = props ?? {};
 
-    return createDish(data, axiosOptions);
+    return createDish(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -81,30 +93,30 @@ export const getCreateDishMutationOptions = <
 export type CreateDishMutationResult = NonNullable<
   Awaited<ReturnType<typeof createDish>>
 >;
-export type CreateDishMutationBody = CreateDishDto;
-export type CreateDishMutationError = AxiosError<null | null>;
+export type CreateDishMutationBody = BodyType<CreateDishDto>;
+export type CreateDishMutationError = ErrorType<null | null>;
 
 /**
  * @summary Create a new dish
  */
 export const useCreateDish = <
-  TError = AxiosError<null | null>,
+  TError = ErrorType<null | null>,
   TContext = unknown
 >(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createDish>>,
       TError,
-      { data: CreateDishDto },
+      { data: BodyType<CreateDishDto> },
       TContext
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
   Awaited<ReturnType<typeof createDish>>,
   TError,
-  { data: CreateDishDto },
+  { data: BodyType<CreateDishDto> },
   TContext
 > => {
   const mutationOptions = getCreateDishMutationOptions(options);
@@ -115,9 +127,13 @@ export const useCreateDish = <
  * @summary Get all dishes
  */
 export const getAllDishes = (
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<DishResponseDto[]>> => {
-  return axios.get(`/api/dish`, options);
+  options?: SecondParameter<typeof axiosInstance>,
+  signal?: AbortSignal
+) => {
+  return axiosInstance<DishResponseDto[]>(
+    { url: `/api/dish`, method: 'GET', signal },
+    options
+  );
 };
 
 export const getGetAllDishesQueryKey = () => {
@@ -126,20 +142,20 @@ export const getGetAllDishesQueryKey = () => {
 
 export const getGetAllDishesQueryOptions = <
   TData = Awaited<ReturnType<typeof getAllDishes>>,
-  TError = AxiosError<unknown>
+  TError = ErrorType<unknown>
 >(options?: {
   query?: Partial<
     UseQueryOptions<Awaited<ReturnType<typeof getAllDishes>>, TError, TData>
   >;
-  axios?: AxiosRequestConfig;
+  request?: SecondParameter<typeof axiosInstance>;
 }) => {
-  const { query: queryOptions, axios: axiosOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getGetAllDishesQueryKey();
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllDishes>>> = ({
     signal,
-  }) => getAllDishes({ signal, ...axiosOptions });
+  }) => getAllDishes(requestOptions, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getAllDishes>>,
@@ -151,11 +167,11 @@ export const getGetAllDishesQueryOptions = <
 export type GetAllDishesQueryResult = NonNullable<
   Awaited<ReturnType<typeof getAllDishes>>
 >;
-export type GetAllDishesQueryError = AxiosError<unknown>;
+export type GetAllDishesQueryError = ErrorType<unknown>;
 
 export function useGetAllDishes<
   TData = Awaited<ReturnType<typeof getAllDishes>>,
-  TError = AxiosError<unknown>
+  TError = ErrorType<unknown>
 >(
   options: {
     query: Partial<
@@ -169,7 +185,7 @@ export function useGetAllDishes<
         >,
         'initialData'
       >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -177,7 +193,7 @@ export function useGetAllDishes<
 };
 export function useGetAllDishes<
   TData = Awaited<ReturnType<typeof getAllDishes>>,
-  TError = AxiosError<unknown>
+  TError = ErrorType<unknown>
 >(
   options?: {
     query?: Partial<
@@ -191,7 +207,7 @@ export function useGetAllDishes<
         >,
         'initialData'
       >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -199,13 +215,13 @@ export function useGetAllDishes<
 };
 export function useGetAllDishes<
   TData = Awaited<ReturnType<typeof getAllDishes>>,
-  TError = AxiosError<unknown>
+  TError = ErrorType<unknown>
 >(
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getAllDishes>>, TError, TData>
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -217,13 +233,13 @@ export function useGetAllDishes<
 
 export function useGetAllDishes<
   TData = Awaited<ReturnType<typeof getAllDishes>>,
-  TError = AxiosError<unknown>
+  TError = ErrorType<unknown>
 >(
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getAllDishes>>, TError, TData>
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -246,12 +262,13 @@ export function useGetAllDishes<
  */
 export const searchDishesByName = (
   params: SearchDishesByNameParams,
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<DishResponseDto[]>> => {
-  return axios.get(`/api/dish/search`, {
-    ...options,
-    params: { ...params, ...options?.params },
-  });
+  options?: SecondParameter<typeof axiosInstance>,
+  signal?: AbortSignal
+) => {
+  return axiosInstance<DishResponseDto[]>(
+    { url: `/api/dish/search`, method: 'GET', params, signal },
+    options
+  );
 };
 
 export const getSearchDishesByNameQueryKey = (
@@ -262,7 +279,7 @@ export const getSearchDishesByNameQueryKey = (
 
 export const getSearchDishesByNameQueryOptions = <
   TData = Awaited<ReturnType<typeof searchDishesByName>>,
-  TError = AxiosError<null>
+  TError = ErrorType<null>
 >(
   params: SearchDishesByNameParams,
   options?: {
@@ -273,17 +290,17 @@ export const getSearchDishesByNameQueryOptions = <
         TData
       >
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   }
 ) => {
-  const { query: queryOptions, axios: axiosOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getSearchDishesByNameQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof searchDishesByName>>
-  > = ({ signal }) => searchDishesByName(params, { signal, ...axiosOptions });
+  > = ({ signal }) => searchDishesByName(params, requestOptions, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof searchDishesByName>>,
@@ -295,11 +312,11 @@ export const getSearchDishesByNameQueryOptions = <
 export type SearchDishesByNameQueryResult = NonNullable<
   Awaited<ReturnType<typeof searchDishesByName>>
 >;
-export type SearchDishesByNameQueryError = AxiosError<null>;
+export type SearchDishesByNameQueryError = ErrorType<null>;
 
 export function useSearchDishesByName<
   TData = Awaited<ReturnType<typeof searchDishesByName>>,
-  TError = AxiosError<null>
+  TError = ErrorType<null>
 >(
   params: SearchDishesByNameParams,
   options: {
@@ -318,7 +335,7 @@ export function useSearchDishesByName<
         >,
         'initialData'
       >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -326,7 +343,7 @@ export function useSearchDishesByName<
 };
 export function useSearchDishesByName<
   TData = Awaited<ReturnType<typeof searchDishesByName>>,
-  TError = AxiosError<null>
+  TError = ErrorType<null>
 >(
   params: SearchDishesByNameParams,
   options?: {
@@ -345,7 +362,7 @@ export function useSearchDishesByName<
         >,
         'initialData'
       >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -353,7 +370,7 @@ export function useSearchDishesByName<
 };
 export function useSearchDishesByName<
   TData = Awaited<ReturnType<typeof searchDishesByName>>,
-  TError = AxiosError<null>
+  TError = ErrorType<null>
 >(
   params: SearchDishesByNameParams,
   options?: {
@@ -364,7 +381,7 @@ export function useSearchDishesByName<
         TData
       >
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -376,7 +393,7 @@ export function useSearchDishesByName<
 
 export function useSearchDishesByName<
   TData = Awaited<ReturnType<typeof searchDishesByName>>,
-  TError = AxiosError<null>
+  TError = ErrorType<null>
 >(
   params: SearchDishesByNameParams,
   options?: {
@@ -387,7 +404,7 @@ export function useSearchDishesByName<
         TData
       >
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -410,9 +427,13 @@ export function useSearchDishesByName<
  */
 export const getDishById = (
   id: number,
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<DishResponseDto>> => {
-  return axios.get(`/api/dish/${id}`, options);
+  options?: SecondParameter<typeof axiosInstance>,
+  signal?: AbortSignal
+) => {
+  return axiosInstance<DishResponseDto>(
+    { url: `/api/dish/${id}`, method: 'GET', signal },
+    options
+  );
 };
 
 export const getGetDishByIdQueryKey = (id?: number) => {
@@ -421,23 +442,23 @@ export const getGetDishByIdQueryKey = (id?: number) => {
 
 export const getGetDishByIdQueryOptions = <
   TData = Awaited<ReturnType<typeof getDishById>>,
-  TError = AxiosError<null>
+  TError = ErrorType<null>
 >(
   id: number,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getDishById>>, TError, TData>
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   }
 ) => {
-  const { query: queryOptions, axios: axiosOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getGetDishByIdQueryKey(id);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getDishById>>> = ({
     signal,
-  }) => getDishById(id, { signal, ...axiosOptions });
+  }) => getDishById(id, requestOptions, signal);
 
   return {
     queryKey,
@@ -454,11 +475,11 @@ export const getGetDishByIdQueryOptions = <
 export type GetDishByIdQueryResult = NonNullable<
   Awaited<ReturnType<typeof getDishById>>
 >;
-export type GetDishByIdQueryError = AxiosError<null>;
+export type GetDishByIdQueryError = ErrorType<null>;
 
 export function useGetDishById<
   TData = Awaited<ReturnType<typeof getDishById>>,
-  TError = AxiosError<null>
+  TError = ErrorType<null>
 >(
   id: number,
   options: {
@@ -473,7 +494,7 @@ export function useGetDishById<
         >,
         'initialData'
       >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -481,7 +502,7 @@ export function useGetDishById<
 };
 export function useGetDishById<
   TData = Awaited<ReturnType<typeof getDishById>>,
-  TError = AxiosError<null>
+  TError = ErrorType<null>
 >(
   id: number,
   options?: {
@@ -496,7 +517,7 @@ export function useGetDishById<
         >,
         'initialData'
       >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -504,14 +525,14 @@ export function useGetDishById<
 };
 export function useGetDishById<
   TData = Awaited<ReturnType<typeof getDishById>>,
-  TError = AxiosError<null>
+  TError = ErrorType<null>
 >(
   id: number,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getDishById>>, TError, TData>
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -523,14 +544,14 @@ export function useGetDishById<
 
 export function useGetDishById<
   TData = Awaited<ReturnType<typeof getDishById>>,
-  TError = AxiosError<null>
+  TError = ErrorType<null>
 >(
   id: number,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getDishById>>, TError, TData>
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -553,45 +574,53 @@ export function useGetDishById<
  */
 export const updateDishById = (
   id: number,
-  updateDishDto: UpdateDishDto,
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<DishResponseDto>> => {
-  return axios.patch(`/api/dish/${id}`, updateDishDto, options);
+  updateDishDto: BodyType<UpdateDishDto>,
+  options?: SecondParameter<typeof axiosInstance>
+) => {
+  return axiosInstance<DishResponseDto>(
+    {
+      url: `/api/dish/${id}`,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      data: updateDishDto,
+    },
+    options
+  );
 };
 
 export const getUpdateDishByIdMutationOptions = <
-  TError = AxiosError<null | null>,
+  TError = ErrorType<null | null>,
   TContext = unknown
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateDishById>>,
     TError,
-    { id: number; data: UpdateDishDto },
+    { id: number; data: BodyType<UpdateDishDto> },
     TContext
   >;
-  axios?: AxiosRequestConfig;
+  request?: SecondParameter<typeof axiosInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateDishById>>,
   TError,
-  { id: number; data: UpdateDishDto },
+  { id: number; data: BodyType<UpdateDishDto> },
   TContext
 > => {
   const mutationKey = ['updateDishById'];
-  const { mutation: mutationOptions, axios: axiosOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, axios: undefined };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateDishById>>,
-    { id: number; data: UpdateDishDto }
+    { id: number; data: BodyType<UpdateDishDto> }
   > = props => {
     const { id, data } = props ?? {};
 
-    return updateDishById(id, data, axiosOptions);
+    return updateDishById(id, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -600,30 +629,30 @@ export const getUpdateDishByIdMutationOptions = <
 export type UpdateDishByIdMutationResult = NonNullable<
   Awaited<ReturnType<typeof updateDishById>>
 >;
-export type UpdateDishByIdMutationBody = UpdateDishDto;
-export type UpdateDishByIdMutationError = AxiosError<null | null>;
+export type UpdateDishByIdMutationBody = BodyType<UpdateDishDto>;
+export type UpdateDishByIdMutationError = ErrorType<null | null>;
 
 /**
  * @summary Update a dish by ID
  */
 export const useUpdateDishById = <
-  TError = AxiosError<null | null>,
+  TError = ErrorType<null | null>,
   TContext = unknown
 >(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateDishById>>,
       TError,
-      { id: number; data: UpdateDishDto },
+      { id: number; data: BodyType<UpdateDishDto> },
       TContext
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
   Awaited<ReturnType<typeof updateDishById>>,
   TError,
-  { id: number; data: UpdateDishDto },
+  { id: number; data: BodyType<UpdateDishDto> },
   TContext
 > => {
   const mutationOptions = getUpdateDishByIdMutationOptions(options);
@@ -635,13 +664,16 @@ export const useUpdateDishById = <
  */
 export const deleteDishById = (
   id: number,
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<null>> => {
-  return axios.delete(`/api/dish/${id}`, options);
+  options?: SecondParameter<typeof axiosInstance>
+) => {
+  return axiosInstance<null>(
+    { url: `/api/dish/${id}`, method: 'DELETE' },
+    options
+  );
 };
 
 export const getDeleteDishByIdMutationOptions = <
-  TError = AxiosError<null>,
+  TError = ErrorType<null>,
   TContext = unknown
 >(options?: {
   mutation?: UseMutationOptions<
@@ -650,7 +682,7 @@ export const getDeleteDishByIdMutationOptions = <
     { id: number },
     TContext
   >;
-  axios?: AxiosRequestConfig;
+  request?: SecondParameter<typeof axiosInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteDishById>>,
   TError,
@@ -658,13 +690,13 @@ export const getDeleteDishByIdMutationOptions = <
   TContext
 > => {
   const mutationKey = ['deleteDishById'];
-  const { mutation: mutationOptions, axios: axiosOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, axios: undefined };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteDishById>>,
@@ -672,7 +704,7 @@ export const getDeleteDishByIdMutationOptions = <
   > = props => {
     const { id } = props ?? {};
 
-    return deleteDishById(id, axiosOptions);
+    return deleteDishById(id, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -682,15 +714,12 @@ export type DeleteDishByIdMutationResult = NonNullable<
   Awaited<ReturnType<typeof deleteDishById>>
 >;
 
-export type DeleteDishByIdMutationError = AxiosError<null>;
+export type DeleteDishByIdMutationError = ErrorType<null>;
 
 /**
  * @summary Delete a dish by ID
  */
-export const useDeleteDishById = <
-  TError = AxiosError<null>,
-  TContext = unknown
->(
+export const useDeleteDishById = <TError = ErrorType<null>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deleteDishById>>,
@@ -698,7 +727,7 @@ export const useDeleteDishById = <
       { id: number },
       TContext
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<

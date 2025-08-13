@@ -20,58 +20,70 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
-import axios from 'axios';
 
+import type { BodyType,ErrorType } from '../../../utils/axios-instance';
+import { axiosInstance } from '../../../utils/axios-instance';
 import type {
   CreateMenuDto,
   MenuResponseDto,
   UpdateMenuDto,
 } from '../../schemas';
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
 /**
  * @summary Create a new menu
  */
 export const createMenu = (
-  createMenuDto: CreateMenuDto,
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<MenuResponseDto>> => {
-  return axios.post(`/api/menu`, createMenuDto, options);
+  createMenuDto: BodyType<CreateMenuDto>,
+  options?: SecondParameter<typeof axiosInstance>,
+  signal?: AbortSignal
+) => {
+  return axiosInstance<MenuResponseDto>(
+    {
+      url: `/api/menu`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: createMenuDto,
+      signal,
+    },
+    options
+  );
 };
 
 export const getCreateMenuMutationOptions = <
-  TError = AxiosError<unknown>,
+  TError = ErrorType<unknown>,
   TContext = unknown
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createMenu>>,
     TError,
-    { data: CreateMenuDto },
+    { data: BodyType<CreateMenuDto> },
     TContext
   >;
-  axios?: AxiosRequestConfig;
+  request?: SecondParameter<typeof axiosInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createMenu>>,
   TError,
-  { data: CreateMenuDto },
+  { data: BodyType<CreateMenuDto> },
   TContext
 > => {
   const mutationKey = ['createMenu'];
-  const { mutation: mutationOptions, axios: axiosOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, axios: undefined };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createMenu>>,
-    { data: CreateMenuDto }
+    { data: BodyType<CreateMenuDto> }
   > = props => {
     const { data } = props ?? {};
 
-    return createMenu(data, axiosOptions);
+    return createMenu(data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -80,27 +92,27 @@ export const getCreateMenuMutationOptions = <
 export type CreateMenuMutationResult = NonNullable<
   Awaited<ReturnType<typeof createMenu>>
 >;
-export type CreateMenuMutationBody = CreateMenuDto;
-export type CreateMenuMutationError = AxiosError<unknown>;
+export type CreateMenuMutationBody = BodyType<CreateMenuDto>;
+export type CreateMenuMutationError = ErrorType<unknown>;
 
 /**
  * @summary Create a new menu
  */
-export const useCreateMenu = <TError = AxiosError<unknown>, TContext = unknown>(
+export const useCreateMenu = <TError = ErrorType<unknown>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createMenu>>,
       TError,
-      { data: CreateMenuDto },
+      { data: BodyType<CreateMenuDto> },
       TContext
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
   Awaited<ReturnType<typeof createMenu>>,
   TError,
-  { data: CreateMenuDto },
+  { data: BodyType<CreateMenuDto> },
   TContext
 > => {
   const mutationOptions = getCreateMenuMutationOptions(options);
@@ -111,9 +123,13 @@ export const useCreateMenu = <TError = AxiosError<unknown>, TContext = unknown>(
  * @summary Get all menus
  */
 export const getAllMenus = (
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<null>> => {
-  return axios.get(`/api/menu`, options);
+  options?: SecondParameter<typeof axiosInstance>,
+  signal?: AbortSignal
+) => {
+  return axiosInstance<null>(
+    { url: `/api/menu`, method: 'GET', signal },
+    options
+  );
 };
 
 export const getGetAllMenusQueryKey = () => {
@@ -122,20 +138,20 @@ export const getGetAllMenusQueryKey = () => {
 
 export const getGetAllMenusQueryOptions = <
   TData = Awaited<ReturnType<typeof getAllMenus>>,
-  TError = AxiosError<unknown>
+  TError = ErrorType<unknown>
 >(options?: {
   query?: Partial<
     UseQueryOptions<Awaited<ReturnType<typeof getAllMenus>>, TError, TData>
   >;
-  axios?: AxiosRequestConfig;
+  request?: SecondParameter<typeof axiosInstance>;
 }) => {
-  const { query: queryOptions, axios: axiosOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getGetAllMenusQueryKey();
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllMenus>>> = ({
     signal,
-  }) => getAllMenus({ signal, ...axiosOptions });
+  }) => getAllMenus(requestOptions, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getAllMenus>>,
@@ -147,11 +163,11 @@ export const getGetAllMenusQueryOptions = <
 export type GetAllMenusQueryResult = NonNullable<
   Awaited<ReturnType<typeof getAllMenus>>
 >;
-export type GetAllMenusQueryError = AxiosError<unknown>;
+export type GetAllMenusQueryError = ErrorType<unknown>;
 
 export function useGetAllMenus<
   TData = Awaited<ReturnType<typeof getAllMenus>>,
-  TError = AxiosError<unknown>
+  TError = ErrorType<unknown>
 >(
   options: {
     query: Partial<
@@ -165,7 +181,7 @@ export function useGetAllMenus<
         >,
         'initialData'
       >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -173,7 +189,7 @@ export function useGetAllMenus<
 };
 export function useGetAllMenus<
   TData = Awaited<ReturnType<typeof getAllMenus>>,
-  TError = AxiosError<unknown>
+  TError = ErrorType<unknown>
 >(
   options?: {
     query?: Partial<
@@ -187,7 +203,7 @@ export function useGetAllMenus<
         >,
         'initialData'
       >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -195,13 +211,13 @@ export function useGetAllMenus<
 };
 export function useGetAllMenus<
   TData = Awaited<ReturnType<typeof getAllMenus>>,
-  TError = AxiosError<unknown>
+  TError = ErrorType<unknown>
 >(
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getAllMenus>>, TError, TData>
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -213,13 +229,13 @@ export function useGetAllMenus<
 
 export function useGetAllMenus<
   TData = Awaited<ReturnType<typeof getAllMenus>>,
-  TError = AxiosError<unknown>
+  TError = ErrorType<unknown>
 >(
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getAllMenus>>, TError, TData>
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -242,9 +258,13 @@ export function useGetAllMenus<
  */
 export const getMenuById = (
   id: string,
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<null>> => {
-  return axios.get(`/api/menu/${id}`, options);
+  options?: SecondParameter<typeof axiosInstance>,
+  signal?: AbortSignal
+) => {
+  return axiosInstance<null>(
+    { url: `/api/menu/${id}`, method: 'GET', signal },
+    options
+  );
 };
 
 export const getGetMenuByIdQueryKey = (id?: string) => {
@@ -253,23 +273,23 @@ export const getGetMenuByIdQueryKey = (id?: string) => {
 
 export const getGetMenuByIdQueryOptions = <
   TData = Awaited<ReturnType<typeof getMenuById>>,
-  TError = AxiosError<unknown>
+  TError = ErrorType<unknown>
 >(
   id: string,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getMenuById>>, TError, TData>
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   }
 ) => {
-  const { query: queryOptions, axios: axiosOptions } = options ?? {};
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getGetMenuByIdQueryKey(id);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getMenuById>>> = ({
     signal,
-  }) => getMenuById(id, { signal, ...axiosOptions });
+  }) => getMenuById(id, requestOptions, signal);
 
   return {
     queryKey,
@@ -286,11 +306,11 @@ export const getGetMenuByIdQueryOptions = <
 export type GetMenuByIdQueryResult = NonNullable<
   Awaited<ReturnType<typeof getMenuById>>
 >;
-export type GetMenuByIdQueryError = AxiosError<unknown>;
+export type GetMenuByIdQueryError = ErrorType<unknown>;
 
 export function useGetMenuById<
   TData = Awaited<ReturnType<typeof getMenuById>>,
-  TError = AxiosError<unknown>
+  TError = ErrorType<unknown>
 >(
   id: string,
   options: {
@@ -305,7 +325,7 @@ export function useGetMenuById<
         >,
         'initialData'
       >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -313,7 +333,7 @@ export function useGetMenuById<
 };
 export function useGetMenuById<
   TData = Awaited<ReturnType<typeof getMenuById>>,
-  TError = AxiosError<unknown>
+  TError = ErrorType<unknown>
 >(
   id: string,
   options?: {
@@ -328,7 +348,7 @@ export function useGetMenuById<
         >,
         'initialData'
       >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -336,14 +356,14 @@ export function useGetMenuById<
 };
 export function useGetMenuById<
   TData = Awaited<ReturnType<typeof getMenuById>>,
-  TError = AxiosError<unknown>
+  TError = ErrorType<unknown>
 >(
   id: string,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getMenuById>>, TError, TData>
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -355,14 +375,14 @@ export function useGetMenuById<
 
 export function useGetMenuById<
   TData = Awaited<ReturnType<typeof getMenuById>>,
-  TError = AxiosError<unknown>
+  TError = ErrorType<unknown>
 >(
   id: string,
   options?: {
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof getMenuById>>, TError, TData>
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & {
@@ -385,45 +405,53 @@ export function useGetMenuById<
  */
 export const updateMenu = (
   id: number,
-  updateMenuDto: UpdateMenuDto,
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<MenuResponseDto>> => {
-  return axios.patch(`/api/menu/${id}`, updateMenuDto, options);
+  updateMenuDto: BodyType<UpdateMenuDto>,
+  options?: SecondParameter<typeof axiosInstance>
+) => {
+  return axiosInstance<MenuResponseDto>(
+    {
+      url: `/api/menu/${id}`,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      data: updateMenuDto,
+    },
+    options
+  );
 };
 
 export const getUpdateMenuMutationOptions = <
-  TError = AxiosError<unknown>,
+  TError = ErrorType<unknown>,
   TContext = unknown
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateMenu>>,
     TError,
-    { id: number; data: UpdateMenuDto },
+    { id: number; data: BodyType<UpdateMenuDto> },
     TContext
   >;
-  axios?: AxiosRequestConfig;
+  request?: SecondParameter<typeof axiosInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateMenu>>,
   TError,
-  { id: number; data: UpdateMenuDto },
+  { id: number; data: BodyType<UpdateMenuDto> },
   TContext
 > => {
   const mutationKey = ['updateMenu'];
-  const { mutation: mutationOptions, axios: axiosOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, axios: undefined };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateMenu>>,
-    { id: number; data: UpdateMenuDto }
+    { id: number; data: BodyType<UpdateMenuDto> }
   > = props => {
     const { id, data } = props ?? {};
 
-    return updateMenu(id, data, axiosOptions);
+    return updateMenu(id, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -432,27 +460,27 @@ export const getUpdateMenuMutationOptions = <
 export type UpdateMenuMutationResult = NonNullable<
   Awaited<ReturnType<typeof updateMenu>>
 >;
-export type UpdateMenuMutationBody = UpdateMenuDto;
-export type UpdateMenuMutationError = AxiosError<unknown>;
+export type UpdateMenuMutationBody = BodyType<UpdateMenuDto>;
+export type UpdateMenuMutationError = ErrorType<unknown>;
 
 /**
  * @summary Update an existing menu
  */
-export const useUpdateMenu = <TError = AxiosError<unknown>, TContext = unknown>(
+export const useUpdateMenu = <TError = ErrorType<unknown>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateMenu>>,
       TError,
-      { id: number; data: UpdateMenuDto },
+      { id: number; data: BodyType<UpdateMenuDto> },
       TContext
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
   Awaited<ReturnType<typeof updateMenu>>,
   TError,
-  { id: number; data: UpdateMenuDto },
+  { id: number; data: BodyType<UpdateMenuDto> },
   TContext
 > => {
   const mutationOptions = getUpdateMenuMutationOptions(options);
@@ -464,13 +492,16 @@ export const useUpdateMenu = <TError = AxiosError<unknown>, TContext = unknown>(
  */
 export const deleteMenu = (
   id: number,
-  options?: AxiosRequestConfig
-): Promise<AxiosResponse<null>> => {
-  return axios.delete(`/api/menu/${id}`, options);
+  options?: SecondParameter<typeof axiosInstance>
+) => {
+  return axiosInstance<null>(
+    { url: `/api/menu/${id}`, method: 'DELETE' },
+    options
+  );
 };
 
 export const getDeleteMenuMutationOptions = <
-  TError = AxiosError<unknown>,
+  TError = ErrorType<unknown>,
   TContext = unknown
 >(options?: {
   mutation?: UseMutationOptions<
@@ -479,7 +510,7 @@ export const getDeleteMenuMutationOptions = <
     { id: number },
     TContext
   >;
-  axios?: AxiosRequestConfig;
+  request?: SecondParameter<typeof axiosInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteMenu>>,
   TError,
@@ -487,13 +518,13 @@ export const getDeleteMenuMutationOptions = <
   TContext
 > => {
   const mutationKey = ['deleteMenu'];
-  const { mutation: mutationOptions, axios: axiosOptions } = options
+  const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, axios: undefined };
+    : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteMenu>>,
@@ -501,7 +532,7 @@ export const getDeleteMenuMutationOptions = <
   > = props => {
     const { id } = props ?? {};
 
-    return deleteMenu(id, axiosOptions);
+    return deleteMenu(id, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -511,12 +542,12 @@ export type DeleteMenuMutationResult = NonNullable<
   Awaited<ReturnType<typeof deleteMenu>>
 >;
 
-export type DeleteMenuMutationError = AxiosError<unknown>;
+export type DeleteMenuMutationError = ErrorType<unknown>;
 
 /**
  * @summary Delete a menu
  */
-export const useDeleteMenu = <TError = AxiosError<unknown>, TContext = unknown>(
+export const useDeleteMenu = <TError = ErrorType<unknown>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deleteMenu>>,
@@ -524,7 +555,7 @@ export const useDeleteMenu = <TError = AxiosError<unknown>, TContext = unknown>(
       { id: number },
       TContext
     >;
-    axios?: AxiosRequestConfig;
+    request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<

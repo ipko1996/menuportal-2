@@ -13,6 +13,12 @@ export default defineConfig({
       workspace: '../../libs/clients/src/lib/api/',
       target: './generated/',
       schemas: './schemas',
+      override: {
+        mutator: {
+          path: '../utils/axios-instance.ts',
+          name: 'axiosInstance',
+        },
+      },
     },
   },
 });
