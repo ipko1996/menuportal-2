@@ -1,39 +1,43 @@
 import type { AxiosRequestConfig } from 'axios';
 import Axios, { AxiosError } from 'axios';
 
-export const AXIOS_INSTANCE = Axios.create({
-  baseURL: process.env['API_BASE_URL'] ?? 'http://localhost:3000',
-});
+// This will be initialized in the setup function
+let AXIOS_INSTANCE: ReturnType<typeof Axios.create>;
 
 type TokenProvider = () => Promise<string | null>;
 
 let tokenProvider: TokenProvider | undefined;
 
+export const setupAxiosInstance = (baseURL: string) => {
+  AXIOS_INSTANCE = Axios.create({ baseURL });
+
+  AXIOS_INSTANCE.interceptors.request.use(
+    async config => {
+      if (tokenProvider) {
+        const token = await tokenProvider();
+        if (token) {
+          console.log('Adding token to request:', `${token.slice(0, 10)}...`);
+          // @ts-expect-error any
+          config.headers = {
+            ...config.headers,
+            Authorization: `Bearer ${token}`,
+          };
+        } else {
+          console.log('No token available');
+        }
+      }
+      return config;
+    },
+    // eslint-disable-next-line promise/no-promise-in-callback, promise/prefer-await-to-callbacks
+    error => Promise.reject(error)
+  );
+};
+
 export const setTokenProvider = (provider: TokenProvider) => {
   tokenProvider = provider;
 };
-AXIOS_INSTANCE.interceptors.request.use(
-  async config => {
-    if (tokenProvider) {
-      const token = await tokenProvider();
-      if (token) {
-        console.log('Adding token to request:', `${token.slice(0, 10)}...`);
-        // @ts-expect-error any
-        config.headers = {
-          ...config.headers,
-          Authorization: `Bearer ${token}`,
-        };
-      } else {
-        console.log('No token available');
-      }
-    }
-    return config;
-  },
-  // eslint-disable-next-line promise/no-promise-in-callback, promise/prefer-await-to-callbacks
-  error => Promise.reject(error)
-);
 
-// add a second `options` argument here if you want to pass extra options to each generated query
+// add a second options argument here if you want to pass extra options to each generated query
 export const axiosInstance = <T>(
   config: AxiosRequestConfig,
   options?: AxiosRequestConfig

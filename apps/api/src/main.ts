@@ -58,6 +58,11 @@ async function bootstrap() {
     jsonDocumentUrl: `/${globalPrefix}/docs-json`,
   });
 
+  app.enableCors({
+    origin: ['http://localhost:3000', 'http://localhost:4200'],
+    credentials: true,
+  });
+
   app.useGlobalPipes(new ValidationPipe());
   const port = process.env.PORT ?? 3000;
   await app.listen(port);

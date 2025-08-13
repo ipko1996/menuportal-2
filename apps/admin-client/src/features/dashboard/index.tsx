@@ -16,8 +16,10 @@ import { ThemeSwitch } from '@/components/theme-switch';
 import { Overview } from './components/overview';
 import { RecentSales } from './components/recent-sales';
 import { UserButton } from '@clerk/clerk-react';
+import { useGetMenusForWeek } from '@mono-repo/api-client';
 
 export default function Dashboard() {
+  const { data: menus, isLoading } = useGetMenusForWeek('2025-W32');
   return (
     <>
       {/* ===== Top Heading ===== */}

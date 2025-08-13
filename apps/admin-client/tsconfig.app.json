@@ -13,7 +13,8 @@
       "@/*": ["./src/*"],
       "@mono-repo/ui": ["../../libs/ui/src/index.ts"],
       "@mono-repo/ui/*": ["../../libs/ui/src/components/*"],
-      "@mono-repo/api-client": ["../../libs/clients/src/lib/api/index.ts"]
+      "@mono-repo/api-client": ["../../libs/clients/src/lib/api/index.ts"],
+      "@mono-repo/clients/utils": ["../../libs/clients/src/lib/utils/index.ts"]
     }
   },
   "exclude": [

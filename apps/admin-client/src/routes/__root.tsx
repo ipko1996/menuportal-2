@@ -9,7 +9,7 @@ import NotFoundError from '@/features/errors/not-found-error';
 import { AuthenticatedLayout } from '@/components/layout/authenticated-layout';
 import { Main } from '@/components/layout/main';
 import { ThemeSwitch } from '@/components/theme-switch';
-import { ClerkProvider } from '@clerk/clerk-react';
+import { ClerkProvider, useAuth, useUser } from '@clerk/clerk-react';
 import {
   SidebarTrigger,
   Alert,
@@ -18,8 +18,52 @@ import {
 } from '@mono-repo/ui';
 import { Separator } from '@radix-ui/react-context-menu';
 import { IconKeyOff, IconExternalLink } from '@tabler/icons-react';
+import { useAuthStore } from '@/stores/authStore';
+import { setTokenProvider, setupAxiosInstance } from '@mono-repo/clients/utils';
+import { useEffect } from 'react';
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+const BACKEND_URL =
+  import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+
+setupAxiosInstance(BACKEND_URL);
+function TokenProvider() {
+  const { getToken, isLoaded: authLoaded, isSignedIn } = useAuth();
+  const { isLoaded: userLoaded } = useUser();
+
+  useEffect(() => {
+    // Only set up token provider when Clerk is fully loaded
+    if (!authLoaded || !userLoaded) {
+      return;
+    }
+
+    // Create an async token provider function
+    const tokenProvider = async () => {
+      try {
+        if (!isSignedIn) {
+          return null;
+        }
+
+        const token = await getToken();
+        return token;
+      } catch (error) {
+        console.error('Failed to get token:', error);
+        // Optionally handle token errors (e.g., redirect to login)
+        useAuthStore.getState().auth.reset();
+        return null;
+      }
+    };
+
+    // Set the token provider function (not the result of calling it)
+    setTokenProvider(tokenProvider);
+
+    if (import.meta.env.DEV) {
+      console.log('Token provider configured successfully');
+    }
+  }, [authLoaded, userLoaded, isSignedIn, getToken]);
+
+  return null;
+}
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
@@ -39,6 +83,7 @@ export const Route = createRootRouteWithContext<{
           signInFallbackRedirectUrl="/"
           signUpFallbackRedirectUrl="/"
         >
+          <TokenProvider />
           <Outlet />
         </ClerkProvider>
         <Toaster duration={5000} />
