@@ -27,7 +27,7 @@ import type {
   CreateOfferDto,
   OfferResponseDto,
   UpdateOfferDto,
-} from '.././schemas';
+} from '../../schemas';
 
 /**
  * @summary Create a new offer

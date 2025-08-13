@@ -9,7 +9,6 @@
 export * from './create-dish-dto';
 export * from './create-menu-dto';
 export * from './create-offer-dto';
-export * from './dish-controller-find-by-name-params';
 export * from './dish-response-dto';
 export * from './menu-response-dto';
 export * from './offer-response-dto';

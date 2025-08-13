@@ -27,7 +27,7 @@ import type {
   CreateMenuDto,
   MenuResponseDto,
   UpdateMenuDto,
-} from '.././schemas';
+} from '../../schemas';
 
 /**
  * @summary Create a new menu

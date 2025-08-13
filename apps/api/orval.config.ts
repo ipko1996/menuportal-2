@@ -10,8 +10,9 @@ export default defineConfig({
       client: 'react-query',
       mode: 'tags-split',
       prettier: true,
-      target: '../../libs/clients/src/lib/api/',
-      schemas: '../../libs/clients/src/lib/api/schemas',
+      workspace: '../../libs/clients/src/lib/api/',
+      target: './generated/',
+      schemas: './schemas',
     },
   },
 });

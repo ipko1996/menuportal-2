@@ -20,7 +20,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import axios from 'axios';
 
-import type { WeekMenuResponseDto } from '.././schemas';
+import type { WeekMenuResponseDto } from '../../schemas';
 
 /**
  * @summary Get all menus for a specific week

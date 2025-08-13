@@ -20,7 +20,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import axios from 'axios';
 
-import type { UserDto, UserDtoWithRestaurant } from '.././schemas';
+import type { UserDto, UserDtoWithRestaurant } from '../../schemas';
 
 /**
  * @summary Get the current user

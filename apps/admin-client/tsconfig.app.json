@@ -12,7 +12,8 @@
     "paths": {
       "@/*": ["./src/*"],
       "@mono-repo/ui": ["../../libs/ui/src/index.ts"],
-      "@mono-repo/ui/*": ["../../libs/ui/src/components/*"] //libs/ui/src/components
+      "@mono-repo/ui/*": ["../../libs/ui/src/components/*"],
+      "@mono-repo/api-client": ["../../libs/clients/src/lib/api/index.ts"]
     }
   },
   "exclude": [

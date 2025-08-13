@@ -28,7 +28,7 @@ import type {
   DishResponseDto,
   SearchDishesByNameParams,
   UpdateDishDto,
-} from '.././schemas';
+} from '../../schemas';
 
 /**
  * @summary Create a new dish
