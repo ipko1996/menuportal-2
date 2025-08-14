@@ -1,20 +1,9 @@
 import { Button } from '@mono-repo/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@mono-repo/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@mono-repo/ui/tabs';
 import { Header } from '@/components/layout/header';
 import { Main } from '@/components/layout/main';
 import { TopNav } from '@/components/layout/top-nav';
-import { ProfileDropdown } from '@/components/profile-dropdown';
 import { Search } from '@/components/search';
 import { ThemeSwitch } from '@/components/theme-switch';
-import { Overview } from './components/overview';
-import { RecentSales } from './components/recent-sales';
 import { UserButton } from '@clerk/clerk-react';
 import { useGetMenusForWeek } from '@mono-repo/api-client';
 import WeeklyCalendar from './components/weekly-calendar';
