@@ -9,6 +9,9 @@
 export * from './create-dish-dto';
 export * from './create-menu-dto';
 export * from './create-offer-dto';
+export * from './day-menu-dto';
+export * from './day-offers-dto';
+export * from './dish';
 export * from './dish-response-dto';
 export * from './menu-response-dto';
 export * from './offer-response-dto';
@@ -20,5 +23,6 @@ export * from './update-offer-dto';
 export * from './user-dto';
 export * from './user-dto-with-restaurant';
 export * from './user-dto-with-restaurant-restaurant';
+export * from './week-menu-day-dto';
 export * from './week-menu-response-dto';
 export * from './week-menu-response-dto-days';

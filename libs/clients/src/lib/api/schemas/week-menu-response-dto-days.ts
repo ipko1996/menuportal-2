@@ -5,8 +5,9 @@
  * The API description
  * OpenAPI spec version: 1.0
  */
+import type { WeekMenuDayDto } from './week-menu-day-dto';
 
 /**
  * Daily menu data indexed by date (YYYY-MM-DD format)
  */
-export type WeekMenuResponseDtoDays = { [key: string]: unknown };
+export type WeekMenuResponseDtoDays = { [key: string]: WeekMenuDayDto };

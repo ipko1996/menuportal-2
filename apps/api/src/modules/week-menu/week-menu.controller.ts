@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiExtraModels,
   ApiOperation,
   ApiParam,
   ApiResponse,
@@ -18,9 +19,13 @@ import type { DateRange } from '@/shared/pipes';
 import { WeekToDateRangePipe } from '@/shared/pipes';
 import type { AppUser } from '@/shared/types';
 
-import { WeekMenuResponseDto } from './dto/week-menu-response.dto';
+import {
+  WeekMenuDayDto,
+  WeekMenuResponseDto,
+} from './dto/week-menu-response.dto';
 import { WeekMenuService } from './week-menu.service';
 
+@ApiExtraModels(WeekMenuDayDto)
 @Controller('week-menu')
 @UseGuards(RoleAuthGuard)
 @Roles('ADMIN', 'MANAGER')

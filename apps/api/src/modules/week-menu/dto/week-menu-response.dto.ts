@@ -1,8 +1,10 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, getSchemaPath } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsDefined,
   IsNumber,
+  IsObject,
   IsOptional,
   IsString,
   ValidateNested,
@@ -197,6 +199,8 @@ export class WeekMenuResponseDto {
 
   @ApiProperty({
     description: 'Daily menu data indexed by date (YYYY-MM-DD format)',
+    type: 'object',
+    additionalProperties: { $ref: getSchemaPath(WeekMenuDayDto) },
     example: {
       '2025-08-04': {
         offers: [],
@@ -300,5 +304,9 @@ export class WeekMenuResponseDto {
       },
     } as Record<string, WeekMenuDayDto>,
   })
+  @IsDefined()
+  @IsObject()
+  @ValidateNested({ each: true })
+  @Type(() => WeekMenuDayDto)
   days: Record<string, WeekMenuDayDto>;
 }
