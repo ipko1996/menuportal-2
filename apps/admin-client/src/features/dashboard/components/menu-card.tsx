@@ -3,7 +3,7 @@ import { Utensils } from 'lucide-react';
 
 interface MenuCardProps {
   menu: DayMenuDto;
-  onClick?: (menu: any) => void;
+  onClick?: (menu: DayMenuDto) => void;
 }
 
 export function MenuCard({ menu, onClick }: MenuCardProps) {

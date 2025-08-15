@@ -4,13 +4,13 @@ import { useState, useEffect } from 'react';
 import { DishAutocomplete } from '@/components/dish-autocomplete';
 import { Input, Button, Label } from '@mono-repo/ui';
 import { ConfirmationDialog } from './confirmation-dialog';
-import { CreateOfferDto } from '@mono-repo/api-client';
+import { CreateOfferDto, DayOffersDto } from '@mono-repo/api-client';
 import { format } from 'date-fns';
 
 interface OfferFormProps {
-  selectedDate?: Date | null;
+  selectedDate: Date;
   onSubmit: (data: CreateOfferDto) => void;
-  editingItem?: any;
+  editingItem?: DayOffersDto;
   onDelete?: () => void;
 }
 
@@ -32,7 +32,7 @@ export function OfferForm({
       setForm({
         dishId: editingItem.dish?.dishId || 0,
         price: editingItem.price || 0,
-        availability: editingItem.availability || '',
+        availability: format(selectedDate, 'yyyy-MM-dd') || '',
       });
     } else if (selectedDate) {
       const dateString = format(selectedDate, 'yyyy-MM-dd');
@@ -57,7 +57,7 @@ export function OfferForm({
       setForm({
         dishId: editingItem.dish?.dishId || 0,
         price: editingItem.price || 0,
-        availability: editingItem.availability || '',
+        availability: format(selectedDate, 'yyyy-MM-dd') || '',
       });
     } else {
       // Reset to empty when creating

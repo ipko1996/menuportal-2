@@ -12,9 +12,14 @@ import { useState } from 'react';
 import {
   useCreateOffer,
   useCreateMenu,
+  useUpdateOffer,
   CreateOfferDto,
+  UpdateOfferDto,
   CreateMenuDto,
   getGetMenusForWeekQueryKey,
+  UpdateMenuDto,
+  DayOffersDto,
+  DayMenuDto,
 } from '@mono-repo/api-client';
 import { OfferForm } from './offer-form';
 import { MenuForm } from './menu-form';
@@ -23,8 +28,12 @@ import { useQueryClient } from '@tanstack/react-query';
 interface ItemDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  selectedDate?: Date | null;
-  editingItem?: { type: 'offer' | 'menu'; data: any } | null;
+  selectedDate: Date;
+  editingItem?: {
+    id: number;
+    type: 'offer' | 'menu';
+    data: UpdateOfferDto | UpdateMenuDto;
+  } | null;
   currentWeekString: string;
 }
 
@@ -55,6 +64,16 @@ export function ItemDialog({
       },
     },
   });
+  const { mutate: updateOffer } = useUpdateOffer({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: getGetMenusForWeekQueryKey(currentWeekString),
+        });
+        console.log('Offer updated successfully');
+      },
+    },
+  });
 
   const handleOpenChange = (newOpen: boolean) => {
     if (newOpen && !editingItem) {
@@ -63,13 +82,25 @@ export function ItemDialog({
     onOpenChange(newOpen);
   };
 
-  const handleOfferSubmit = (data: CreateOfferDto) => {
+  const handleOfferSubmit = (data: CreateOfferDto | UpdateOfferDto) => {
     if (editingItem) {
       console.log('Updating offer:', data);
+      updateOffer({
+        id: editingItem.id,
+        data: {
+          availability: data.availability,
+          dishId: data.dishId,
+          price: data.price,
+        } as UpdateOfferDto,
+      });
     } else {
       console.log('Creating offer:', data);
       createOffer({
-        data,
+        data: {
+          availability: data.availability,
+          dishId: data.dishId,
+          price: data.price,
+        } as CreateOfferDto,
       });
     }
     handleOpenChange(false);
@@ -109,14 +140,14 @@ export function ItemDialog({
               <OfferForm
                 selectedDate={selectedDate}
                 onSubmit={handleOfferSubmit}
-                editingItem={editingItem.data}
+                editingItem={editingItem.data as DayOffersDto}
                 onDelete={handleDelete}
               />
             ) : (
               <MenuForm
                 selectedDate={selectedDate}
                 onSubmit={handleMenuSubmit}
-                editingItem={editingItem.data}
+                editingItem={editingItem.data as DayMenuDto}
                 onDelete={handleDelete}
               />
             )}

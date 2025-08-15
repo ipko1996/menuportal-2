@@ -5,20 +5,27 @@ import { TopNav } from '@/components/layout/top-nav';
 import { Search } from '@/components/search';
 import { ThemeSwitch } from '@/components/theme-switch';
 import { UserButton } from '@clerk/clerk-react';
-import { useGetMenusForWeek } from '@mono-repo/api-client';
+import {
+  DayMenuDto,
+  DayOffersDto,
+  UpdateMenuDto,
+  UpdateOfferDto,
+  useGetMenusForWeek,
+} from '@mono-repo/api-client';
 import WeeklyCalendar from './components/weekly-calendar';
 import { useMemo, useState } from 'react';
-import { addWeeks, getISOWeek, getYear, subWeeks } from 'date-fns';
+import { addWeeks, getISOWeek, getYear, parseISO, subWeeks } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ItemDialog } from './components/item-dialog';
 
 export default function Dashboard() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showDialog, setShowDialog] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [editingItem, setEditingItem] = useState<{
+    id: number;
     type: 'offer' | 'menu';
-    data: any;
+    data: UpdateOfferDto | UpdateMenuDto;
   } | null>(null);
 
   const currentWeekString = useMemo(() => {
@@ -48,23 +55,33 @@ export default function Dashboard() {
     setShowDialog(true);
   };
 
-  const handleOfferClick = (offer: any) => {
-    setEditingItem({ type: 'offer', data: offer });
-    setSelectedDate(null); // Clear selected date when editing
+  const handleOfferClick = (offer: DayOffersDto) => {
+    setEditingItem({ type: 'offer', data: offer, id: offer.offerId });
+    // Find the date of the selected offer
+    const offerDate = menus?.days
+      ? Object.keys(menus.days).find(date =>
+          menus.days[date].offers.some(o => o.offerId === offer.offerId)
+        )
+      : null;
+    setSelectedDate(parseISO(offerDate!)); // This can not be null if the offer exists
     setShowDialog(true);
   };
 
-  const handleMenuClick = (menu: any) => {
-    setEditingItem({ type: 'menu', data: menu });
-    setSelectedDate(null); // Clear selected date when editing
+  const handleMenuClick = (menu: DayMenuDto) => {
+    setEditingItem({ type: 'menu', data: menu, id: menu.menuId });
+    // Find the date of the selected menu
+    const dateKey = menus?.days
+      ? Object.keys(menus.days).find(date =>
+          menus.days[date].menus.some(m => m.menuId === menu.menuId)
+        )
+      : null;
+    setSelectedDate(parseISO(dateKey!)); // This can not be null if the menu exists
     setShowDialog(true);
   };
 
   const handleDialogClose = (open: boolean) => {
     setShowDialog(open);
     if (!open) {
-      // Reset all state when dialog closes
-      setSelectedDate(null);
       setEditingItem(null);
     }
   };
@@ -121,7 +138,7 @@ export default function Dashboard() {
         <ItemDialog
           open={showDialog}
           onOpenChange={handleDialogClose}
-          selectedDate={selectedDate}
+          selectedDate={selectedDate} // Pass editingItem's date
           editingItem={editingItem}
           currentWeekString={currentWeekString}
         />

@@ -4,13 +4,19 @@ import type { Locale } from 'date-fns';
 import { cn } from '@mono-repo/ui';
 import { OfferCard } from './offer-card';
 import { MenuCard } from './menu-card';
-import { WeekMenuDayDto, WeekMenuResponseDto } from '@mono-repo/api-client';
+import {
+  DayMenuDto,
+  DayOffersDto,
+  UpdateOfferDto,
+  WeekMenuDayDto,
+  WeekMenuResponseDto,
+} from '@mono-repo/api-client';
 
 interface WeeklyCalendarProps {
   currentDate: Date;
   onDayClick?: (date: Date) => void;
-  onOfferClick?: (offer: any) => void;
-  onMenuClick?: (menu: any) => void;
+  onOfferClick?: (offer: DayOffersDto) => void;
+  onMenuClick?: (menu: DayMenuDto) => void;
   locale?: Locale;
   weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   className?: string;
@@ -26,8 +32,8 @@ interface DayHeaderProps {
 interface DayCellProps {
   day: Date;
   onDayClick?: (date: Date) => void;
-  onOfferClick?: (offer: any) => void;
-  onMenuClick?: (menu: any) => void;
+  onOfferClick?: (offer: DayOffersDto) => void;
+  onMenuClick?: (menu: DayMenuDto) => void;
   children?: React.ReactNode;
   dayData?: WeekMenuDayDto;
 }

@@ -125,7 +125,13 @@ export function DishAutocomplete({
 
   const handleAddNewDish = () => {
     if (searchTerm.trim() && dishTypes.length > 0) {
-      const defaultDishType = dishTypes[0];
+      // Find main course dish type
+      const defaultDishType = dishTypes.find(
+        type => type.dishTypeValue === 'MAIN_DISH'
+      );
+      if (!defaultDishType) {
+        throw new Error('No main dish type found');
+      }
       createDish({
         data: {
           dishName: searchTerm,
@@ -165,9 +171,9 @@ export function DishAutocomplete({
           ref={inputRef}
           type="text"
           value={
-            isOpen
+            (isOpen
               ? searchTerm
-              : selectedDish?.dishName ?? searchTerm ?? dish?.dishName ?? ''
+              : selectedDish?.dishName || searchTerm || dish?.dishName) ?? ''
           }
           onChange={handleInputChange}
           onFocus={handleInputFocus}

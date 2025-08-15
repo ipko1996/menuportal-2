@@ -3,7 +3,7 @@ import { Tag } from 'lucide-react';
 
 interface OfferCardProps {
   offer: DayOffersDto;
-  onClick?: (offer: any) => void;
+  onClick?: (offer: DayOffersDto) => void;
 }
 
 export function OfferCard({ offer, onClick }: OfferCardProps) {

@@ -14,6 +14,7 @@ import {
 } from '@mono-repo/ui';
 import { ConfirmationDialog } from './confirmation-dialog';
 import { format } from 'date-fns';
+import { DayMenuDto, Dish } from '@mono-repo/api-client';
 
 interface CreateMenuDto {
   dishes: number[];
@@ -23,9 +24,9 @@ interface CreateMenuDto {
 }
 
 interface MenuFormProps {
-  selectedDate?: Date | null;
+  selectedDate: Date;
   onSubmit: (data: CreateMenuDto) => void;
-  editingItem?: any;
+  editingItem?: DayMenuDto;
   onDelete?: () => void;
 }
 
@@ -55,8 +56,12 @@ export function MenuForm({
   useEffect(() => {
     if (editingItem) {
       setForm({
-        dishes: editingItem.dishes?.map((d: any) => d.dishId) || [0, 0],
-        availability: editingItem.availability || '',
+        dishes: editingItem.dishes
+          ?.map((d: Dish) => d.dishId)
+          .filter((id): id is number => id !== null && id !== undefined) || [
+          0, 0,
+        ],
+        availability: format(selectedDate, 'yyyy-MM-dd') || '',
         menuName: editingItem.menuName || '',
         price: editingItem.price || 0,
       });
@@ -81,8 +86,12 @@ export function MenuForm({
   const resetForm = () => {
     if (editingItem) {
       setForm({
-        dishes: editingItem.dishes?.map((d: any) => d.dishId) || [0, 0],
-        availability: editingItem.availability || '',
+        dishes: editingItem.dishes
+          ?.map((d: Dish) => d.dishId)
+          .filter((id): id is number => id !== null && id !== undefined) || [
+          0, 0,
+        ],
+        availability: format(selectedDate, 'yyyy-MM-dd') || '',
         menuName: editingItem.menuName || '',
         price: editingItem.price || 0,
       });
