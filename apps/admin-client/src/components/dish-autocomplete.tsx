@@ -1,7 +1,6 @@
 import type React from 'react';
-
 import { useState, useEffect, useRef } from 'react';
-
+import { useDebounceValue } from 'usehooks-ts';
 import {
   Check,
   ChevronDown,
@@ -64,11 +63,13 @@ export function DishAutocomplete({
 }: DishAutocompleteProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm] = useDebounceValue(searchTerm, 500);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { data: dishTypes = [], isLoading: dishTypesLoading } =
     useGetAvailableDishtypes();
+
   const { data: dish, isLoading: dishLoading } = useGetDishById(value, {
     query: {
       enabled: value > 0,
@@ -89,16 +90,16 @@ export function DishAutocomplete({
   });
 
   const { data: dishes = [], isLoading: dishesLoading } = useSearchDishesByName(
-    { name: searchTerm },
+    { name: debouncedSearchTerm },
     {
       query: {
-        enabled: isOpen && searchTerm.length > 0,
+        enabled: isOpen && debouncedSearchTerm.length > 0,
       },
     }
   );
 
   const filteredDishes = dishes.filter(dish =>
-    dish.dishName.toLowerCase().includes(searchTerm.toLowerCase())
+    dish.dishName.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
   );
 
   const selectedDish = dishes.find(dish => dish.id === value);
@@ -129,9 +130,11 @@ export function DishAutocomplete({
       const defaultDishType = dishTypes.find(
         type => type.dishTypeValue === 'MAIN_DISH'
       );
+
       if (!defaultDishType) {
         throw new Error('No main dish type found');
       }
+
       createDish({
         data: {
           dishName: searchTerm,
@@ -153,15 +156,20 @@ export function DishAutocomplete({
   };
 
   const hasExactMatch = filteredDishes.some(
-    dish => dish.dishName.toLowerCase() === searchTerm.toLowerCase()
+    dish => dish.dishName.toLowerCase() === debouncedSearchTerm.toLowerCase()
   );
+
   const showAddButton = searchTerm.trim() && !hasExactMatch && !isCreating;
+
+  // Show loading state when debouncing is happening
+  const isSearching =
+    searchTerm !== debouncedSearchTerm && searchTerm.length > 0;
 
   return (
     <div ref={containerRef} className="relative">
       <div className="relative">
         <div className="absolute left-3 top-1/2 transform -translate-y-1/2 z-10">
-          {dishLoading ? (
+          {dishLoading || isSearching ? (
             <div className="animate-spin rounded-full h-4 w-4 border-2 border-muted-foreground border-t-transparent" />
           ) : (
             <Pizza className="h-4 w-4 text-muted-foreground" />
@@ -177,7 +185,13 @@ export function DishAutocomplete({
           }
           onChange={handleInputChange}
           onFocus={handleInputFocus}
-          placeholder={dishLoading ? 'Loading dish...' : placeholder}
+          placeholder={
+            dishLoading
+              ? 'Loading dish...'
+              : isSearching
+              ? 'Searching...'
+              : placeholder
+          }
           className="pl-10 pr-8"
           autoFocus={false}
           disabled={dishTypesLoading || dishLoading}
@@ -198,12 +212,16 @@ export function DishAutocomplete({
           />
         </Button>
       </div>
-
       {isOpen && !dishLoading && (
         <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-md max-h-60 overflow-auto">
           {dishTypesLoading ? (
             <div className="p-2 text-sm text-muted-foreground">
               Loading dish types...
+            </div>
+          ) : dishesLoading || isSearching ? (
+            <div className="p-2 text-sm text-muted-foreground flex items-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-muted-foreground border-t-transparent" />
+              Searching dishes...
             </div>
           ) : filteredDishes.length === 0 && !showAddButton ? (
             <div className="p-2 text-sm text-muted-foreground">
@@ -228,7 +246,6 @@ export function DishAutocomplete({
                   {value === dish.id && <Check className="h-4 w-4" />}
                 </button>
               ))}
-
               {showAddButton && (
                 <button
                   type="button"
