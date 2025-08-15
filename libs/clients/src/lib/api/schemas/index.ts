@@ -13,6 +13,8 @@ export * from './day-menu-dto';
 export * from './day-offers-dto';
 export * from './dish';
 export * from './dish-response-dto';
+export * from './dish-type-response-dto';
+export * from './dish-type-response-dto-dish-type-value';
 export * from './menu-response-dto';
 export * from './offer-response-dto';
 export * from './restaurant-dto';

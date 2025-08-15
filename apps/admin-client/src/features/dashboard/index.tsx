@@ -5,12 +5,7 @@ import { TopNav } from '@/components/layout/top-nav';
 import { Search } from '@/components/search';
 import { ThemeSwitch } from '@/components/theme-switch';
 import { UserButton } from '@clerk/clerk-react';
-import {
-  useGetMenusForWeek,
-  createDish,
-  createMenu,
-  createOffer,
-} from '@mono-repo/api-client';
+import { useGetMenusForWeek } from '@mono-repo/api-client';
 import WeeklyCalendar from './components/weekly-calendar';
 import { useMemo, useState } from 'react';
 import { addWeeks, getISOWeek, getYear, subWeeks } from 'date-fns';
@@ -128,6 +123,7 @@ export default function Dashboard() {
           onOpenChange={handleDialogClose}
           selectedDate={selectedDate}
           editingItem={editingItem}
+          currentWeekString={currentWeekString}
         />
       </Main>
     </>

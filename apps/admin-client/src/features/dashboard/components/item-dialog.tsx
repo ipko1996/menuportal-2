@@ -9,27 +9,23 @@ import {
   TabsTrigger,
 } from '@mono-repo/ui';
 import { useState } from 'react';
+import {
+  useCreateOffer,
+  useCreateMenu,
+  CreateOfferDto,
+  CreateMenuDto,
+  getGetMenusForWeekQueryKey,
+} from '@mono-repo/api-client';
 import { OfferForm } from './offer-form';
 import { MenuForm } from './menu-form';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface ItemDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   selectedDate?: Date | null;
   editingItem?: { type: 'offer' | 'menu'; data: any } | null;
-}
-
-interface CreateOfferDto {
-  dishId: number;
-  price: number;
-  availability: string;
-}
-
-interface CreateMenuDto {
-  dishes: number[];
-  availability: string;
-  menuName: string;
-  price: number;
+  currentWeekString: string;
 }
 
 export function ItemDialog({
@@ -37,8 +33,28 @@ export function ItemDialog({
   onOpenChange,
   selectedDate,
   editingItem,
+  currentWeekString,
 }: ItemDialogProps) {
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('offer');
+
+  const { mutate: createOffer } = useCreateOffer({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: getGetMenusForWeekQueryKey(currentWeekString),
+        });
+        console.log('Offer created successfully');
+      },
+    },
+  });
+  const { mutate: createMenu } = useCreateMenu({
+    mutation: {
+      onSuccess: () => {
+        console.log('Menu created successfully');
+      },
+    },
+  });
 
   const handleOpenChange = (newOpen: boolean) => {
     if (newOpen && !editingItem) {
@@ -52,6 +68,9 @@ export function ItemDialog({
       console.log('Updating offer:', data);
     } else {
       console.log('Creating offer:', data);
+      createOffer({
+        data,
+      });
     }
     handleOpenChange(false);
   };

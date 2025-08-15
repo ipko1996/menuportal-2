@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ClerkMiddleware } from '@/middleware/auth.middleware';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { DishModule } from '@/modules/dish/dish.module';
+import { DishtypeModule } from '@/modules/dishtype/dishtype.module';
 import { MenuModule } from '@/modules/menu/menu.module';
 import { OfferModule } from '@/modules/offer/offer.module';
 import { WeekMenuModule } from '@/modules/week-menu/week-menu.module';
@@ -18,6 +19,7 @@ import { DrizzleModule } from '../shared/database/database.module';
     }),
     AuthModule,
     DishModule,
+    DishtypeModule,
     MenuModule,
     OfferModule,
     WeekMenuModule,

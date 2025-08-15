@@ -12,14 +12,18 @@ import {
   Beef,
   Soup,
   Cake,
+  ForkKnife,
+  Utensils,
 } from 'lucide-react';
 import { Button, cn, Input } from '@mono-repo/ui';
-
-interface Dish {
-  id: number;
-  name: string;
-  type: 'appetizer' | 'soup' | 'main' | 'dessert' | 'beverage' | 'side';
-}
+import {
+  useCreateDish,
+  useGetDishById,
+  useSearchDishesByName,
+  useGetAvailableDishtypes,
+  DishTypeResponseDto,
+  DishResponseDto,
+} from '@mono-repo/api-client';
 
 interface DishAutocompleteProps {
   value: number;
@@ -28,35 +32,25 @@ interface DishAutocompleteProps {
   openOnFocus?: boolean;
 }
 
-let mockDishes: Dish[] = [
-  { id: 1, name: 'Margherita Pizza', type: 'main' },
-  { id: 2, name: 'Caesar Salad', type: 'appetizer' },
-  { id: 3, name: 'Grilled Salmon', type: 'main' },
-  { id: 4, name: 'Beef Burger', type: 'main' },
-  { id: 5, name: 'Chicken Tikka Masala', type: 'main' },
-  { id: 6, name: 'Vegetable Stir Fry', type: 'side' },
-  { id: 7, name: 'Chocolate Cake', type: 'dessert' },
-  { id: 8, name: 'Fish and Chips', type: 'main' },
-  { id: 9, name: 'Pasta Carbonara', type: 'main' },
-  { id: 10, name: 'Greek Salad', type: 'appetizer' },
-  { id: 11, name: 'Tomato Soup', type: 'soup' },
-  { id: 12, name: 'Ice Cream', type: 'dessert' },
-];
+const getDishIcon = (
+  dishTypeId: number,
+  dishTypes: DishTypeResponseDto[] = []
+) => {
+  const dishType = dishTypes.find(type => type.id === dishTypeId);
+  if (!dishType) return <Pizza className="h-4 w-4" />;
 
-const getDishIcon = (type: Dish['type']) => {
-  switch (type) {
-    case 'appetizer':
-      return <Salad className="h-4 w-4" />;
-    case 'soup':
+  switch (dishType.dishTypeValue) {
+    case 'SOUP':
+    case 'MEAT_SOUP':
       return <Soup className="h-4 w-4" />;
-    case 'main':
-      return <Pizza className="h-4 w-4" />;
-    case 'dessert':
-      return <Cake className="h-4 w-4" />;
-    case 'beverage':
+    case 'MAIN_DISH':
+      return <Utensils className="h-4 w-4" />;
+    case 'SALAD':
+      return <Salad className="h-4 w-4" />;
+    case 'FISH':
       return <Fish className="h-4 w-4" />;
-    case 'side':
-      return <Beef className="h-4 w-4" />;
+    case 'DESSERT':
+      return <Cake className="h-4 w-4" />;
     default:
       return <Pizza className="h-4 w-4" />;
   }
@@ -70,19 +64,44 @@ export function DishAutocomplete({
 }: DishAutocompleteProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredDishes, setFilteredDishes] = useState<Dish[]>(mockDishes);
-  const [dishes, setDishes] = useState<Dish[]>(mockDishes);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const selectedDish = dishes.find(dish => dish.id === value);
+  const { data: dishTypes = [], isLoading: dishTypesLoading } =
+    useGetAvailableDishtypes();
+  const { data: dish, isLoading: dishLoading } = useGetDishById(value, {
+    query: {
+      enabled: value > 0,
+    },
+  });
 
-  useEffect(() => {
-    const filtered = dishes.filter(dish =>
-      dish.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredDishes(filtered);
-  }, [searchTerm, dishes]);
+  const { mutate: createDish, isPending: isCreating } = useCreateDish({
+    mutation: {
+      onSuccess: (newDish: DishResponseDto) => {
+        onChange(newDish.id);
+        setSearchTerm(newDish.dishName);
+        setIsOpen(false);
+      },
+      onError: error => {
+        console.error('Failed to create dish:', error);
+      },
+    },
+  });
+
+  const { data: dishes = [], isLoading: dishesLoading } = useSearchDishesByName(
+    { name: searchTerm },
+    {
+      query: {
+        enabled: isOpen && searchTerm.length > 0,
+      },
+    }
+  );
+
+  const filteredDishes = dishes.filter(dish =>
+    dish.dishName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const selectedDish = dishes.find(dish => dish.id === value);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -98,30 +117,21 @@ export function DishAutocomplete({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSelect = (dish: Dish) => {
+  const handleSelect = (dish: DishResponseDto) => {
     onChange(dish.id);
-    setSearchTerm('');
+    setSearchTerm(dish.dishName);
     setIsOpen(false);
   };
 
   const handleAddNewDish = () => {
-    if (searchTerm.trim()) {
-      const newId = Math.max(...dishes.map(d => d.id)) + 1;
-      const newDish: Dish = {
-        id: newId,
-        name: searchTerm.trim(),
-        type: 'main',
-      };
-
-      const updatedDishes = [...dishes, newDish];
-      setDishes(updatedDishes);
-      mockDishes = updatedDishes;
-
-      onChange(newDish.id);
-      setSearchTerm('');
-      setIsOpen(false);
-
-      console.log('Added new dish:', newDish);
+    if (searchTerm.trim() && dishTypes.length > 0) {
+      const defaultDishType = dishTypes[0];
+      createDish({
+        data: {
+          dishName: searchTerm,
+          dishTypeId: defaultDishType.id,
+        },
+      });
     }
   };
 
@@ -137,25 +147,34 @@ export function DishAutocomplete({
   };
 
   const hasExactMatch = filteredDishes.some(
-    dish => dish.name.toLowerCase() === searchTerm.toLowerCase()
+    dish => dish.dishName.toLowerCase() === searchTerm.toLowerCase()
   );
-  const showAddButton = searchTerm.trim() && !hasExactMatch;
+  const showAddButton = searchTerm.trim() && !hasExactMatch && !isCreating;
 
   return (
     <div ref={containerRef} className="relative">
       <div className="relative">
         <div className="absolute left-3 top-1/2 transform -translate-y-1/2 z-10">
-          <Pizza className="h-4 w-4 text-muted-foreground" />
+          {dishLoading ? (
+            <div className="animate-spin rounded-full h-4 w-4 border-2 border-muted-foreground border-t-transparent" />
+          ) : (
+            <Pizza className="h-4 w-4 text-muted-foreground" />
+          )}
         </div>
         <Input
           ref={inputRef}
           type="text"
-          value={isOpen ? searchTerm : selectedDish?.name || ''}
+          value={
+            isOpen
+              ? searchTerm
+              : selectedDish?.dishName ?? searchTerm ?? dish?.dishName ?? ''
+          }
           onChange={handleInputChange}
           onFocus={handleInputFocus}
-          placeholder={placeholder}
+          placeholder={dishLoading ? 'Loading dish...' : placeholder}
           className="pl-10 pr-8"
           autoFocus={false}
+          disabled={dishTypesLoading || dishLoading}
         />
         <Button
           type="button"
@@ -163,6 +182,7 @@ export function DishAutocomplete({
           size="sm"
           className="absolute right-0 top-0 h-full px-2"
           onClick={() => setIsOpen(!isOpen)}
+          disabled={dishTypesLoading || dishLoading}
         >
           <ChevronDown
             className={cn(
@@ -173,9 +193,13 @@ export function DishAutocomplete({
         </Button>
       </div>
 
-      {isOpen && (
+      {isOpen && !dishLoading && (
         <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-md max-h-60 overflow-auto">
-          {filteredDishes.length === 0 && !showAddButton ? (
+          {dishTypesLoading ? (
+            <div className="p-2 text-sm text-muted-foreground">
+              Loading dish types...
+            </div>
+          ) : filteredDishes.length === 0 && !showAddButton ? (
             <div className="p-2 text-sm text-muted-foreground">
               No dishes found
             </div>
@@ -192,8 +216,8 @@ export function DishAutocomplete({
                   onClick={() => handleSelect(dish)}
                 >
                   <div className="flex items-center gap-2">
-                    {getDishIcon(dish.type)}
-                    <span>{dish.name}</span>
+                    {getDishIcon(dish.dishTypeId, dishTypes)}
+                    <span>{dish.dishName}</span>
                   </div>
                   {value === dish.id && <Check className="h-4 w-4" />}
                 </button>
@@ -204,9 +228,12 @@ export function DishAutocomplete({
                   type="button"
                   className="w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2 border-t"
                   onClick={handleAddNewDish}
+                  disabled={isCreating}
                 >
                   <Plus className="h-4 w-4" />
-                  <span>Add "{searchTerm}"</span>
+                  <span>
+                    {isCreating ? 'Adding...' : `Add "${searchTerm}"`}
+                  </span>
                 </button>
               )}
             </>

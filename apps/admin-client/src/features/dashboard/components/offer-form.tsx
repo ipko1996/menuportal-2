@@ -4,12 +4,8 @@ import { useState, useEffect } from 'react';
 import { DishAutocomplete } from '@/components/dish-autocomplete';
 import { Input, Button, Label } from '@mono-repo/ui';
 import { ConfirmationDialog } from './confirmation-dialog';
-
-interface CreateOfferDto {
-  dishId: number;
-  price: number;
-  availability: string;
-}
+import { CreateOfferDto } from '@mono-repo/api-client';
+import { format } from 'date-fns';
 
 interface OfferFormProps {
   selectedDate?: Date | null;
@@ -39,7 +35,7 @@ export function OfferForm({
         availability: editingItem.availability || '',
       });
     } else if (selectedDate) {
-      const dateString = selectedDate.toISOString().split('T')[0];
+      const dateString = format(selectedDate, 'yyyy-MM-dd');
       setForm(prev => ({ ...prev, availability: dateString }));
     } else {
       setForm({

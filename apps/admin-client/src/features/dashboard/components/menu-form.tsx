@@ -13,6 +13,7 @@ import {
   Button,
 } from '@mono-repo/ui';
 import { ConfirmationDialog } from './confirmation-dialog';
+import { format } from 'date-fns';
 
 interface CreateMenuDto {
   dishes: number[];
@@ -60,7 +61,7 @@ export function MenuForm({
         price: editingItem.price || 0,
       });
     } else if (selectedDate) {
-      const dateString = selectedDate.toISOString().split('T')[0];
+      const dateString = format(selectedDate, 'yyyy-MM-dd');
       setForm(prev => ({ ...prev, availability: dateString }));
     } else {
       setForm({
