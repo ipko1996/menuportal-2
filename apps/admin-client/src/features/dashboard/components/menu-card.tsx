@@ -3,11 +3,20 @@ import { Utensils } from 'lucide-react';
 
 interface MenuCardProps {
   menu: DayMenuDto;
+  onClick?: (menu: any) => void;
 }
 
-export function MenuCard({ menu }: MenuCardProps) {
+export function MenuCard({ menu, onClick }: MenuCardProps) {
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onClick?.(menu);
+  };
+
   return (
-    <div className="mb-2 p-2 bg-background rounded-md border shadow-sm hover:border-primary cursor-pointer">
+    <div
+      className="mb-2 p-2 bg-background rounded-md border shadow-sm hover:border-primary cursor-pointer"
+      onClick={handleClick}
+    >
       <div className="flex items-center gap-2">
         <Utensils className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
         <div className="text-sm font-medium flex-grow">{menu.menuName}</div>

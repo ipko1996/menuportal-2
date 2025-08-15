@@ -5,14 +5,26 @@ import { TopNav } from '@/components/layout/top-nav';
 import { Search } from '@/components/search';
 import { ThemeSwitch } from '@/components/theme-switch';
 import { UserButton } from '@clerk/clerk-react';
-import { useGetMenusForWeek } from '@mono-repo/api-client';
+import {
+  useGetMenusForWeek,
+  createDish,
+  createMenu,
+  createOffer,
+} from '@mono-repo/api-client';
 import WeeklyCalendar from './components/weekly-calendar';
 import { useMemo, useState } from 'react';
 import { addWeeks, getISOWeek, getYear, subWeeks } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ItemDialog } from './components/item-dialog';
 
 export default function Dashboard() {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [showDialog, setShowDialog] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [editingItem, setEditingItem] = useState<{
+    type: 'offer' | 'menu';
+    data: any;
+  } | null>(null);
 
   const currentWeekString = useMemo(() => {
     const year = getYear(currentDate);
@@ -36,8 +48,32 @@ export default function Dashboard() {
 
   const handleDayClick = (date: Date) => {
     console.log('Day clicked:', date);
-    setCurrentDate(date);
+    setSelectedDate(date);
+    setEditingItem(null); // Clear editing item when creating new
+    setShowDialog(true);
   };
+
+  const handleOfferClick = (offer: any) => {
+    setEditingItem({ type: 'offer', data: offer });
+    setSelectedDate(null); // Clear selected date when editing
+    setShowDialog(true);
+  };
+
+  const handleMenuClick = (menu: any) => {
+    setEditingItem({ type: 'menu', data: menu });
+    setSelectedDate(null); // Clear selected date when editing
+    setShowDialog(true);
+  };
+
+  const handleDialogClose = (open: boolean) => {
+    setShowDialog(open);
+    if (!open) {
+      // Reset all state when dialog closes
+      setSelectedDate(null);
+      setEditingItem(null);
+    }
+  };
+
   return (
     <>
       {/* ===== Top Heading ===== */}
@@ -83,6 +119,15 @@ export default function Dashboard() {
           currentDate={currentDate}
           onDayClick={handleDayClick}
           menuData={menus}
+          onOfferClick={handleOfferClick}
+          onMenuClick={handleMenuClick}
+        />
+
+        <ItemDialog
+          open={showDialog}
+          onOpenChange={handleDialogClose}
+          selectedDate={selectedDate}
+          editingItem={editingItem}
         />
       </Main>
     </>

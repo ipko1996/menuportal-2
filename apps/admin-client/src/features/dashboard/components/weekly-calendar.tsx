@@ -9,6 +9,8 @@ import { WeekMenuDayDto, WeekMenuResponseDto } from '@mono-repo/api-client';
 interface WeeklyCalendarProps {
   currentDate: Date;
   onDayClick?: (date: Date) => void;
+  onOfferClick?: (offer: any) => void;
+  onMenuClick?: (menu: any) => void;
   locale?: Locale;
   weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   className?: string;
@@ -24,6 +26,8 @@ interface DayHeaderProps {
 interface DayCellProps {
   day: Date;
   onDayClick?: (date: Date) => void;
+  onOfferClick?: (offer: any) => void;
+  onMenuClick?: (menu: any) => void;
   children?: React.ReactNode;
   dayData?: WeekMenuDayDto;
 }
@@ -50,8 +54,24 @@ const DayHeader = React.memo(({ day, locale }: DayHeaderProps) => {
 DayHeader.displayName = 'DayHeader';
 
 const DayCell = React.memo(
-  ({ day, onDayClick, children, dayData }: DayCellProps) => {
+  ({
+    day,
+    onDayClick,
+    onOfferClick,
+    onMenuClick,
+    children,
+    dayData,
+  }: DayCellProps) => {
     const isToday = isSameDay(day, new Date());
+
+    const handleDayClick = (e: React.MouseEvent) => {
+      if (
+        e.target === e.currentTarget ||
+        (e.target as HTMLElement).closest('.day-content')
+      ) {
+        onDayClick?.(day);
+      }
+    };
 
     return (
       <div
@@ -59,15 +79,19 @@ const DayCell = React.memo(
           'border-r last:border-r-0 flex flex-col cursor-pointer hover:bg-muted/50 transition-colors',
           isToday && 'bg-muted/30'
         )}
-        onClick={() => onDayClick?.(day)}
+        onClick={handleDayClick}
       >
         <DayHeader day={day} />
-        <div className="flex-1 p-3 overflow-y-auto">
+        <div className="flex-1 p-3 overflow-y-auto day-content">
           {dayData?.offers.map(offer => (
-            <OfferCard key={offer.offerId} offer={offer} />
+            <OfferCard
+              key={offer.offerId}
+              offer={offer}
+              onClick={onOfferClick}
+            />
           ))}
           {dayData?.menus.map(menu => (
-            <MenuCard key={menu.menuId} menu={menu} />
+            <MenuCard key={menu.menuId} menu={menu} onClick={onMenuClick} />
           ))}
           {children}
         </div>
@@ -81,6 +105,8 @@ DayCell.displayName = 'DayCell';
 export default function WeeklyCalendar({
   currentDate = new Date(),
   onDayClick,
+  onOfferClick,
+  onMenuClick,
   locale,
   weekStartsOn = 1,
   className,
@@ -111,6 +137,8 @@ export default function WeeklyCalendar({
             key={`${day.getFullYear()}-${day.getMonth()}-${day.getDate()}`}
             day={day}
             onDayClick={onDayClick}
+            onOfferClick={onOfferClick}
+            onMenuClick={onMenuClick}
             dayData={dayData}
           >
             {children?.(day)}
