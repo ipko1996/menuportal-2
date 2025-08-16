@@ -6,9 +6,9 @@ import {
   IconError404,
   IconHelp,
   IconLayoutDashboard,
+  IconChefHat,
   IconLock,
   IconLockAccess,
-  IconMessages,
   IconNotification,
   IconPackages,
   IconPalette,
@@ -54,6 +54,11 @@ export const sidebarData: SidebarData = {
           title: 'Dashboard',
           url: '/',
           icon: IconLayoutDashboard,
+        },
+        {
+          title: 'Dishes',
+          url: '/dish-manager',
+          icon: IconChefHat,
         },
         {
           title: 'Tasks',
