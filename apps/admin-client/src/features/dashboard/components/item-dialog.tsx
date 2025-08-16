@@ -15,6 +15,7 @@ import {
   useCreateOffer,
   useCreateMenu,
   useUpdateOffer,
+  useUpdateMenu,
   CreateOfferDto,
   UpdateOfferDto,
   CreateMenuDto,
@@ -58,6 +59,12 @@ export function ItemDialog({
   const { mutate: createMenu } = useCreateMenu({
     mutation: useInvalidateMenusOnSuccess(
       'Menu created successfully',
+      currentWeekString
+    ),
+  });
+  const { mutate: updateMenu } = useUpdateMenu({
+    mutation: useInvalidateMenusOnSuccess(
+      'Menu updated successfully',
       currentWeekString
     ),
   });
@@ -114,8 +121,25 @@ export function ItemDialog({
   const handleMenuSubmit = (data: CreateMenuDto) => {
     if (editingItem) {
       console.log('Updating menu:', data);
+      updateMenu({
+        id: editingItem.id,
+        data: {
+          dishes: data.dishes,
+          availability: data.availability,
+          menuName: data.menuName,
+          price: data.price,
+        } as UpdateMenuDto,
+      });
     } else {
       console.log('Creating menu:', data);
+      createMenu({
+        data: {
+          dishes: data.dishes,
+          availability: data.availability,
+          menuName: data.menuName,
+          price: data.price,
+        } as CreateMenuDto,
+      });
     }
     handleOpenChange(false);
   };

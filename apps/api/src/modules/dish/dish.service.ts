@@ -133,7 +133,9 @@ export class DishService {
     try {
       const searchPattern = `%${name.toLowerCase()}%`;
 
-      const foundDishes = await this.databaseService.db
+      // TODO: pagination
+
+      return await this.databaseService.db
         .select({
           id: dish.id,
           dishName: dish.dishName,
@@ -147,19 +149,8 @@ export class DishService {
             eq(dish.restaurantId, restaurantId)
           )
         )
-        .limit(10); // TODO: pagination
-
-      if (foundDishes.length === 0) {
-        throw new NotFoundException(
-          `No dishes matching "${name}" found for restaurant ID ${restaurantId}`
-        );
-      }
-
-      return foundDishes;
+        .limit(10); // Returns empty array if no dishes found
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
       this.logger.error(`Failed to fetch dishes matching name ${name}`, error);
       throw new BadRequestException('Failed to fetch dishes');
     }

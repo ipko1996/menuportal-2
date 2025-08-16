@@ -1,3 +1,5 @@
+'use client';
+
 import type React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import { useDebounceValue } from 'usehooks-ts';
@@ -5,38 +7,37 @@ import {
   Check,
   ChevronDown,
   Plus,
-  Pizza,
   Salad,
   Fish,
-  Beef,
   Soup,
   Cake,
-  ForkKnife,
   Utensils,
 } from 'lucide-react';
-import { Button, cn, Input } from '@mono-repo/ui';
+
 import {
   useCreateDish,
   useGetDishById,
   useSearchDishesByName,
   useGetAvailableDishtypes,
-  DishTypeResponseDto,
-  DishResponseDto,
+  type DishTypeResponseDto,
+  type DishResponseDto,
 } from '@mono-repo/api-client';
+import { Button, cn, Input } from '@mono-repo/ui';
 
 interface DishAutocompleteProps {
   value: number;
   onChange: (dishId: number) => void;
   placeholder?: string;
   openOnFocus?: boolean;
+  defaultDishTypeId?: number;
 }
 
-const getDishIcon = (
+export const getDishIcon = (
   dishTypeId: number,
   dishTypes: DishTypeResponseDto[] = []
 ) => {
   const dishType = dishTypes.find(type => type.id === dishTypeId);
-  if (!dishType) return <Pizza className="h-4 w-4" />;
+  if (!dishType) return <Utensils className="h-4 w-4" />;
 
   switch (dishType.dishTypeValue) {
     case 'SOUP':
@@ -51,7 +52,7 @@ const getDishIcon = (
     case 'DESSERT':
       return <Cake className="h-4 w-4" />;
     default:
-      return <Pizza className="h-4 w-4" />;
+      return <Utensils className="h-4 w-4" />;
   }
 };
 
@@ -60,6 +61,7 @@ export function DishAutocomplete({
   onChange,
   placeholder = 'Search dishes...',
   openOnFocus = false,
+  defaultDishTypeId,
 }: DishAutocompleteProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -126,19 +128,19 @@ export function DishAutocomplete({
 
   const handleAddNewDish = () => {
     if (searchTerm.trim() && dishTypes.length > 0) {
-      // Find main course dish type
-      const defaultDishType = dishTypes.find(
-        type => type.dishTypeValue === 'MAIN_DISH'
-      );
+      const dishTypeToAdd =
+        dishTypes.find(type => type.id === defaultDishTypeId) ||
+        dishTypes.find(type => type.dishTypeValue === 'MAIN_DISH');
 
-      if (!defaultDishType) {
-        throw new Error('No main dish type found');
+      if (!dishTypeToAdd) {
+        console.error('Default dish type could not be determined.');
+        return;
       }
 
       createDish({
         data: {
           dishName: searchTerm,
-          dishTypeId: defaultDishType.id,
+          dishTypeId: dishTypeToAdd.id,
         },
       });
     }
@@ -161,9 +163,10 @@ export function DishAutocomplete({
 
   const showAddButton = searchTerm.trim() && !hasExactMatch && !isCreating;
 
-  // Show loading state when debouncing is happening
   const isSearching =
     searchTerm !== debouncedSearchTerm && searchTerm.length > 0;
+
+  const iconDishTypeId = dish ? dish.dishTypeId : defaultDishTypeId ?? 0;
 
   return (
     <div ref={containerRef} className="relative">
@@ -172,7 +175,7 @@ export function DishAutocomplete({
           {dishLoading || isSearching ? (
             <div className="animate-spin rounded-full h-4 w-4 border-2 border-muted-foreground border-t-transparent" />
           ) : (
-            <Pizza className="h-4 w-4 text-muted-foreground" />
+            getDishIcon(iconDishTypeId, dishTypes)
           )}
         </div>
         <Input

@@ -149,7 +149,7 @@ export class MenuService {
     }
 
     // Validate dishes if they're being updated
-    const validatedDishes = existingMenu.dishMenus;
+    let validatedDishes = existingMenu.dishMenus;
     if (dishes && dishes.length > 0) {
       // Validate that at least two different dishes are provided
       const uniqueDishes = new Set(dishes);
@@ -159,19 +159,29 @@ export class MenuService {
         );
       }
 
-      // Validate and get dishes
-      const dishEntities = dishes.map(dishId =>
-        this.dishService.findDishById(dishId, restaurantId)
+      // Validate and get the new dishes
+      const newDishEntities = await Promise.all(
+        dishes.map(dishId =>
+          this.dishService.findDishById(dishId, restaurantId)
+        )
       );
-      await Promise.all(dishEntities);
 
       // Validate that dish types are different
-      const dishTypes = new Set(validatedDishes.map(dish => dish.dishTypeId));
-      if (dishTypes.size < 2) {
+      const newDishTypes = new Set(
+        newDishEntities.map(dish => dish.dishTypeId)
+      );
+      if (newDishTypes.size < 2) {
         throw new BadRequestException(
           'Dishes must have at least two different types'
         );
       }
+
+      // Assign the newly validated dishes to the validatedDishes variable
+      validatedDishes = newDishEntities.map(dish => ({
+        dishId: dish.id,
+        menuId: id,
+        dishTypeId: dish.dishTypeId,
+      }));
     }
 
     try {
@@ -192,14 +202,8 @@ export class MenuService {
             // Delete existing dish-menu relationships
             await tx.delete(dishMenu).where(eq(dishMenu.menuId, id));
 
-            // Insert new relationships
-            await tx.insert(dishMenu).values(
-              validatedDishes.map(dish => ({
-                dishId: dish.dishId,
-                menuId: id,
-                dishTypeId: dish.dishTypeId,
-              }))
-            );
+            // Insert new relationships using the updated validatedDishes variable
+            await tx.insert(dishMenu).values(validatedDishes);
           }
 
           let availabilityResult: typeof availability.$inferInsert | undefined;
@@ -219,11 +223,8 @@ export class MenuService {
           return [menuResult, availabilityResult ?? existingAvailability];
         });
 
-      // Get the updated list of dish IDs (either the new ones or the existing ones if not updated)
-      const updatedDishIds =
-        dishes && dishes.length > 0
-          ? validatedDishes.map(dish => dish.dishId)
-          : existingMenu.dishMenus.map(dish => dish.dishId);
+      // Get the updated list of dish IDs from the validatedDishes variable
+      const updatedDishIds = validatedDishes.map(dish => dish.dishId);
 
       return {
         id: updatedMenu.id,
