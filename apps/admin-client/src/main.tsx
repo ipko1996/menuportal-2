@@ -48,6 +48,9 @@ const queryClient = new QueryClient({
   },
   queryCache: new QueryCache({
     onError: error => {
+      // Call the central error handler for ALL query errors first.
+      handleServerError(error);
+
       if (error instanceof AxiosError) {
         if (error.response?.status === 401) {
           toast.error('Session expired!');

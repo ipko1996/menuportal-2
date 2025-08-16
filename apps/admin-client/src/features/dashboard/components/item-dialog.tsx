@@ -18,7 +18,6 @@ import {
   CreateOfferDto,
   UpdateOfferDto,
   CreateMenuDto,
-  getGetMenusForWeekQueryKey,
   UpdateMenuDto,
   DayOffersDto,
   DayMenuDto,
@@ -76,7 +75,7 @@ export function ItemDialog({
   });
   const { mutate: deleteMenu } = useDeleteMenu({
     mutation: useInvalidateMenusOnSuccess(
-      'Menu created successfully',
+      'Menu deleted successfully',
       currentWeekString
     ),
   });
