@@ -259,6 +259,8 @@ export class MenuService {
           )
         );
 
+      await tx.delete(dishMenu).where(eq(dishMenu.menuId, id));
+
       // Then delete the menu
       const result = await tx
         .delete(menu)

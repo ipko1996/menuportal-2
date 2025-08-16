@@ -10,6 +10,8 @@ import {
 } from '@mono-repo/ui';
 import { useState } from 'react';
 import {
+  useDeleteOffer,
+  useDeleteMenu,
   useCreateOffer,
   useCreateMenu,
   useUpdateOffer,
@@ -24,6 +26,7 @@ import {
 import { OfferForm } from './offer-form';
 import { MenuForm } from './menu-form';
 import { useQueryClient } from '@tanstack/react-query';
+import { useInvalidateMenusOnSuccess } from '../hooks/use-invalidate-menus';
 
 interface ItemDialogProps {
   open: boolean;
@@ -48,31 +51,34 @@ export function ItemDialog({
   const [activeTab, setActiveTab] = useState('offer');
 
   const { mutate: createOffer } = useCreateOffer({
-    mutation: {
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: getGetMenusForWeekQueryKey(currentWeekString),
-        });
-        console.log('Offer created successfully');
-      },
-    },
+    mutation: useInvalidateMenusOnSuccess(
+      'Offer created successfully',
+      currentWeekString
+    ),
   });
   const { mutate: createMenu } = useCreateMenu({
-    mutation: {
-      onSuccess: () => {
-        console.log('Menu created successfully');
-      },
-    },
+    mutation: useInvalidateMenusOnSuccess(
+      'Menu created successfully',
+      currentWeekString
+    ),
   });
   const { mutate: updateOffer } = useUpdateOffer({
-    mutation: {
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: getGetMenusForWeekQueryKey(currentWeekString),
-        });
-        console.log('Offer updated successfully');
-      },
-    },
+    mutation: useInvalidateMenusOnSuccess(
+      'Offer updated successfully',
+      currentWeekString
+    ),
+  });
+  const { mutate: deleteOffer } = useDeleteOffer({
+    mutation: useInvalidateMenusOnSuccess(
+      'Offer deleted successfully',
+      currentWeekString
+    ),
+  });
+  const { mutate: deleteMenu } = useDeleteMenu({
+    mutation: useInvalidateMenusOnSuccess(
+      'Menu created successfully',
+      currentWeekString
+    ),
   });
 
   const handleOpenChange = (newOpen: boolean) => {
@@ -118,6 +124,11 @@ export function ItemDialog({
   const handleDelete = () => {
     if (editingItem) {
       console.log('Deleting item:', editingItem);
+      if (editingItem.type === 'offer') {
+        deleteOffer({ id: editingItem.id });
+      } else {
+        deleteMenu({ id: editingItem.id });
+      }
       handleOpenChange(false);
     }
   };
