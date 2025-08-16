@@ -14,7 +14,7 @@ import {
   IconBrandTrello,
   IconBrandWhatsapp,
   IconBrandZoom,
-} from '@tabler/icons-react'
+} from '@tabler/icons-react';
 
 export const apps = [
   {
@@ -107,4 +107,4 @@ export const apps = [
     connected: false,
     desc: 'Easily integrate WhatsApp for direct messaging.',
   },
-]
+];

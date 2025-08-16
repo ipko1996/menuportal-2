@@ -42,8 +42,8 @@ export default function Apps() {
       appType === 'connected'
         ? app.connected
         : appType === 'notConnected'
-        ? !app.connected
-        : true
+          ? !app.connected
+          : true
     )
     .filter(app => app.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
