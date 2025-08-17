@@ -26,7 +26,11 @@ import type { AppUser } from '@/shared/types';
 
 import { DishService } from './dish.service';
 import { CreateDishDto } from './dto/create-dish.dto';
-import { DishResponseDto } from './dto/dish-response.dto';
+import {
+  DishFilterDto,
+  DishPaginatedResponseDto,
+  DishResponseDto,
+} from './dto/dish-response.dto';
 import { UpdateDishDto } from './dto/update-dish.dto';
 
 @ApiTags('dish')
@@ -60,16 +64,20 @@ export class DishController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all dishes', operationId: 'getAllDishes' })
+  @ApiOperation({
+    summary: 'Get paginated dishes with search',
+    operationId: 'getPaginatedDishes',
+  })
   @ApiResponse({
     status: 200,
-    description: 'List of dishes retrieved successfully',
-    type: [DishResponseDto],
+    description: 'Paginated list of dishes retrieved successfully',
+    type: DishPaginatedResponseDto,
   })
-  findAll(
-    @CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>
-  ): Promise<DishResponseDto[]> {
-    return this.dishService.findAll(user.restaurant.id);
+  findPaginated(
+    @CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>,
+    @Query() searchOptions: DishFilterDto
+  ): Promise<DishPaginatedResponseDto> {
+    return this.dishService.findPaginated(searchOptions, user.restaurant.id);
   }
 
   @Get('search')

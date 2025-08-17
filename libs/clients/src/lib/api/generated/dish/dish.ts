@@ -25,7 +25,9 @@ import type { BodyType,ErrorType } from '../../../utils/axios-instance';
 import { axiosInstance } from '../../../utils/axios-instance';
 import type {
   CreateDishDto,
+  DishPaginatedResponseDto,
   DishResponseDto,
+  GetPaginatedDishesParams,
   SearchDishesByNameParams,
   UpdateDishDto,
 } from '../../schemas';
@@ -124,64 +126,80 @@ export const useCreateDish = <
   return useMutation(mutationOptions, queryClient);
 };
 /**
- * @summary Get all dishes
+ * @summary Get paginated dishes with search
  */
-export const getAllDishes = (
+export const getPaginatedDishes = (
+  params?: GetPaginatedDishesParams,
   options?: SecondParameter<typeof axiosInstance>,
   signal?: AbortSignal
 ) => {
-  return axiosInstance<DishResponseDto[]>(
-    { url: `/api/dish`, method: 'GET', signal },
+  return axiosInstance<DishPaginatedResponseDto>(
+    { url: `/api/dish`, method: 'GET', params, signal },
     options
   );
 };
 
-export const getGetAllDishesQueryKey = () => {
-  return [`/api/dish`] as const;
+export const getGetPaginatedDishesQueryKey = (
+  params?: GetPaginatedDishesParams
+) => {
+  return [`/api/dish`, ...(params ? [params] : [])] as const;
 };
 
-export const getGetAllDishesQueryOptions = <
-  TData = Awaited<ReturnType<typeof getAllDishes>>,
+export const getGetPaginatedDishesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPaginatedDishes>>,
   TError = ErrorType<unknown>
->(options?: {
-  query?: Partial<
-    UseQueryOptions<Awaited<ReturnType<typeof getAllDishes>>, TError, TData>
-  >;
-  request?: SecondParameter<typeof axiosInstance>;
-}) => {
+>(
+  params?: GetPaginatedDishesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getPaginatedDishes>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof axiosInstance>;
+  }
+) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getGetAllDishesQueryKey();
+  const queryKey =
+    queryOptions?.queryKey ?? getGetPaginatedDishesQueryKey(params);
 
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllDishes>>> = ({
-    signal,
-  }) => getAllDishes(requestOptions, signal);
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getPaginatedDishes>>
+  > = ({ signal }) => getPaginatedDishes(params, requestOptions, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getAllDishes>>,
+    Awaited<ReturnType<typeof getPaginatedDishes>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type GetAllDishesQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getAllDishes>>
+export type GetPaginatedDishesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPaginatedDishes>>
 >;
-export type GetAllDishesQueryError = ErrorType<unknown>;
+export type GetPaginatedDishesQueryError = ErrorType<unknown>;
 
-export function useGetAllDishes<
-  TData = Awaited<ReturnType<typeof getAllDishes>>,
+export function useGetPaginatedDishes<
+  TData = Awaited<ReturnType<typeof getPaginatedDishes>>,
   TError = ErrorType<unknown>
 >(
+  params: undefined | GetPaginatedDishesParams,
   options: {
     query: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getAllDishes>>, TError, TData>
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getPaginatedDishes>>,
+        TError,
+        TData
+      >
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getAllDishes>>,
+          Awaited<ReturnType<typeof getPaginatedDishes>>,
           TError,
-          Awaited<ReturnType<typeof getAllDishes>>
+          Awaited<ReturnType<typeof getPaginatedDishes>>
         >,
         'initialData'
       >;
@@ -191,19 +209,24 @@ export function useGetAllDishes<
 ): DefinedUseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useGetAllDishes<
-  TData = Awaited<ReturnType<typeof getAllDishes>>,
+export function useGetPaginatedDishes<
+  TData = Awaited<ReturnType<typeof getPaginatedDishes>>,
   TError = ErrorType<unknown>
 >(
+  params?: GetPaginatedDishesParams,
   options?: {
     query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getAllDishes>>, TError, TData>
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getPaginatedDishes>>,
+        TError,
+        TData
+      >
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getAllDishes>>,
+          Awaited<ReturnType<typeof getPaginatedDishes>>,
           TError,
-          Awaited<ReturnType<typeof getAllDishes>>
+          Awaited<ReturnType<typeof getPaginatedDishes>>
         >,
         'initialData'
       >;
@@ -213,13 +236,18 @@ export function useGetAllDishes<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useGetAllDishes<
-  TData = Awaited<ReturnType<typeof getAllDishes>>,
+export function useGetPaginatedDishes<
+  TData = Awaited<ReturnType<typeof getPaginatedDishes>>,
   TError = ErrorType<unknown>
 >(
+  params?: GetPaginatedDishesParams,
   options?: {
     query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getAllDishes>>, TError, TData>
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getPaginatedDishes>>,
+        TError,
+        TData
+      >
     >;
     request?: SecondParameter<typeof axiosInstance>;
   },
@@ -228,16 +256,21 @@ export function useGetAllDishes<
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 /**
- * @summary Get all dishes
+ * @summary Get paginated dishes with search
  */
 
-export function useGetAllDishes<
-  TData = Awaited<ReturnType<typeof getAllDishes>>,
+export function useGetPaginatedDishes<
+  TData = Awaited<ReturnType<typeof getPaginatedDishes>>,
   TError = ErrorType<unknown>
 >(
+  params?: GetPaginatedDishesParams,
   options?: {
     query?: Partial<
-      UseQueryOptions<Awaited<ReturnType<typeof getAllDishes>>, TError, TData>
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getPaginatedDishes>>,
+        TError,
+        TData
+      >
     >;
     request?: SecondParameter<typeof axiosInstance>;
   },
@@ -245,7 +278,7 @@ export function useGetAllDishes<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getGetAllDishesQueryOptions(options);
+  const queryOptions = getGetPaginatedDishesQueryOptions(params, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,

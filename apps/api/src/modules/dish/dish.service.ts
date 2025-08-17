@@ -5,13 +5,14 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { and, eq, ilike, not } from 'drizzle-orm';
+import { and, count, eq, ilike, not } from 'drizzle-orm';
 
 import { dish, dishType } from '@/schema';
 import { DatabaseService } from '@/shared/database/database.service';
+import { PageDto, PageMetaDto } from '@/shared/types/pagination';
 
 import { CreateDishDto } from './dto/create-dish.dto';
-import { DishResponseDto } from './dto/dish-response.dto';
+import { DishFilterDto, DishResponseDto } from './dto/dish-response.dto';
 import { UpdateDishDto } from './dto/update-dish.dto';
 
 @Injectable()
@@ -65,7 +66,6 @@ export class DishService {
         .returning({
           id: dish.id,
           dishName: dish.dishName,
-          restaurantId: dish.restaurantId,
           dishTypeId: dish.dishTypeId,
         });
 
@@ -76,20 +76,46 @@ export class DishService {
     }
   }
 
-  async findAll(restaurantId?: number): Promise<DishResponseDto[]> {
-    const whereCondition = restaurantId
-      ? eq(dish.restaurantId, restaurantId)
-      : undefined;
+  async findPaginated(
+    searchOptions: DishFilterDto,
+    restaurantId: number
+  ): Promise<PageDto<DishResponseDto>> {
+    const conditions = [eq(dish.restaurantId, restaurantId)];
 
-    return await this.databaseService.db
+    if (searchOptions.dishTypeId) {
+      conditions.push(eq(dish.dishTypeId, searchOptions.dishTypeId));
+    }
+
+    if (searchOptions.search) {
+      conditions.push(ilike(dish.dishName, `%${searchOptions.search}%`));
+    }
+    const whereCondition = and(...conditions);
+
+    const [totalCountResult] = await this.databaseService.db
+      .select({ count: count() })
+      .from(dish)
+      .where(whereCondition);
+
+    const itemCount = Number(totalCountResult.count);
+
+    const dishes = await this.databaseService.db
       .select({
         id: dish.id,
         dishName: dish.dishName,
-        restaurantId: dish.restaurantId,
         dishTypeId: dish.dishTypeId,
       })
       .from(dish)
-      .where(whereCondition);
+      .where(whereCondition)
+      .limit(searchOptions.limit)
+      .offset(searchOptions.skip)
+      .orderBy(dish.dishName);
+
+    const pageMeta = new PageMetaDto({
+      pageOptionsDto: searchOptions,
+      itemCount,
+    });
+
+    return new PageDto<DishResponseDto>(dishes, pageMeta);
   }
 
   /**
@@ -112,7 +138,6 @@ export class DishService {
       .select({
         id: dish.id,
         dishName: dish.dishName,
-        restaurantId: dish.restaurantId,
         dishTypeId: dish.dishTypeId,
       })
       .from(dish)
@@ -139,7 +164,6 @@ export class DishService {
         .select({
           id: dish.id,
           dishName: dish.dishName,
-          restaurantId: dish.restaurantId,
           dishTypeId: dish.dishTypeId,
         })
         .from(dish)
@@ -219,7 +243,6 @@ export class DishService {
         .returning({
           id: dish.id,
           dishName: dish.dishName,
-          restaurantId: dish.restaurantId,
           dishTypeId: dish.dishTypeId,
         });
 

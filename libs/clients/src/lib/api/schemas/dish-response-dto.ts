@@ -11,8 +11,6 @@ export interface DishResponseDto {
   id: number;
   /** The name of the dish */
   dishName: string;
-  /** The ID of the restaurant this dish belongs to */
-  restaurantId: number;
   /** The ID of the dish type */
   dishTypeId: number;
 }
