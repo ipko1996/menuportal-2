@@ -6,5 +6,6 @@ import { WeekMenuService } from './week-menu.service';
 @Module({
   controllers: [WeekMenuController],
   providers: [WeekMenuService],
+  exports: [WeekMenuService],
 })
 export class WeekMenuModule {}

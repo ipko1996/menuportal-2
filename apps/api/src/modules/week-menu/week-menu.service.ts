@@ -7,6 +7,7 @@ import type { DateRange } from '@/shared/pipes/week-to-date-range.pipe';
 
 import { WeekMenuResponseDto } from './dto/week-menu-response.dto';
 
+// Interfaces remain the same as they define the shape of the data from the database
 interface WeeklyMenu {
   menuId: number;
   menuName: string;
@@ -36,6 +37,12 @@ export class WeekMenuService {
 
   constructor(private readonly databaseService: DatabaseService) {}
 
+  /**
+   * Returns the full weekly menu response, including status and week boundaries.
+   * @param dateRange The start and end dates for the week.
+   * @param restaurantId The ID of the restaurant.
+   * @returns A promise that resolves to the weekly menu response DTO.
+   */
   async getMenusForWeek(
     dateRange: DateRange,
     restaurantId: number
@@ -43,8 +50,32 @@ export class WeekMenuService {
     this.logger.log(
       `Fetching menus for week: ${dateRange.start} to ${dateRange.end}`
     );
+
+    // Call the new public method to get the structured days object
+    const days = await this.getWeekDays(dateRange, restaurantId);
+
+    return {
+      weekStatus: 'DRAFT',
+      weekStart: dateRange.start,
+      weekEnd: dateRange.end,
+      days,
+    };
+  }
+
+  /**
+   * Fetches and processes menus and offers for a given week, returning a structured object of days.
+   * This public method can be reused elsewhere.
+   * @param dateRange The start and end dates for the week.
+   * @param restaurantId The ID of the restaurant.
+   * @returns A promise that resolves to the structured days object.
+   */
+  async getWeekDays(
+    dateRange: DateRange,
+    restaurantId: number
+  ): Promise<WeekMenuResponseDto['days']> {
     const { start: startOfWeek, end: endOfWeek } = dateRange;
 
+    // The core data fetching logic is now within this method.
     const [weeklyOffers, weeklyMenus] = await Promise.all([
       this.databaseService.db
         .select({
@@ -109,16 +140,19 @@ export class WeekMenuService {
       endOfWeek
     );
 
+    // Processing logic remains the same, called from this new method.
     this.processWeeklyOffers(weeklyOffers, days);
     this.processWeeklyMenus(weeklyMenus, days);
 
-    return {
-      weekStart: startOfWeek,
-      weekEnd: endOfWeek,
-      days,
-    };
+    return days;
   }
 
+  /**
+   * Initializes a 'days' object with empty menus and offers for each day in the date range.
+   * @param startOfWeek The starting date string (YYYY-MM-DD).
+   * @param endOfWeek The ending date string (YYYY-MM-DD).
+   * @returns The initialized days object.
+   */
   private initializeDays(
     startOfWeek: string,
     endOfWeek: string
@@ -135,6 +169,11 @@ export class WeekMenuService {
     return days;
   }
 
+  /**
+   * Processes the raw weekly offer data and populates the 'days' object.
+   * @param weeklyOffers An array of offer data from the database.
+   * @param days The days object to populate.
+   */
   private processWeeklyOffers(
     weeklyOffers: WeeklyOffer[],
     days: WeekMenuResponseDto['days']
@@ -161,6 +200,11 @@ export class WeekMenuService {
     }
   }
 
+  /**
+   * Processes the raw weekly menu data and populates the 'days' object, grouping dishes by menu.
+   * @param weeklyMenus An array of menu data from the database.
+   * @param days The days object to populate.
+   */
   private processWeeklyMenus(
     weeklyMenus: WeeklyMenu[],
     days: WeekMenuResponseDto['days']

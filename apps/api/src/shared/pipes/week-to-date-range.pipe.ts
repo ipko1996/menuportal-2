@@ -7,6 +7,8 @@ import {
 import { endOfISOWeek, format, isValid, parse, startOfISOWeek } from 'date-fns';
 
 export interface DateRange {
+  year: number;
+  weekNumber: number;
   start: string;
   end: string;
 }
@@ -30,6 +32,8 @@ export class WeekToDateRangePipe implements PipeTransform<string, DateRange> {
     }
 
     return {
+      year: parsedDate.getFullYear(),
+      weekNumber: Number.parseInt(format(parsedDate, 'ww'), 10),
       start: format(startOfISOWeek(parsedDate), 'yyyy-MM-dd'),
       end: format(endOfISOWeek(parsedDate), 'yyyy-MM-dd'),
     };

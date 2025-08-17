@@ -7,6 +7,7 @@ import { DishModule } from '@/modules/dish/dish.module';
 import { DishtypeModule } from '@/modules/dishtype/dishtype.module';
 import { MenuModule } from '@/modules/menu/menu.module';
 import { OfferModule } from '@/modules/offer/offer.module';
+import { ScheduleModule } from '@/modules/schedule/schedule.module';
 import { WeekMenuModule } from '@/modules/week-menu/week-menu.module';
 
 import { DrizzleModule } from '../shared/database/database.module';
@@ -22,6 +23,7 @@ import { DrizzleModule } from '../shared/database/database.module';
     DishtypeModule,
     MenuModule,
     OfferModule,
+    ScheduleModule,
     WeekMenuModule,
   ],
   controllers: [],

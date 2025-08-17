@@ -1,7 +1,6 @@
 export * from '../constants';
 export * from './add-on';
 export * from './availability';
-export * from './daily-menu-items';
 export * from './dish';
 export * from './dish-menu';
 export * from './dish-type';
@@ -11,6 +10,6 @@ export * from './offer-add-on';
 export * from './restaurant';
 export * from './restaurant-dish-type';
 export * from './restaurant-setting';
+export * from './snapshot';
 export * from './user';
 export * from './user-restaurant';
-export * from './weekly-menus';

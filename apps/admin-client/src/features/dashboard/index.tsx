@@ -17,6 +17,7 @@ import { useMemo, useState } from 'react';
 import { addWeeks, getISOWeek, getYear, parseISO, subWeeks } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ItemDialog } from './components/item-dialog';
+import { MenuStatusIndicator } from './components/menu-status-indicator';
 
 export default function Dashboard() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -27,6 +28,10 @@ export default function Dashboard() {
     type: 'offer' | 'menu';
     data: UpdateOfferDto | UpdateMenuDto;
   } | null>(null);
+
+  const [menuStatus, setMenuStatus] = useState<
+    'DRAFT' | 'SCHEDULED' | 'PUBLISHED' | 'FAILED'
+  >('DRAFT');
 
   const currentWeekString = useMemo(() => {
     const year = getYear(currentDate);
@@ -86,6 +91,37 @@ export default function Dashboard() {
     }
   };
 
+  const handleScheduleClick = () => {
+    if (menuStatus === 'DRAFT') {
+      setMenuStatus('SCHEDULED');
+      console.log('Status changed from DRAFT to SCHEDULED');
+    }
+  };
+
+  const handleCancelSchedule = () => {
+    if (menuStatus === 'SCHEDULED') {
+      setMenuStatus('DRAFT');
+      console.log('Status changed from SCHEDULED to DRAFT');
+    }
+  };
+
+  const currentWeekNumber = useMemo(() => {
+    return getISOWeek(currentDate);
+  }, [currentDate]);
+
+  const handleRetrySchedule = () => {
+    if (menuStatus === 'FAILED') {
+      setMenuStatus('SCHEDULED');
+      console.log('Status changed from FAILED to SCHEDULED - retrying');
+    }
+  };
+
+  const handleViewPublished = () => {
+    console.log('Opening published menu page for week', currentWeekNumber);
+    // Replace with actual navigation to published menu page
+    window.open(`/published-menu/${currentWeekString}`, '_blank');
+  };
+
   return (
     <>
       {/* ===== Main ===== */}
@@ -117,6 +153,17 @@ export default function Dashboard() {
           </div>
         </div>
 
+        <div className="mb-4">
+          <MenuStatusIndicator
+            status={menuStatus}
+            weekNumber={currentWeekNumber}
+            onScheduleClick={handleScheduleClick}
+            onCancelSchedule={handleCancelSchedule}
+            onRetrySchedule={handleRetrySchedule}
+            onViewPublished={handleViewPublished}
+          />
+        </div>
+
         <WeeklyCalendar
           currentDate={currentDate}
           onDayClick={handleDayClick}
@@ -136,30 +183,3 @@ export default function Dashboard() {
     </>
   );
 }
-
-const topNav = [
-  {
-    title: 'Overview',
-    href: 'dashboard/overview',
-    isActive: true,
-    disabled: false,
-  },
-  {
-    title: 'Customers',
-    href: 'dashboard/customers',
-    isActive: false,
-    disabled: true,
-  },
-  {
-    title: 'Products',
-    href: 'dashboard/products',
-    isActive: false,
-    disabled: true,
-  },
-  {
-    title: 'Settings',
-    href: 'dashboard/settings',
-    isActive: false,
-    disabled: true,
-  },
-];
