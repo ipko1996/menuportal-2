@@ -5,6 +5,11 @@ import { SearchProvider } from '@/context/search-context';
 import { SidebarProvider } from '@mono-repo/ui/sidebar';
 import { AppSidebar } from '@/components/layout/app-sidebar';
 import SkipToMain from '@/components/skip-to-main';
+import { UserButton } from '@clerk/clerk-react';
+
+import { ThemeSwitch } from '../theme-switch';
+import { Header } from './header';
+import { Search } from '../search';
 
 interface Props {
   children?: React.ReactNode;
@@ -29,6 +34,14 @@ export function AuthenticatedLayout({ children }: Props) {
             'has-[main.fixed-main]:group-data-[scroll-locked=1]/body:h-svh'
           )}
         >
+          <Header>
+            {/* <TopNav links={topNav} /> */}
+            <div className="ml-auto flex items-center space-x-4">
+              <Search />
+              <ThemeSwitch />
+              <UserButton />
+            </div>
+          </Header>
           {children ? children : <Outlet />}
         </div>
       </SidebarProvider>
