@@ -10,7 +10,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-import { MenuStatus, MenuStatusEnum } from '@/constants';
+import { MenuStatusApi, MenuStatusApiValues } from '@/constants';
 
 export class Dish {
   @ApiProperty({
@@ -201,10 +201,10 @@ export class WeekMenuResponseDto {
 
   @ApiProperty({
     description: 'Status of the weekly menu',
-    enum: MenuStatusEnum.enumValues,
+    enum: MenuStatusApiValues,
     example: 'DRAFT',
   })
-  weekStatus: MenuStatus;
+  weekStatus: MenuStatusApi;
 
   @ApiProperty({
     description: 'Daily menu data indexed by date (YYYY-MM-DD format)',

@@ -139,7 +139,7 @@ export class ScheduleService {
           and(
             eq(snapshot.restaurantId, restaurantId),
             between(snapshot.date, startOfWeek, endOfWeek),
-            inArray(snapshot.status, ['SCHEDULED', 'DRAFT'])
+            inArray(snapshot.status, ['SCHEDULED'])
           )
         );
 

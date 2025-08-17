@@ -24,7 +24,7 @@ export const snapshot = pgTable(
       .references(() => restaurant.id),
     entityType: entityTypeEnum('entity_type').notNull(),
     originalId: integer('original_id'),
-    status: MenuStatusEnum('status').notNull().default('DRAFT'),
+    status: MenuStatusEnum('status').default('SCHEDULED').notNull(),
     date: date('date', { mode: 'string' }).notNull(),
     createdAt: timestamp('created_at', { mode: 'string', withTimezone: true })
       .defaultNow()
