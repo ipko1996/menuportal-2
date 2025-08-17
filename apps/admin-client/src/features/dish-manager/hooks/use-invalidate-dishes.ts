@@ -22,9 +22,5 @@ export const useInvalidateDishes = (
       toast.success(message);
       console.log('Success:', message);
     },
-    onError: (error: Error) => {
-      toast.error(`Error: ${error.message}`);
-      console.error('Error:', error);
-    },
   };
 };

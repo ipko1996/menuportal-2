@@ -23,7 +23,6 @@ import { CreateDishDialog } from './components/create-dish-dialog';
 import { EditDishDialog } from './components/edit-dish-dialog';
 import { DeleteDishDialog } from './components/delete-dish-dialog';
 import { DishTable } from './components/dish-table';
-import { getDishIcon } from '@/components/dish-autocomplete';
 
 export default function DishManager() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -157,14 +156,6 @@ export default function DishManager() {
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
-        </div>
-      )}
-
-      {!isSearching && meta && meta.itemCount === 0 && (
-        <div className="p-8 text-center">
-          <p className="text-muted-foreground">
-            No dishes found matching your criteria.
-          </p>
         </div>
       )}
 

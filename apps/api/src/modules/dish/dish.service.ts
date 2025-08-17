@@ -5,9 +5,9 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { and, count, eq, ilike, not } from 'drizzle-orm';
+import { and, count, eq, ilike, not, sql } from 'drizzle-orm';
 
-import { dish, dishType } from '@/schema';
+import { dish, dishMenu, dishType, menu, offer } from '@/schema';
 import { DatabaseService } from '@/shared/database/database.service';
 import { PageDto, PageMetaDto } from '@/shared/types/pagination';
 
@@ -266,6 +266,24 @@ export class DishService {
   async remove(id: number, restaurantId: number): Promise<void> {
     // First check if dish exists
     await this.findDishById(id, restaurantId);
+
+    // Check if dish is in use in offers
+    const [offerInUse, dishMenuInUse] = await Promise.all([
+      this.databaseService.db.select().from(offer).where(eq(offer.dishId, id)),
+
+      // Check if dish is in use in dish_menu
+      this.databaseService.db
+        .select()
+        .from(dishMenu)
+        .where(eq(dishMenu.dishId, id)),
+    ]);
+
+    // If in use in any, abort deletion
+    if (offerInUse.length > 0 || dishMenuInUse.length > 0) {
+      throw new BadRequestException(
+        'Cannot delete dish: dish is in use by an offer or menu'
+      );
+    }
 
     try {
       const whereConditions = restaurantId

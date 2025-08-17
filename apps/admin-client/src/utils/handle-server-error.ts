@@ -27,6 +27,8 @@ export function handleServerError(error: unknown) {
 
     if (!error.response && networkErrorCodes.includes(error.code || '')) {
       errMsg = 'Unexpected error happened';
+    } else if (error.response?.data?.message) {
+      errMsg = error.response.data.message;
     } else if (error.response?.data?.title) {
       errMsg = error.response.data.title;
     } else {
