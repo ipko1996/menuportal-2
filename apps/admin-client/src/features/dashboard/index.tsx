@@ -39,7 +39,6 @@ export default function Dashboard() {
   const [state, dispatch] = useReducer(postStateMachine, {
     isLoading: false,
     status: PostState.Draft,
-    weekNumber: '',
   });
 
   useEffect(() => {
@@ -107,6 +106,8 @@ export default function Dashboard() {
     }
   };
 
+  const weekNumber = useMemo(() => getISOWeek(currentDate), [currentDate]);
+
   const CurrentStateComponent = stateComponentMap[state.status];
   const actions = useWeekActions(currentWeekString, dispatch);
 
@@ -141,6 +142,7 @@ export default function Dashboard() {
 
       <div className="mb-4">
         <CurrentStateComponent
+          weekNumber={weekNumber}
           actions={actions}
           state={state}
           dispatch={dispatch}

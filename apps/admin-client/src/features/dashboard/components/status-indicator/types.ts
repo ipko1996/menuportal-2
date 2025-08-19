@@ -42,7 +42,6 @@ export enum ActionType {
 export interface State {
   status: PostState;
   isLoading: boolean;
-  weekNumber: string;
 }
 
 /**
