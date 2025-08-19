@@ -1,23 +1,22 @@
-import { Button } from '@mono-repo/ui/button';
-import { Header } from '@/components/layout/header';
 import { Main } from '@/components/layout/main';
-import { TopNav } from '@/components/layout/top-nav';
-import { Search } from '@/components/search';
-import { ThemeSwitch } from '@/components/theme-switch';
-import { UserButton } from '@clerk/clerk-react';
-import {
-  DayMenuDto,
-  DayOffersDto,
-  UpdateMenuDto,
-  UpdateOfferDto,
-  useGetMenusForWeek,
-} from '@mono-repo/api-client';
 import WeeklyCalendar from './components/weekly-calendar';
-import { useMemo, useState } from 'react';
-import { addWeeks, getISOWeek, getYear, parseISO, subWeeks } from 'date-fns';
+import { useEffect, useMemo, useReducer, useState } from 'react';
+import { addWeeks, getISOWeek, getYear, subWeeks, parseISO } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ItemDialog } from './components/item-dialog';
-import { MenuStatusIndicator } from './components/menu-status-indicator';
+import {
+  useGetMenusForWeek,
+  type DayOffersDto,
+  type DayMenuDto,
+  UpdateOfferDto,
+  UpdateMenuDto,
+  WeekMenuResponseDtoWeekStatus,
+} from '@mono-repo/api-client';
+import { stateComponentMap } from './components/menu-status-indicator';
+import { Button } from '@mono-repo/ui';
+import { postStateMachine } from './components/status-indicator/state-machine';
+import { ActionType, PostState } from './components/status-indicator/types';
+import { useWeekActions } from './components/status-indicator/use-actions';
 
 export default function Dashboard() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -29,10 +28,6 @@ export default function Dashboard() {
     data: UpdateOfferDto | UpdateMenuDto;
   } | null>(null);
 
-  const [menuStatus, setMenuStatus] = useState<
-    'DRAFT' | 'SCHEDULED' | 'PUBLISHED' | 'FAILED'
-  >('DRAFT');
-
   const currentWeekString = useMemo(() => {
     const year = getYear(currentDate);
     const week = getISOWeek(currentDate);
@@ -40,6 +35,25 @@ export default function Dashboard() {
   }, [currentDate]);
 
   const { data: menus, isLoading } = useGetMenusForWeek(currentWeekString);
+
+  const [state, dispatch] = useReducer(postStateMachine, {
+    isLoading: false,
+    status: PostState.Draft,
+    weekNumber: '',
+  });
+
+  useEffect(() => {
+    if (menus?.weekStatus) {
+      switch (menus.weekStatus) {
+        case WeekMenuResponseDtoWeekStatus.DRAFT:
+          dispatch({ type: ActionType.CANCEL });
+          break;
+        case WeekMenuResponseDtoWeekStatus.SCHEDULED:
+          dispatch({ type: ActionType.SCHEDULE });
+          break;
+      }
+    }
+  }, [menus?.weekStatus]);
 
   const goToPreviousWeek = () => {
     setCurrentDate(prevDate => subWeeks(prevDate, 1));
@@ -56,31 +70,33 @@ export default function Dashboard() {
   const handleDayClick = (date: Date) => {
     console.log('Day clicked:', date);
     setSelectedDate(date);
-    setEditingItem(null); // Clear editing item when creating new
+    setEditingItem(null);
     setShowDialog(true);
   };
 
   const handleOfferClick = (offer: DayOffersDto) => {
     setEditingItem({ type: 'offer', data: offer, id: offer.offerId });
-    // Find the date of the selected offer
     const offerDate = menus?.days
       ? Object.keys(menus.days).find(date =>
           menus.days[date].offers.some(o => o.offerId === offer.offerId)
         )
       : null;
-    setSelectedDate(parseISO(offerDate!)); // This can not be null if the offer exists
+    if (offerDate) {
+      setSelectedDate(parseISO(offerDate));
+    }
     setShowDialog(true);
   };
 
   const handleMenuClick = (menu: DayMenuDto) => {
     setEditingItem({ type: 'menu', data: menu, id: menu.menuId });
-    // Find the date of the selected menu
     const dateKey = menus?.days
       ? Object.keys(menus.days).find(date =>
           menus.days[date].menus.some(m => m.menuId === menu.menuId)
         )
       : null;
-    setSelectedDate(parseISO(dateKey!)); // This can not be null if the menu exists
+    if (dateKey) {
+      setSelectedDate(parseISO(dateKey));
+    }
     setShowDialog(true);
   };
 
@@ -91,95 +107,62 @@ export default function Dashboard() {
     }
   };
 
-  const handleScheduleClick = () => {
-    if (menuStatus === 'DRAFT') {
-      setMenuStatus('SCHEDULED');
-      console.log('Status changed from DRAFT to SCHEDULED');
-    }
-  };
-
-  const handleCancelSchedule = () => {
-    if (menuStatus === 'SCHEDULED') {
-      setMenuStatus('DRAFT');
-      console.log('Status changed from SCHEDULED to DRAFT');
-    }
-  };
-
-  const currentWeekNumber = useMemo(() => {
-    return getISOWeek(currentDate);
-  }, [currentDate]);
-
-  const handleRetrySchedule = () => {
-    if (menuStatus === 'FAILED') {
-      setMenuStatus('SCHEDULED');
-      console.log('Status changed from FAILED to SCHEDULED - retrying');
-    }
-  };
-
-  const handleViewPublished = () => {
-    console.log('Opening published menu page for week', currentWeekNumber);
-    // Replace with actual navigation to published menu page
-    window.open(`/published-menu/${currentWeekString}`, '_blank');
-  };
+  const CurrentStateComponent = stateComponentMap[state.status];
+  const actions = useWeekActions(currentWeekString, dispatch);
 
   return (
-    <>
-      {/* ===== Main ===== */}
-      <Main>
-        <div className="mb-2 flex items-center justify-between space-y-2">
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={goToPreviousWeek}
-              className="flex items-center gap-1 bg-transparent"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Previous
-            </Button>
-            <Button variant="ghost" size="sm" onClick={goToCurrentWeek}>
-              Today
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={goToNextWeek}
-              className="flex items-center gap-1 bg-transparent"
-            >
-              Next
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
+    <Main>
+      <div className="mb-2 flex items-center justify-between space-y-2">
+        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToPreviousWeek}
+            className="flex items-center gap-1 bg-transparent"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Previous
+          </Button>
+          <Button variant="ghost" size="sm" onClick={goToCurrentWeek}>
+            Today
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToNextWeek}
+            className="flex items-center gap-1 bg-transparent"
+          >
+            Next
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
+      </div>
 
-        <div className="mb-4">
-          <MenuStatusIndicator
-            status={menuStatus}
-            weekNumber={currentWeekNumber}
-            onScheduleClick={handleScheduleClick}
-            onCancelSchedule={handleCancelSchedule}
-            onRetrySchedule={handleRetrySchedule}
-            onViewPublished={handleViewPublished}
-          />
-        </div>
-
-        <WeeklyCalendar
-          currentDate={currentDate}
-          onDayClick={handleDayClick}
-          menuData={menus}
-          onOfferClick={handleOfferClick}
-          onMenuClick={handleMenuClick}
+      <div className="mb-4">
+        <CurrentStateComponent
+          actions={actions}
+          state={state}
+          dispatch={dispatch}
         />
+      </div>
 
-        <ItemDialog
-          open={showDialog}
-          onOpenChange={handleDialogClose}
-          selectedDate={selectedDate} // Pass editingItem's date
-          editingItem={editingItem}
-          currentWeekString={currentWeekString}
-        />
-      </Main>
-    </>
+      <WeeklyCalendar
+        currentDate={currentDate}
+        onDayClick={handleDayClick}
+        menuData={menus}
+        onOfferClick={handleOfferClick}
+        onMenuClick={handleMenuClick}
+        weekStatus={menus?.weekStatus || 'DRAFT'}
+      />
+
+      <ItemDialog
+        open={showDialog}
+        onOpenChange={handleDialogClose}
+        selectedDate={selectedDate}
+        editingItem={editingItem}
+        currentWeekString={currentWeekString}
+      />
+    </Main>
   );
 }

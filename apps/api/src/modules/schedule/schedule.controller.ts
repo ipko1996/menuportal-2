@@ -7,8 +7,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiExtraModels,
+  ApiOkResponse,
   ApiOperation,
   ApiParam,
 } from '@nestjs/swagger';
@@ -40,6 +42,13 @@ export class ScheduleController {
     example: '2025-W32',
     required: true,
   })
+  @ApiOkResponse({ description: 'Week successfully scheduled' })
+  @ApiBadRequestResponse({
+    description: 'Week already scheduled or invalid data',
+  })
+  @ApiBadRequestResponse({
+    description: 'No menus or offers found to schedule for the week',
+  })
   scheduleWeek(
     @Param('weekNumber', WeekToDateRangePipe) dateRange: DateRange,
     @CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>
@@ -47,6 +56,7 @@ export class ScheduleController {
     return this.scheduleService.scheduleWeek(dateRange, user.restaurant.id);
   }
 
+  @Delete(':weekNumber')
   @ApiOperation({
     summary: 'Cancel a scheduled week for a restaurant',
     operationId: 'cancelScheduledWeek',
@@ -57,7 +67,8 @@ export class ScheduleController {
     example: '2025-W32',
     required: true,
   })
-  @Delete(':weekNumber')
+  @ApiOkResponse({ description: 'Scheduled week successfully cancelled' })
+  @ApiBadRequestResponse({ description: 'No scheduled week found' })
   cancelScheduledWeek(
     @Param('weekNumber', WeekToDateRangePipe) dateRange: DateRange,
     @CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>

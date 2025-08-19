@@ -1,9 +1,21 @@
-import { Controller, Get } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Controller, Get, UseGuards } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiExtraModels,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 
+import { RoleAuthGuard, Roles } from '@/guards/role.guard';
+
+import { WeekMenuDayDto } from '../week-menu/dto/week-menu-response.dto';
 import { DishtypeService } from './dishtype.service';
 import { DishTypeResponseDto } from './dto/dishtype-response.dto';
 
+@ApiExtraModels(WeekMenuDayDto)
+@UseGuards(RoleAuthGuard)
+@Roles('ADMIN', 'MANAGER')
+@ApiBearerAuth()
 @Controller('dishtype')
 export class DishtypeController {
   constructor(private readonly dishtypeService: DishtypeService) {}

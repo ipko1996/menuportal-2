@@ -32,6 +32,8 @@ export class OfferService {
     // Validate dishId that it exists in the restaurant
     await this.dishService.findDishById(dishId, restaurantId);
 
+    // TODO: Validate if the availability date is in the future
+
     try {
       const [newOffer, newAvailability] =
         await this.databaseService.db.transaction(async tx => {
@@ -103,6 +105,9 @@ export class OfferService {
     restaurantId: number
   ): Promise<OfferResponseDto> {
     const { dishId, price, availability: offerAvailability } = updateOfferDto;
+
+    // TODO: Validate if the availability date is in the future
+    // TODO: Validate if the offer is not scheduled yet
 
     // First, verify the offer exists and belongs to the restaurant
     const existingOffer = await this.databaseService.db.query.offer.findFirst({
@@ -178,6 +183,8 @@ export class OfferService {
     const existingOffer = await this.databaseService.db.query.offer.findFirst({
       where: and(eq(offer.id, id), eq(offer.restaurantId, restaurantId)),
     });
+
+    // TODO: Validate if the offer is not scheduled yet
 
     if (!existingOffer) {
       throw new NotFoundException('Offer not found');

@@ -6,13 +6,15 @@ import { DatabaseService } from '@/shared/database/database.service';
 import { DateRange } from '@/shared/pipes';
 
 import { WeekMenuService } from '../week-menu/week-menu.service';
+import { WeekScheduleService } from '../week-schedule/week-schedule.service';
 
 @Injectable()
 export class ScheduleService {
   private readonly logger = new Logger(ScheduleService.name);
   constructor(
     private readonly databaseService: DatabaseService,
-    private readonly weekMenuService: WeekMenuService
+    private readonly weekMenuService: WeekMenuService,
+    private readonly weekScheduleService: WeekScheduleService
   ) {}
 
   async scheduleWeek(dateRange: DateRange, restaurantId: number) {
@@ -22,16 +24,10 @@ export class ScheduleService {
       `Scheduling from ${startOfWeek} to ${endOfWeek} for restaurant ID ${restaurantId}`
     );
 
-    const existing = await this.databaseService.db
-      .select()
-      .from(snapshot)
-      .where(
-        and(
-          eq(snapshot.restaurantId, restaurantId),
-          between(snapshot.date, startOfWeek, endOfWeek),
-          inArray(snapshot.status, ['SCHEDULED', 'PUBLISHED'])
-        )
-      );
+    const existing = await this.weekScheduleService.getExistingSchedules(
+      dateRange,
+      restaurantId
+    );
 
     if (existing.length > 0) {
       throw new BadRequestException(
@@ -43,6 +39,16 @@ export class ScheduleService {
       dateRange,
       restaurantId
     );
+
+    // Check if there are any menus or offers to schedule
+    const hasItems = Object.values(days).some(
+      day => day.menus.length > 0 || day.offers.length > 0
+    );
+    if (!hasItems) {
+      throw new BadRequestException(
+        `No menus or offers found to schedule for week ${year}-${weekNumber}`
+      );
+    }
 
     this.logger.log(
       `Saving weekly menus and daily menu items for week: ${year}-${weekNumber}`

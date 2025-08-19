@@ -1,10 +1,23 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { and, between, eq } from 'drizzle-orm';
 
-import { availability, dish, dishMenu, dishType, menu, offer } from '@/schema';
+import {
+  availability,
+  dish,
+  dishMenu,
+  dishType,
+  menu,
+  MenuStatusApi,
+  offer,
+  snapshot,
+  snapshotItem,
+  snapshotMenu,
+  snapshotOffer,
+} from '@/schema';
 import { DatabaseService } from '@/shared/database/database.service';
 import type { DateRange } from '@/shared/pipes/week-to-date-range.pipe';
 
+import { WeekScheduleService } from '../week-schedule/week-schedule.service';
 import { WeekMenuResponseDto } from './dto/week-menu-response.dto';
 
 // Interfaces remain the same as they define the shape of the data from the database
@@ -35,7 +48,10 @@ interface WeeklyOffer {
 export class WeekMenuService {
   private readonly logger = new Logger(WeekMenuService.name);
 
-  constructor(private readonly databaseService: DatabaseService) {}
+  constructor(
+    private readonly databaseService: DatabaseService,
+    private readonly weekScheduleService: WeekScheduleService
+  ) {}
 
   /**
    * Returns the full weekly menu response, including status and week boundaries.
@@ -51,7 +67,37 @@ export class WeekMenuService {
       `Fetching menus for week: ${dateRange.start} to ${dateRange.end}`
     );
 
-    // Call the new public method to get the structured days object
+    const existingSchedules =
+      await this.weekScheduleService.getExistingSchedules(
+        dateRange,
+        restaurantId
+      );
+
+    if (existingSchedules.length > 0) {
+      this.logger.warn(
+        `Week ${dateRange.start} to ${dateRange.end} is already scheduled, published, or failed for restaurant ${restaurantId}`
+      );
+
+      const days = this.transformSchedulesToDays(existingSchedules, dateRange);
+
+      // Determine the week's status with priority: PUBLISHED > FAILED > SCHEDULED
+      let weekStatus: MenuStatusApi = 'SCHEDULED';
+      // Theoretically, eaither all schedules are PUBLISHED or FAILED becase of trasnsactional nature.
+      if (existingSchedules.some(s => s.status === 'PUBLISHED')) {
+        weekStatus = 'PUBLISHED';
+      } else if (existingSchedules.some(s => s.status === 'FAILED')) {
+        weekStatus = 'FAILED';
+      }
+
+      return {
+        weekStatus,
+        weekStart: dateRange.start,
+        weekEnd: dateRange.end,
+        days,
+      };
+    }
+
+    // Logic for 'DRAFT' weeks remains unchanged
     const days = await this.getWeekDays(dateRange, restaurantId);
 
     return {
@@ -60,6 +106,79 @@ export class WeekMenuService {
       weekEnd: dateRange.end,
       days,
     };
+  }
+
+  /**
+   * Transforms snapshot data into the week menu response format.
+   * @param schedules An array of schedule data from the database.
+   * @param dateRange The start and end dates for the week.
+   * @returns The structured days object for the WeekMenuResponseDto.
+   */
+  private transformSchedulesToDays(
+    schedules: (typeof snapshot.$inferSelect & {
+      offers: (typeof snapshotOffer.$inferSelect)[];
+      menus: (typeof snapshotMenu.$inferSelect)[];
+      items: (typeof snapshotItem.$inferSelect)[];
+    })[],
+    dateRange: DateRange
+  ): WeekMenuResponseDto['days'] {
+    const days = this.initializeDays(dateRange.start, dateRange.end);
+
+    for (const schedule of schedules) {
+      // A null originalId indicates invalid data, so we still skip those.
+      if (!schedule.originalId) {
+        this.logger.warn(
+          `Skipping schedule with ID ${schedule.id} due to missing originalId.`
+        );
+        continue;
+      }
+
+      const dayKey = schedule.date;
+      if (!days[dayKey]) continue;
+
+      if (schedule.entityType === 'OFFER') {
+        const offerData = schedule.offers[0];
+        const dishData = schedule.items[0];
+
+        if (!offerData || !dishData) {
+          this.logger.error(
+            `Incomplete snapshot data for offer with original ID ${schedule.originalId}`
+          );
+          continue;
+        }
+
+        days[dayKey].offers.push({
+          offerId: schedule.originalId,
+          price: offerData.price,
+          dish: {
+            dishId: dishData.originalDishId,
+            dishName: dishData.dishName,
+            dishTypeId: dishData.dishTypeId,
+          },
+        });
+      } else if (schedule.entityType === 'MENU') {
+        const menuData = schedule.menus[0];
+        if (!menuData) {
+          this.logger.error(
+            `Incomplete snapshot data for menu with original ID ${schedule.originalId}`
+          );
+          continue;
+        }
+
+        days[dayKey].menus.push({
+          menuId: schedule.originalId,
+          menuName: menuData.menuName,
+          price: menuData.price,
+          dishes: schedule.items.map(item => ({
+            dishId: item.originalDishId,
+            dishName: item.dishName,
+            dishTypeId: item.dishTypeId,
+          })),
+        });
+      }
+    }
+
+    return days;
   }
 
   /**

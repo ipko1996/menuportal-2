@@ -7,9 +7,9 @@ import { MenuCard } from './menu-card';
 import {
   DayMenuDto,
   DayOffersDto,
-  UpdateOfferDto,
   WeekMenuDayDto,
   WeekMenuResponseDto,
+  WeekMenuResponseDtoWeekStatus,
 } from '@mono-repo/api-client';
 
 interface WeeklyCalendarProps {
@@ -22,6 +22,7 @@ interface WeeklyCalendarProps {
   className?: string;
   children?: (date: Date) => React.ReactNode;
   menuData?: WeekMenuResponseDto;
+  weekStatus?: WeekMenuResponseDtoWeekStatus;
 }
 
 interface DayHeaderProps {
@@ -36,6 +37,7 @@ interface DayCellProps {
   onMenuClick?: (menu: DayMenuDto) => void;
   children?: React.ReactNode;
   dayData?: WeekMenuDayDto;
+  weekStatus?: WeekMenuResponseDtoWeekStatus;
 }
 
 const DayHeader = React.memo(({ day, locale }: DayHeaderProps) => {
@@ -67,10 +69,14 @@ const DayCell = React.memo(
     onMenuClick,
     children,
     dayData,
+    weekStatus,
   }: DayCellProps) => {
     const isToday = isSameDay(day, new Date());
+    const isDisabled = weekStatus !== 'DRAFT';
 
     const handleDayClick = (e: React.MouseEvent) => {
+      if (isDisabled) return;
+
       if (
         e.target === e.currentTarget ||
         (e.target as HTMLElement).closest('.day-content')
@@ -79,25 +85,50 @@ const DayCell = React.memo(
       }
     };
 
+    const handleOfferClick = (offer: DayOffersDto) => {
+      if (isDisabled) return;
+      onOfferClick?.(offer);
+    };
+
+    const handleMenuClick = (menu: DayMenuDto) => {
+      if (isDisabled) return;
+      onMenuClick?.(menu);
+    };
+
     return (
       <div
         className={cn(
-          'border-r last:border-r-0 flex flex-col cursor-pointer hover:bg-muted/50 transition-colors',
-          isToday && 'bg-muted/30'
+          'border-r last:border-r-0 flex flex-col transition-colors relative',
+          isToday && 'bg-muted/30',
+          isDisabled ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-muted/50'
         )}
         onClick={handleDayClick}
       >
+        {isDisabled && (
+          <div className="absolute inset-0 bg-gray-500/20 z-20 flex items-center justify-center">
+            <div className="bg-white/90 px-3 py-1 rounded-md text-xs font-medium text-gray-600 shadow-sm">
+              {weekStatus === 'SCHEDULED' && 'Scheduled - No Edits'}
+              {weekStatus === 'PUBLISHED' && 'Published - Read Only'}
+              {weekStatus === 'FAILED' && 'Failed - No Edits'}
+            </div>
+          </div>
+        )}
+
         <DayHeader day={day} />
         <div className="flex-1 p-3 overflow-y-auto day-content">
           {dayData?.offers.map(offer => (
             <OfferCard
               key={offer.offerId}
               offer={offer}
-              onClick={onOfferClick}
+              onClick={() => handleOfferClick(offer)}
             />
           ))}
           {dayData?.menus.map(menu => (
-            <MenuCard key={menu.menuId} menu={menu} onClick={onMenuClick} />
+            <MenuCard
+              key={menu.menuId}
+              menu={menu}
+              onClick={() => handleMenuClick(menu)}
+            />
           ))}
           {children}
         </div>
@@ -107,7 +138,6 @@ const DayCell = React.memo(
 );
 DayCell.displayName = 'DayCell';
 
-// Main component
 export default function WeeklyCalendar({
   currentDate = new Date(),
   onDayClick,
@@ -118,6 +148,7 @@ export default function WeeklyCalendar({
   className,
   children,
   menuData,
+  weekStatus = 'DRAFT',
 }: WeeklyCalendarProps): React.ReactElement {
   const validCurrentDate =
     currentDate instanceof Date && !isNaN(currentDate.getTime())
@@ -146,6 +177,7 @@ export default function WeeklyCalendar({
             onOfferClick={onOfferClick}
             onMenuClick={onMenuClick}
             dayData={dayData}
+            weekStatus={weekStatus}
           >
             {children?.(day)}
           </DayCell>

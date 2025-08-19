@@ -59,6 +59,7 @@ export class MenuService {
 
     // TODO: Should we check if the same menu with same dishes and availability already exists?
 
+    // TODO: Validate if the availability date is in the future
     try {
       const [newMenu, newAvailability] =
         await this.databaseService.db.transaction(async tx => {
@@ -134,6 +135,9 @@ export class MenuService {
     if (!existingMenu) {
       throw new NotFoundException('Menu not found');
     }
+
+    // TODO: Validate if the availability date is in the future
+    // TODO: Validate if the menu is not scheduled yet
 
     // Get existing availability for the menu
     const existingAvailability =
@@ -244,6 +248,8 @@ export class MenuService {
     const existingMenu = await this.databaseService.db.query.menu.findFirst({
       where: and(eq(menu.id, id), eq(menu.restaurantId, restaurantId)),
     });
+
+    // TODO: Validate if the menu is not scheduled yet
 
     if (!existingMenu) {
       throw new NotFoundException('Menu not found');

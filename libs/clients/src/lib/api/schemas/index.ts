@@ -31,3 +31,4 @@ export * from './user-dto-with-restaurant-restaurant';
 export * from './week-menu-day-dto';
 export * from './week-menu-response-dto';
 export * from './week-menu-response-dto-days';
+export * from './week-menu-response-dto-week-status';

@@ -6,12 +6,15 @@
  * OpenAPI spec version: 1.0
  */
 import type { WeekMenuResponseDtoDays } from './week-menu-response-dto-days';
+import type { WeekMenuResponseDtoWeekStatus } from './week-menu-response-dto-week-status';
 
 export interface WeekMenuResponseDto {
   /** Start date of the week in ISO date format (YYYY-MM-DD) */
   weekStart: string;
   /** End date of the week in ISO date format (YYYY-MM-DD) */
   weekEnd: string;
+  /** Status of the weekly menu */
+  weekStatus: WeekMenuResponseDtoWeekStatus;
   /** Daily menu data indexed by date (YYYY-MM-DD format) */
   days: WeekMenuResponseDtoDays;
 }
