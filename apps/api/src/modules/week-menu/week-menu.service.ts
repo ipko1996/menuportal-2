@@ -1,5 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { and, between, eq } from 'drizzle-orm';
+import {
+  addWeeks,
+  isBefore,
+  isSameWeek,
+  parseISO,
+  startOfISOWeek,
+} from 'date-fns';
+import { and, between, eq, is } from 'drizzle-orm';
 
 import {
   availability,
@@ -53,6 +60,12 @@ export class WeekMenuService {
     private readonly weekScheduleService: WeekScheduleService
   ) {}
 
+  private isWeekEmpty(days: WeekMenuResponseDto['days']): boolean {
+    return Object.values(days).every(
+      day => day.offers.length === 0 && day.menus.length === 0
+    );
+  }
+
   /**
    * Returns the full weekly menu response, including status and week boundaries.
    * @param dateRange The start and end dates for the week.
@@ -73,38 +86,52 @@ export class WeekMenuService {
         restaurantId
       );
 
+    const now = new Date();
+    const { start, end } = dateRange;
+    const weekStart = parseISO(start);
+    const weekEnd = parseISO(end);
+
+    let weekStatus: MenuStatusApi;
+    let days: WeekMenuResponseDto['days'];
+    const isPast = isBefore(weekEnd, now);
+    const isCurrentWeek = isSameWeek(weekStart, now, { weekStartsOn: 1 });
+    const isPlanningWeek = isSameWeek(
+      weekStart,
+      startOfISOWeek(addWeeks(now, 1)),
+      { weekStartsOn: 1 }
+    );
+
     if (existingSchedules.length > 0) {
       this.logger.warn(
-        `Week ${dateRange.start} to ${dateRange.end} is already scheduled, published, or failed for restaurant ${restaurantId}`
+        `Week ${start} to ${end} is already scheduled, published, or failed for restaurant ${restaurantId}`
       );
 
-      const days = this.transformSchedulesToDays(existingSchedules, dateRange);
+      days = this.transformSchedulesToDays(existingSchedules, dateRange);
 
       // Determine the week's status with priority: PUBLISHED > FAILED > SCHEDULED
-      let weekStatus: MenuStatusApi = 'SCHEDULED';
-      // Theoretically, eaither all schedules are PUBLISHED or FAILED becase of trasnsactional nature.
+      // Theoretically, either all schedules are PUBLISHED or FAILED because of transactional nature.
       if (existingSchedules.some(s => s.status === 'PUBLISHED')) {
         weekStatus = 'PUBLISHED';
       } else if (existingSchedules.some(s => s.status === 'FAILED')) {
         weekStatus = 'FAILED';
+      } else {
+        weekStatus = 'SCHEDULED';
       }
-
-      return {
-        weekStatus,
-        weekStart: dateRange.start,
-        weekEnd: dateRange.end,
-        days,
-      };
+    } else {
+      // Logic for 'DRAFT' weeks
+      weekStatus = 'DRAFT';
+      days = await this.getWeekDays(dateRange, restaurantId);
     }
 
-    // Logic for 'DRAFT' weeks remains unchanged
-    const days = await this.getWeekDays(dateRange, restaurantId);
-
     return {
-      weekStatus: 'DRAFT',
-      weekStart: dateRange.start,
-      weekEnd: dateRange.end,
+      weekStatus,
+      weekStart: start,
+      weekEnd: end,
       days,
+      isEmpty: this.isWeekEmpty(days),
+      isPast,
+      isCurrentWeek,
+      isPlanningWeek,
     };
   }
 

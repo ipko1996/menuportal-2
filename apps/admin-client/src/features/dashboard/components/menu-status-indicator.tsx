@@ -30,8 +30,7 @@ interface MenuStatusCardProps {
     textColor: string;
   };
   weekNumber: number;
-  isLoading: boolean;
-  children: ReactNode;
+  children?: ReactNode;
   statusText?: string;
   statusTextColor?: string;
 }
@@ -42,7 +41,6 @@ export const MenuStatusCard: React.FC<MenuStatusCardProps> = ({
   children,
   statusText,
   statusTextColor,
-  isLoading,
 }) => {
   const {
     label,
@@ -72,7 +70,6 @@ export const MenuStatusCard: React.FC<MenuStatusCardProps> = ({
             </span>
           </div>
           <div className="flex items-center gap-2">
-            {/* <span className={`text-xs font-medium ${textColor}`}>{label}</span> */}
             {statusText && (
               <span
                 className={`text-xs font-medium ${
@@ -91,6 +88,15 @@ export const MenuStatusCard: React.FC<MenuStatusCardProps> = ({
 };
 
 const stateUIConfig = {
+  [PostState.Loading]: {
+    label: 'Loading',
+    icon: Clock,
+    bgColor: 'bg-gray-50 dark:bg-gray-900',
+    borderColor: 'border-gray-200 dark:border-gray-700',
+    iconContainerClasses:
+      'bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600',
+    textColor: 'text-gray-600 dark:text-gray-300',
+  },
   [PostState.Draft]: {
     label: 'Draft',
     icon: FileText,
@@ -175,12 +181,13 @@ const stateUIConfig = {
 };
 
 interface StateComponentProps {
-  state: State;
+  state: State & { isLoading: boolean };
   dispatch: React.Dispatch<Action>;
   actions: {
     handleSchedule: () => Promise<void>;
     handleCancel: () => Promise<void>;
-    isLoading: boolean;
+    isScheduling: boolean;
+    isCancelling: boolean;
   };
   weekNumber: number;
 }
@@ -189,18 +196,26 @@ export const stateComponentMap: Record<
   PostState,
   React.FC<StateComponentProps>
 > = {
-  [PostState.Draft]: ({ state, dispatch, actions, weekNumber }) => (
+  [PostState.Loading]: ({ state, weekNumber }) => (
     <MenuStatusCard
-      statusConfig={stateUIConfig.Draft}
+      statusConfig={stateUIConfig.Loading}
       weekNumber={weekNumber}
-      isLoading={state.isLoading}
+      statusText="Processing..."
     >
+      <span className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+        <Clock className="h-3 w-3 mr-2 animate-spin" />
+        Please wait
+      </span>
+    </MenuStatusCard>
+  ),
+  [PostState.Draft]: ({ state, dispatch, actions, weekNumber }) => (
+    <MenuStatusCard statusConfig={stateUIConfig.Draft} weekNumber={weekNumber}>
       <Button
         onClick={() => actions.handleSchedule()}
-        disabled={state.isLoading}
+        disabled={actions.isScheduling}
         className="bg-gray-900 hover:bg-gray-800 text-white dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200"
       >
-        {state.isLoading ? (
+        {actions.isScheduling ? (
           <>
             <Clock className="h-3 w-3 mr-1 animate-spin" /> Scheduling...
           </>
@@ -216,7 +231,6 @@ export const stateComponentMap: Record<
     <MenuStatusCard
       statusConfig={stateUIConfig.Overdue}
       weekNumber={weekNumber}
-      isLoading={state.isLoading}
       statusText="Needs scheduling"
     >
       <Button
@@ -240,16 +254,15 @@ export const stateComponentMap: Record<
     <MenuStatusCard
       statusConfig={stateUIConfig.Scheduled}
       weekNumber={weekNumber}
-      isLoading={state.isLoading}
       statusText="Posts Mon 9 AM"
       statusTextColor="text-blue-700 dark:text-blue-300"
     >
       <Button
         onClick={() => actions.handleCancel()}
-        disabled={state.isLoading}
+        disabled={actions.isCancelling}
         className="bg-red-600 hover:bg-red-700 text-white"
       >
-        {state.isLoading ? (
+        {actions.isCancelling ? (
           <>
             <X className="h-3 w-3 mr-1 animate-spin" /> Canceling...
           </>
@@ -265,7 +278,6 @@ export const stateComponentMap: Record<
     <MenuStatusCard
       statusConfig={stateUIConfig.Published}
       weekNumber={weekNumber}
-      isLoading={state.isLoading}
     >
       <Button
         onClick={() => mockViewPublished(weekNumber)}
@@ -279,7 +291,6 @@ export const stateComponentMap: Record<
     <MenuStatusCard
       statusConfig={stateUIConfig.Failed_OneTimeRetry}
       weekNumber={weekNumber}
-      isLoading={state.isLoading}
     >
       <Button
         onClick={() => dispatch({ type: ActionType.RETRY })}
@@ -302,7 +313,6 @@ export const stateComponentMap: Record<
     <MenuStatusCard
       statusConfig={stateUIConfig.CannotSchedule_Closed}
       weekNumber={weekNumber}
-      isLoading={state.isLoading}
       statusText="Scheduling closed"
     >
       <span className="text-xs text-gray-600 dark:text-gray-300 font-medium px-4">
@@ -314,13 +324,12 @@ export const stateComponentMap: Record<
     <MenuStatusCard
       statusConfig={stateUIConfig.Failed_SeeDetails}
       weekNumber={weekNumber}
-      isLoading={state.isLoading}
     >
       <Button
         onClick={() => dispatch({ type: ActionType.RESET })}
         className="bg-red-600 hover:bg-red-700 text-white"
       >
-        <Settings className="h-3 w-3 mr-1" /> Reset
+        <Settings className="h-3 w-3 mr-1" /> See Details
       </Button>
     </MenuStatusCard>
   ),
@@ -328,30 +337,14 @@ export const stateComponentMap: Record<
     <MenuStatusCard
       statusConfig={stateUIConfig.Missed_Deadline}
       weekNumber={weekNumber}
-      isLoading={state.isLoading}
       statusText="Final deadline passed"
-    >
-      <Button
-        onClick={() => dispatch({ type: ActionType.SYSTEM_CLOSE })}
-        className="bg-gray-600 hover:bg-gray-700 text-white"
-      >
-        <Settings className="h-3 w-3 mr-1" /> System Action
-      </Button>
-    </MenuStatusCard>
+    ></MenuStatusCard>
   ),
   [PostState.CannotSchedule_Nothing]: ({ state, dispatch, weekNumber }) => (
     <MenuStatusCard
       statusConfig={stateUIConfig.CannotSchedule_Nothing}
       weekNumber={weekNumber}
-      isLoading={state.isLoading}
       statusText="Nothing to schedule"
-    >
-      <Button
-        onClick={() => dispatch({ type: ActionType.RESET })}
-        className="bg-gray-600 hover:bg-gray-700 text-white"
-      >
-        <Settings className="h-3 w-3 mr-1" /> Start Over
-      </Button>
-    </MenuStatusCard>
+    ></MenuStatusCard>
   ),
 };

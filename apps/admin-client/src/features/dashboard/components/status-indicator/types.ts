@@ -4,6 +4,7 @@
  * Using an enum makes it easy to reference states without typos.
  */
 export enum PostState {
+  Loading = 'Loading',
   Draft = 'Draft',
   Scheduled = 'Scheduled',
   Overdue = 'Overdue',
@@ -21,17 +22,26 @@ export enum PostState {
  */
 export enum ActionType {
   SCHEDULE = 'SCHEDULE',
-  CANCEL = 'CANCEL',
-  //   LOADING = 'LOADING',
+  CANCEL_SCHEDULED = 'CANCEL_SCHEDULED',
+  LOADING = 'LOADING',
   DEADLINE_PASSES = 'DEADLINE_PASSES',
   POST_SUCCESS = 'POST_SUCCESS',
   POST_FAILURE = 'POST_FAILURE',
   SYSTEM_AUTO_FAIL = 'SYSTEM_AUTO_FAIL',
   RETRY = 'RETRY',
   TOLERANCE_EXPIRES = 'TOLERANCE_EXPIRES',
-  SYSTEM_CLOSE = 'SYSTEM_CLOSE',
   // A simple reset action for demonstration purposes
   RESET = 'RESET',
+
+  INITIALIZE_DRAFT = 'INITIALIZE_DRAFT',
+  INITIALIZE_SCHEDULED = 'INITIALIZE_SCHEDULED',
+  INITIALIZE_OVERDUE = 'INITIALIZE_OVERDUE',
+  INITIALIZE_PUBLISHED = 'INITIALIZE_PUBLISHED',
+  INITIALIZE_FAILED_SEE_DETAILS = 'INITIALIZE_FAILED_SEE_DETAILS',
+  INITIALIZE_FAILED_ONE_TIME_RETRY = 'INITIALIZE_FAILED_ONE_TIME_RETRY',
+  INITIALIZE_MISSED_DEADLINE = 'INITIALIZE_MISSED_DEADLINE',
+  INITIALIZE_CANNOT_SCHEDULE_CLOSED = 'INITIALIZE_CANNOT_SCHEDULE_CLOSED',
+  INITIALIZE_CANNOT_SCHEDULE_NOTHING = 'INITIALIZE_CANNOT_SCHEDULE_NOTHING',
 }
 
 /**
@@ -41,7 +51,6 @@ export enum ActionType {
  */
 export interface State {
   status: PostState;
-  isLoading: boolean;
 }
 
 /**

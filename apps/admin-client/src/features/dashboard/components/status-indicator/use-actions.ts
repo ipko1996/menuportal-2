@@ -12,45 +12,44 @@ export const useWeekActions = (
   dispatch: React.Dispatch<Action>
 ) => {
   const queryClient = useQueryClient();
-  const [isLoading, setIsLoading] = React.useState(false);
 
   const scheduleWeek = useScheduleWeek({
     mutation: {
+      // onMutate: () => {
+      //   dispatch({ type: ActionType.SCHEDULE });
+      // },
       onSuccess: () => {
         dispatch({ type: ActionType.SCHEDULE });
         queryClient.invalidateQueries({
           queryKey: getGetMenusForWeekQueryKey(currentWeekString),
         });
       },
-      onError: () => dispatch({ type: ActionType.CANCEL }),
+      // onError: () => dispatch({ type: ActionType.CANCEL_SCHEDULED }),
     },
   });
 
   const cancelScheduledWeek = useCancelScheduledWeek({
     mutation: {
       onSuccess: () => {
-        dispatch({ type: ActionType.CANCEL });
+        dispatch({ type: ActionType.CANCEL_SCHEDULED });
         queryClient.invalidateQueries({
           queryKey: getGetMenusForWeekQueryKey(currentWeekString),
         });
       },
-      onError: () => dispatch({ type: ActionType.SCHEDULE }),
+      // onError: () => dispatch({ type: ActionType.SCHEDULE }),
     },
   });
 
   const handleSchedule = async () => {
-    setIsLoading(true);
     try {
       await scheduleWeek.mutateAsync({ weekNumber: currentWeekString });
     } catch (error) {
       console.error('Error scheduling week:', error);
     } finally {
-      setIsLoading(false);
     }
   };
 
   const handleCancel = async () => {
-    setIsLoading(true);
     try {
       await cancelScheduledWeek.mutateAsync({
         weekNumber: currentWeekString,
@@ -58,13 +57,13 @@ export const useWeekActions = (
     } catch (error) {
       console.error('Error canceling scheduled week:', error);
     } finally {
-      setIsLoading(false);
     }
   };
 
   return {
     handleSchedule,
     handleCancel,
-    isLoading,
+    isScheduling: scheduleWeek.isPending,
+    isCancelling: cancelScheduledWeek.isPending,
   };
 };

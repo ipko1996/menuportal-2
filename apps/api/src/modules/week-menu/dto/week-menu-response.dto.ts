@@ -318,4 +318,32 @@ export class WeekMenuResponseDto {
   @ValidateNested({ each: true })
   @Type(() => WeekMenuDayDto)
   days: Record<string, WeekMenuDayDto>;
+
+  @ApiProperty({
+    description: 'Indicates if the week menu is empty (no offers or menus)',
+    example: false,
+    type: Boolean,
+  })
+  isEmpty: boolean;
+
+  @ApiProperty({
+    description: 'Indicates if the week is in the past',
+    example: false,
+    type: Boolean,
+  })
+  isPast: boolean;
+
+  @ApiProperty({
+    description: 'Indicates if the week is the current week',
+    example: true,
+    type: Boolean,
+  })
+  isCurrentWeek: boolean;
+
+  @ApiProperty({
+    description: 'Indicates if the week is the planning week',
+    example: false,
+    type: Boolean,
+  })
+  isPlanningWeek: boolean;
 }

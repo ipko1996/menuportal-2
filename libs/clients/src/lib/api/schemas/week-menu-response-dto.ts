@@ -17,4 +17,12 @@ export interface WeekMenuResponseDto {
   weekStatus: WeekMenuResponseDtoWeekStatus;
   /** Daily menu data indexed by date (YYYY-MM-DD format) */
   days: WeekMenuResponseDtoDays;
+  /** Indicates if the week menu is empty (no offers or menus) */
+  isEmpty: boolean;
+  /** Indicates if the week is in the past */
+  isPast: boolean;
+  /** Indicates if the week is the current week */
+  isCurrentWeek: boolean;
+  /** Indicates if the week is the planning week */
+  isPlanningWeek: boolean;
 }
