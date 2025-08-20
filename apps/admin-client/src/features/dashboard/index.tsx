@@ -7,11 +7,7 @@ import {
   getYear,
   subWeeks,
   parseISO,
-  isWithinInterval,
   isSameWeek,
-  startOfISOWeek,
-  endOfISOWeek,
-  isBefore,
 } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ItemDialog } from './components/item-dialog';
@@ -22,24 +18,12 @@ import {
   UpdateOfferDto,
   UpdateMenuDto,
   WeekMenuResponseDtoWeekStatus,
-  WeekMenuResponseDto,
 } from '@mono-repo/api-client';
 import { stateComponentMap } from './components/menu-status-indicator';
 import { Button, cn } from '@mono-repo/ui';
 import { postStateMachine } from './components/status-indicator/state-machine';
 import { ActionType, PostState } from './components/status-indicator/types';
 import { useWeekActions } from './components/status-indicator/use-actions';
-
-// Helper to check if a week is in the past
-const isWeekInThePast = (weekEnd: Date) => isBefore(weekEnd, new Date());
-
-// Helper to check if there are any menus or offers
-const isWeekEmpty = (days: WeekMenuResponseDto['days']): boolean => {
-  if (!days) return true;
-  return Object.values(days).every(
-    day => day.menus.length === 0 && day.offers.length === 0
-  );
-};
 
 export default function Dashboard() {
   // Initialize with next week instead of current week
@@ -70,63 +54,10 @@ export default function Dashboard() {
       return;
     }
 
-    const { weekStatus, weekStart, weekEnd, days } = menus;
-    const weekStartDate = parseISO(weekStart);
-    const weekEndDate = parseISO(weekEnd);
-    const now = new Date();
-    const planningWeekStartDate = startOfISOWeek(addWeeks(now, 1));
-    const isCurrentlyPlanningWeek = isSameWeek(
-      weekStartDate,
-      planningWeekStartDate,
-      { weekStartsOn: 1 }
-    );
-    const isCurrentlyThisWeek = isSameWeek(weekStartDate, now, {
-      weekStartsOn: 1,
+    dispatch({
+      type: ActionType.SET_STATE,
+      payload: menus,
     });
-
-    switch (weekStatus) {
-      case WeekMenuResponseDtoWeekStatus.DRAFT: {
-        const weekHasPassed = isWeekInThePast(weekEndDate);
-        const isEmpty = isWeekEmpty(days);
-
-        if (weekHasPassed) {
-          if (isEmpty) {
-            dispatch({ type: ActionType.INITIALIZE_CANNOT_SCHEDULE_CLOSED });
-          } else {
-            dispatch({ type: ActionType.INITIALIZE_MISSED_DEADLINE });
-          }
-        } else if (isCurrentlyThisWeek) {
-          if (isEmpty) {
-            dispatch({ type: ActionType.INITIALIZE_CANNOT_SCHEDULE_CLOSED });
-          } else {
-            dispatch({ type: ActionType.INITIALIZE_MISSED_DEADLINE });
-          }
-        } else if (isCurrentlyPlanningWeek) {
-          if (isEmpty) {
-            dispatch({ type: ActionType.INITIALIZE_CANNOT_SCHEDULE_NOTHING });
-          } else {
-            dispatch({ type: ActionType.INITIALIZE_DRAFT });
-          }
-        } else {
-          dispatch({ type: ActionType.INITIALIZE_CANNOT_SCHEDULE_NOTHING });
-        }
-        break;
-      }
-      case WeekMenuResponseDtoWeekStatus.SCHEDULED:
-        // A scheduled week should only exist for the planning week.
-        // If it's the current week or a past week, it should have been published.
-        if (isCurrentlyThisWeek || isWeekInThePast(weekEndDate)) {
-          dispatch({ type: ActionType.INITIALIZE_FAILED_SEE_DETAILS });
-        } else {
-          dispatch({ type: ActionType.INITIALIZE_SCHEDULED });
-        }
-        break;
-      case WeekMenuResponseDtoWeekStatus.PUBLISHED:
-        dispatch({ type: ActionType.INITIALIZE_PUBLISHED });
-        break;
-      default:
-        dispatch({ type: ActionType.LOADING });
-    }
   }, [menus]);
 
   const goToPreviousWeek = () => {
@@ -199,7 +130,6 @@ export default function Dashboard() {
       <div className="mb-2 flex items-center justify-between space-y-2">
         <div className="flex items-center gap-4">
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          {/* {weekIndicator} */}
         </div>
         <div className="flex items-center space-x-2">
           <Button
@@ -213,26 +143,26 @@ export default function Dashboard() {
           </Button>
           <Button
             size="sm"
+            variant={isThisWeek ? 'default' : 'ghost'}
             onClick={goToThisWeek}
-            className={cn(
-              'px-3 py-1 rounded-md font-semibold',
+            className={
               isThisWeek
-                ? 'bg-green-100 text-green-600 dark:bg-green-700 dark:text-green-200 hover:bg-green-200 dark:hover:bg-green-800'
-                : 'bg-transparent text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-            )}
+                ? 'bg-green-100 text-green-600 hover:bg-green-200 dark:bg-green-700 dark:text-green-200 dark:hover:bg-green-800'
+                : ''
+            }
           >
             This Week
           </Button>
 
           <Button
             size="sm"
+            variant={isPlanningWeek ? 'default' : 'ghost'}
             onClick={goToPlanningWeek}
-            className={cn(
-              'px-3 py-1 rounded-md font-semibold',
+            className={
               isPlanningWeek
-                ? 'bg-blue-100 text-blue-600 dark:bg-blue-700 dark:text-blue-200 hover:bg-blue-200 dark:hover:bg-blue-800'
-                : 'bg-transparent text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-            )}
+                ? 'bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-700 dark:text-blue-200 dark:hover:bg-blue-800'
+                : ''
+            }
           >
             Planning
           </Button>

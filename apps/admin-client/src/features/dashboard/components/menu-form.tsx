@@ -25,6 +25,7 @@ import {
   DayMenuDto,
   Dish,
   useGetAvailableDishtypes,
+  CreateMenuDto,
 } from '@mono-repo/api-client';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -34,13 +35,6 @@ interface FormDish {
   key: number;
   dishId: number;
   dishTypeId: number;
-}
-
-interface CreateMenuDto {
-  dishes: number[];
-  availability: string;
-  menuName: string;
-  price: number;
 }
 
 interface MenuFormProps {

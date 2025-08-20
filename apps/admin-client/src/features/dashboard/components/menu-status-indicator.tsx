@@ -13,7 +13,13 @@ import {
 } from 'lucide-react';
 import { Button } from '@mono-repo/ui';
 import { ReactNode } from 'react';
-import { Action, ActionType, PostState, State } from './status-indicator/types';
+import {
+  Action,
+  ActionType,
+  ActionWithPayload,
+  PostState,
+  State,
+} from './status-indicator/types';
 
 const mockViewPublished = (weekNumber: number) => {
   console.log(`ACTION: Viewing published menu for week ${weekNumber}`);
@@ -182,7 +188,7 @@ const stateUIConfig = {
 
 interface StateComponentProps {
   state: State & { isLoading: boolean };
-  dispatch: React.Dispatch<Action>;
+  dispatch: React.Dispatch<ActionWithPayload>;
   actions: {
     handleSchedule: () => Promise<void>;
     handleCancel: () => Promise<void>;

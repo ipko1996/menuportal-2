@@ -1,3 +1,5 @@
+import { WeekMenuResponseDto } from '@mono-repo/api-client';
+
 /**
  * @enum {string}
  * @description Defines all possible states for our component.
@@ -42,6 +44,8 @@ export enum ActionType {
   INITIALIZE_MISSED_DEADLINE = 'INITIALIZE_MISSED_DEADLINE',
   INITIALIZE_CANNOT_SCHEDULE_CLOSED = 'INITIALIZE_CANNOT_SCHEDULE_CLOSED',
   INITIALIZE_CANNOT_SCHEDULE_NOTHING = 'INITIALIZE_CANNOT_SCHEDULE_NOTHING',
+
+  SET_STATE = 'SET_STATE',
 }
 
 /**
@@ -53,11 +57,22 @@ export interface State {
   status: PostState;
 }
 
+export interface NewState {
+  status: PostState;
+  payload: WeekMenuResponseDto;
+}
+
 /**
  * @interface Action
  * @description Represents the shape of the actions we can dispatch.
  * @property {ActionType} type - The type of the action.
  */
-export interface Action {
+export type BaseAction = {
   type: ActionType;
-}
+};
+export type ActionWithPayload = {
+  type: ActionType;
+  payload?: WeekMenuResponseDto;
+};
+
+export type Action = BaseAction | ActionWithPayload;

@@ -16,7 +16,7 @@ export const useWeekActions = (
   const scheduleWeek = useScheduleWeek({
     mutation: {
       // onMutate: () => {
-      //   dispatch({ type: ActionType.SCHEDULE });
+      //   dispatch({ type: ActionType.LOADING });
       // },
       onSuccess: () => {
         dispatch({ type: ActionType.SCHEDULE });
@@ -30,6 +30,9 @@ export const useWeekActions = (
 
   const cancelScheduledWeek = useCancelScheduledWeek({
     mutation: {
+      // onMutate: () => {
+      //   dispatch({ type: ActionType.LOADING });
+      // },
       onSuccess: () => {
         dispatch({ type: ActionType.CANCEL_SCHEDULED });
         queryClient.invalidateQueries({
