@@ -63,7 +63,7 @@ export function DishAutocomplete({
 }: DishAutocompleteProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearchTerm] = useDebounceValue(searchTerm, 500);
+  const [debouncedSearchTerm] = useDebounceValue(searchTerm, 100);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -164,7 +164,7 @@ export function DishAutocomplete({
   const isSearching =
     searchTerm !== debouncedSearchTerm && searchTerm.length > 0;
 
-  const iconDishTypeId = dish ? dish.dishTypeId : (defaultDishTypeId ?? 0);
+  const iconDishTypeId = dish ? dish.dishTypeId : defaultDishTypeId ?? 0;
 
   return (
     <div ref={containerRef} className="relative">
@@ -190,8 +190,8 @@ export function DishAutocomplete({
             dishLoading
               ? 'Loading dish...'
               : isSearching
-                ? 'Searching...'
-                : placeholder
+              ? 'Searching...'
+              : placeholder
           }
           className="pl-10 pr-8"
           autoFocus={false}
