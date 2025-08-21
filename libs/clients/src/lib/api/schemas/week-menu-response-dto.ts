@@ -15,6 +15,11 @@ export interface WeekMenuResponseDto {
   weekEnd: string;
   /** Status of the weekly menu */
   weekStatus: WeekMenuResponseDtoWeekStatus;
+  /**
+   * Reason for failure if the week menu failed to be published
+   * @nullable
+   */
+  failureReason: string | null;
   /** Daily menu data indexed by date (YYYY-MM-DD format) */
   days: WeekMenuResponseDtoDays;
   /** Indicates if the week menu is empty (no offers or menus) */

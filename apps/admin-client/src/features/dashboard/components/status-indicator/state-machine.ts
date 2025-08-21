@@ -28,8 +28,8 @@ export const postStateMachine: Reducer<NewState, ActionWithPayload> = (
   state,
   action
 ): NewState => {
-  console.log(`Current State: ${state.status}, Action: ${action.type}`);
-  console.log(state.payload);
+  // console.log(`Current State: ${state.status}, Action: ${action.type}`);
+  // console.log(state.payload);
   switch (action.type) {
     case ActionType.SET_LOADING:
       return { ...state, status: PostState.Loading };

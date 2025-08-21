@@ -207,6 +207,14 @@ export class WeekMenuResponseDto {
   weekStatus: MenuStatusApi;
 
   @ApiProperty({
+    description: 'Reason for failure if the week menu failed to be published',
+    example: 'Database connection error',
+    type: String,
+    nullable: true,
+  })
+  failureReason?: string;
+
+  @ApiProperty({
     description: 'Daily menu data indexed by date (YYYY-MM-DD format)',
     type: 'object',
     additionalProperties: { $ref: getSchemaPath(WeekMenuDayDto) },
