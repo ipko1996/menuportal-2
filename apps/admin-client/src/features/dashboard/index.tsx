@@ -42,23 +42,36 @@ export default function Dashboard() {
     return `${year}-W${week.toString().padStart(2, '0')}`;
   }, [currentDate]);
 
-  const { data: menus, isLoading } = useGetMenusForWeek(currentWeekString);
+  const {
+    data: menus,
+    isLoading,
+    isFetching,
+  } = useGetMenusForWeek(currentWeekString);
 
   const [state, dispatch] = useReducer(postStateMachine, {
     status: PostState.Loading,
   });
 
   useEffect(() => {
-    if (!menus) {
-      dispatch({ type: ActionType.LOADING });
+    // ⬇️ Prioritize the fetching state ⬇️
+    // If a refetch is happening, force the UI into a loading state.
+    if (isFetching) {
+      dispatch({ type: ActionType.SET_LOADING });
       return;
     }
 
+    // If there's no data yet (initial load), also show loading.
+    if (!menus) {
+      dispatch({ type: ActionType.SET_LOADING });
+      return;
+    }
+
+    // Only when not fetching and data is present, calculate the final state.
     dispatch({
       type: ActionType.SET_STATE,
       payload: menus,
     });
-  }, [menus]);
+  }, [menus, isFetching]); // ⬅️ Add isFetching to the dependency array
 
   const goToPreviousWeek = () => {
     setCurrentDate(prevDate => subWeeks(prevDate, 1));
@@ -118,7 +131,7 @@ export default function Dashboard() {
   const weekNumber = useMemo(() => getISOWeek(currentDate), [currentDate]);
 
   const CurrentStateComponent = stateComponentMap[state.status];
-  const actions = useWeekActions(currentWeekString, dispatch);
+  const actions = useWeekActions(currentWeekString);
 
   const isPlanningWeek = isSameWeek(currentDate, addWeeks(new Date(), 1), {
     weekStartsOn: 1,
@@ -182,7 +195,7 @@ export default function Dashboard() {
         <CurrentStateComponent
           weekNumber={weekNumber}
           actions={actions}
-          state={{ ...state, isLoading }}
+          state={state}
           dispatch={dispatch}
         />
       </div>
@@ -193,7 +206,7 @@ export default function Dashboard() {
         menuData={menus}
         onOfferClick={handleOfferClick}
         onMenuClick={handleMenuClick}
-        weekStatus={menus?.weekStatus || WeekMenuResponseDtoWeekStatus.DRAFT}
+        weekStatus={menus?.weekStatus}
       />
 
       <ItemDialog

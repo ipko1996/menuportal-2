@@ -23,28 +23,7 @@ export enum PostState {
  * @description Defines all possible actions that can be dispatched to change the state.
  */
 export enum ActionType {
-  SCHEDULE = 'SCHEDULE',
-  CANCEL_SCHEDULED = 'CANCEL_SCHEDULED',
-  LOADING = 'LOADING',
-  DEADLINE_PASSES = 'DEADLINE_PASSES',
-  POST_SUCCESS = 'POST_SUCCESS',
-  POST_FAILURE = 'POST_FAILURE',
-  SYSTEM_AUTO_FAIL = 'SYSTEM_AUTO_FAIL',
-  RETRY = 'RETRY',
-  TOLERANCE_EXPIRES = 'TOLERANCE_EXPIRES',
-  // A simple reset action for demonstration purposes
-  RESET = 'RESET',
-
-  INITIALIZE_DRAFT = 'INITIALIZE_DRAFT',
-  INITIALIZE_SCHEDULED = 'INITIALIZE_SCHEDULED',
-  INITIALIZE_OVERDUE = 'INITIALIZE_OVERDUE',
-  INITIALIZE_PUBLISHED = 'INITIALIZE_PUBLISHED',
-  INITIALIZE_FAILED_SEE_DETAILS = 'INITIALIZE_FAILED_SEE_DETAILS',
-  INITIALIZE_FAILED_ONE_TIME_RETRY = 'INITIALIZE_FAILED_ONE_TIME_RETRY',
-  INITIALIZE_MISSED_DEADLINE = 'INITIALIZE_MISSED_DEADLINE',
-  INITIALIZE_CANNOT_SCHEDULE_CLOSED = 'INITIALIZE_CANNOT_SCHEDULE_CLOSED',
-  INITIALIZE_CANNOT_SCHEDULE_NOTHING = 'INITIALIZE_CANNOT_SCHEDULE_NOTHING',
-
+  SET_LOADING = 'SET_LOADING',
   SET_STATE = 'SET_STATE',
 }
 
@@ -53,13 +32,10 @@ export enum ActionType {
  * @description Represents the shape of our state object.
  * @property {PostState} status - The current state of the post.
  */
-export interface State {
-  status: PostState;
-}
 
 export interface NewState {
   status: PostState;
-  payload: WeekMenuResponseDto;
+  payload?: WeekMenuResponseDto;
 }
 
 /**
@@ -67,12 +43,10 @@ export interface NewState {
  * @description Represents the shape of the actions we can dispatch.
  * @property {ActionType} type - The type of the action.
  */
-export type BaseAction = {
-  type: ActionType;
-};
+
 export type ActionWithPayload = {
   type: ActionType;
   payload?: WeekMenuResponseDto;
 };
 
-export type Action = BaseAction | ActionWithPayload;
+export type Action = ActionWithPayload;

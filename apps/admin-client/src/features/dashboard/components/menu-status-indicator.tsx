@@ -1,5 +1,3 @@
-'use client';
-
 import type { WeekMenuResponseDtoWeekStatus } from '@mono-repo/api-client';
 import {
   Clock,
@@ -14,11 +12,9 @@ import {
 import { Button } from '@mono-repo/ui';
 import { ReactNode } from 'react';
 import {
-  Action,
-  ActionType,
   ActionWithPayload,
+  NewState,
   PostState,
-  State,
 } from './status-indicator/types';
 
 const mockViewPublished = (weekNumber: number) => {
@@ -187,7 +183,7 @@ const stateUIConfig = {
 };
 
 interface StateComponentProps {
-  state: State & { isLoading: boolean };
+  state: NewState;
   dispatch: React.Dispatch<ActionWithPayload>;
   actions: {
     handleSchedule: () => Promise<void>;
@@ -233,18 +229,18 @@ export const stateComponentMap: Record<
       </Button>
     </MenuStatusCard>
   ),
-  [PostState.Overdue]: ({ state, dispatch, weekNumber }) => (
+  [PostState.Overdue]: ({ state, dispatch, weekNumber, actions }) => (
     <MenuStatusCard
       statusConfig={stateUIConfig.Overdue}
       weekNumber={weekNumber}
       statusText="Needs scheduling"
     >
       <Button
-        onClick={() => dispatch({ type: ActionType.SCHEDULE })}
-        disabled={state.isLoading}
+        // onClick={() => dispatch({ type: ActionType.SCHEDULE })}
+        disabled={actions.isScheduling || actions.isCancelling}
         className="bg-yellow-600 hover:bg-yellow-700 text-white"
       >
-        {state.isLoading ? (
+        {actions.isScheduling ? (
           <>
             <Clock className="h-3 w-3 mr-1 animate-spin" /> Scheduling...
           </>
@@ -293,17 +289,22 @@ export const stateComponentMap: Record<
       </Button>
     </MenuStatusCard>
   ),
-  [PostState.Failed_OneTimeRetry]: ({ state, dispatch, weekNumber }) => (
+  [PostState.Failed_OneTimeRetry]: ({
+    state,
+    dispatch,
+    weekNumber,
+    actions,
+  }) => (
     <MenuStatusCard
       statusConfig={stateUIConfig.Failed_OneTimeRetry}
       weekNumber={weekNumber}
     >
       <Button
-        onClick={() => dispatch({ type: ActionType.RETRY })}
-        disabled={state.isLoading}
+        // onClick={() => dispatch({ type: ActionType.RETRY })}
+        disabled={actions.isScheduling || actions.isCancelling}
         className="bg-orange-600 hover:bg-orange-700 text-white"
       >
-        {state.isLoading ? (
+        {actions.isScheduling ? (
           <>
             <Clock className="h-3 w-3 mr-1 animate-spin" /> Retrying...
           </>
@@ -332,7 +333,7 @@ export const stateComponentMap: Record<
       weekNumber={weekNumber}
     >
       <Button
-        onClick={() => dispatch({ type: ActionType.RESET })}
+        // onClick={() => dispatch({ type: ActionType.RESET })}
         className="bg-red-600 hover:bg-red-700 text-white"
       >
         <Settings className="h-3 w-3 mr-1" /> See Details

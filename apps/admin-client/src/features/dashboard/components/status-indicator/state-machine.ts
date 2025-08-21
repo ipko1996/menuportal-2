@@ -1,13 +1,7 @@
 import { Reducer } from 'react';
 import { parseISO, getDay, addHours, isAfter } from 'date-fns';
 
-import {
-  Action,
-  ActionType,
-  ActionWithPayload,
-  PostState,
-  State,
-} from './types';
+import { ActionType, ActionWithPayload, NewState, PostState } from './types';
 import {
   WeekMenuResponseDto,
   WeekMenuResponseDtoWeekStatus,
@@ -17,7 +11,7 @@ import {
  * @constant {State}
  * @description The initial state of our application.
  */
-export const initialState: State = {
+export const initialState: NewState = {
   status: PostState.Draft,
 };
 
@@ -30,31 +24,14 @@ export const initialState: State = {
  * @param {Action} action - The dispatched action.
  * @returns {State} The new state.
  */
-export const postStateMachine: Reducer<State, ActionWithPayload> = (
+export const postStateMachine: Reducer<NewState, ActionWithPayload> = (
   state,
   action
-): State => {
+): NewState => {
   console.log(`Current State: ${state.status}, Action: ${action.type}`);
+  console.log(state.payload);
   switch (action.type) {
-    case ActionType.INITIALIZE_DRAFT:
-      return { ...state, status: PostState.Draft };
-    case ActionType.INITIALIZE_SCHEDULED:
-      return { ...state, status: PostState.Scheduled };
-    case ActionType.INITIALIZE_OVERDUE:
-      return { ...state, status: PostState.Overdue };
-    case ActionType.INITIALIZE_PUBLISHED:
-      return { ...state, status: PostState.Published };
-    case ActionType.INITIALIZE_FAILED_SEE_DETAILS:
-      return { ...state, status: PostState.Failed_SeeDetails };
-    case ActionType.INITIALIZE_FAILED_ONE_TIME_RETRY:
-      return { ...state, status: PostState.Failed_OneTimeRetry };
-    case ActionType.INITIALIZE_MISSED_DEADLINE:
-      return { ...state, status: PostState.Missed_Deadline };
-    case ActionType.INITIALIZE_CANNOT_SCHEDULE_CLOSED:
-      return { ...state, status: PostState.CannotSchedule_Closed };
-    case ActionType.INITIALIZE_CANNOT_SCHEDULE_NOTHING:
-      return { ...state, status: PostState.CannotSchedule_Nothing };
-    case ActionType.LOADING:
+    case ActionType.SET_LOADING:
       return { ...state, status: PostState.Loading };
 
     case ActionType.SET_STATE: {
@@ -62,72 +39,13 @@ export const postStateMachine: Reducer<State, ActionWithPayload> = (
 
       // Determine the new state based on the week data
       const newState = determinePostState({
-        isLoading: false,
         weekData,
-        now: new Date(),
       });
 
       return { ...state, status: newState };
     }
-  }
-
-  switch (state.status) {
-    case PostState.Draft:
-      switch (action.type) {
-        case ActionType.SCHEDULE:
-          return { ...state, status: PostState.Scheduled };
-        case ActionType.DEADLINE_PASSES:
-          return { ...state, status: PostState.Overdue };
-        default:
-          return state;
-      }
-
-    case PostState.Scheduled:
-      switch (action.type) {
-        case ActionType.CANCEL_SCHEDULED:
-          return { ...state, status: PostState.Draft };
-        case ActionType.POST_SUCCESS:
-          return { ...state, status: PostState.Published };
-        case ActionType.POST_FAILURE:
-          return { ...state, status: PostState.Failed_SeeDetails };
-        default:
-          return state;
-      }
-
-    case PostState.Overdue:
-      switch (action.type) {
-        case ActionType.SCHEDULE:
-          return { ...state, status: PostState.Scheduled };
-        case ActionType.SYSTEM_AUTO_FAIL:
-          return { ...state, status: PostState.Failed_OneTimeRetry };
-        case ActionType.TOLERANCE_EXPIRES:
-          return { ...state, status: PostState.Missed_Deadline };
-        default:
-          return state;
-      }
-
-    case PostState.Failed_OneTimeRetry:
-      switch (action.type) {
-        case ActionType.RETRY:
-          return { ...state, status: PostState.Scheduled };
-        case ActionType.TOLERANCE_EXPIRES:
-          return { ...state, status: PostState.Missed_Deadline };
-        default:
-          return state;
-      }
-
-    // Terminal states - they don't transition to other states based on these actions
-    case PostState.Missed_Deadline:
-    case PostState.Published:
-    case PostState.Failed_SeeDetails:
-    case PostState.CannotSchedule_Closed:
-    case PostState.CannotSchedule_Nothing:
 
     default:
-      // Handle reset from any state
-      if (action.type === ActionType.RESET) {
-        return initialState;
-      }
       return state;
   }
 };
@@ -147,16 +65,14 @@ const RETRY_TOLERANCE_HOURS = 1; // 1-hour tolerance period for retries
  * @returns The calculated PostState.
  */
 export function determinePostState({
-  isLoading,
   weekData,
   now = new Date(),
 }: {
-  isLoading: boolean;
   weekData?: WeekMenuResponseDto;
   now?: Date;
 }): PostState {
   // 1. Handle the loading state first.
-  if (isLoading) {
+  if (!weekData) {
     return PostState.Loading;
   }
 
@@ -182,6 +98,13 @@ export function determinePostState({
         return isEmpty
           ? PostState.CannotSchedule_Closed // Empty and in the past
           : PostState.Missed_Deadline; // Had content but was never scheduled
+      }
+
+      // If we're in the current week and still in draft, the deadline was missed.
+      if (isCurrentWeek) {
+        return isEmpty
+          ? PostState.CannotSchedule_Closed // Empty and in the current week
+          : PostState.Missed_Deadline; // Had content but deadline was missed
       }
 
       // If it's a future week (not current or planning) and empty.
