@@ -25,7 +25,6 @@ export const snapshot = pgTable(
     entityType: entityTypeEnum('entity_type').notNull(),
     originalId: integer('original_id'),
     status: MenuStatusEnum('status').default('SCHEDULED').notNull(),
-    failureReason: varchar('failure_reason'),
     date: date('date', { mode: 'string' }).notNull(),
     createdAt: timestamp('created_at', { mode: 'string', withTimezone: true })
       .defaultNow()

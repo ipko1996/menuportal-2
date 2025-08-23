@@ -2,7 +2,12 @@ import { format, parseISO } from 'date-fns';
 import { hu } from 'date-fns/locale';
 import * as Handlebars from 'handlebars';
 
-import type { DayData, DayWithName } from '../types';
+import { WeekMenuDayDto } from '@/modules/week-menu/dto/week-menu-response.dto';
+
+interface DayWithName {
+  dayName: string;
+  dayData: WeekMenuDayDto | undefined;
+}
 
 // Helper function to format a date using date-fns and Hungarian locale
 const formatDate = (date: Date): string => {
@@ -28,7 +33,7 @@ Handlebars.registerHelper(
 // Register helper to get days in correct order with Hungarian names
 Handlebars.registerHelper(
   'getDaysInOrder',
-  (days: Record<string, DayData>, weekStart: string): DayWithName[] => {
+  (days: Record<string, WeekMenuDayDto>, weekStart: string): DayWithName[] => {
     const dayNames: Record<number, string> = {
       0: 'VASÁRNAP', // Sunday
       1: 'HÉTFŐ', // Monday
@@ -52,7 +57,7 @@ Handlebars.registerHelper(
 
       result.push({
         dayName: dayNames[dayOfWeek],
-        dayData: days[dateString] || { offers: [], menus: [] },
+        dayData: days[dateString],
       });
     }
 
