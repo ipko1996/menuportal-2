@@ -91,7 +91,7 @@ export class WeekMenuService {
     const weekStart = parseISO(start);
     const weekEnd = parseISO(end);
 
-    let weekStatus: MenuStatusApi;
+    let weekStatus: MenuStatusApi = 'DRAFT';
     let days: WeekMenuResponseDto['days'];
     const isPast = isBefore(weekEnd, now);
     const isCurrentWeek = isSameWeek(weekStart, now, { weekStartsOn: 1 });
@@ -101,19 +101,20 @@ export class WeekMenuService {
       { weekStartsOn: 1 }
     );
 
-    if (existingSchedules.length > 0) {
+    if (existingSchedules.posts.length > 0) {
       this.logger.warn(
         `Week ${start} to ${end} is already scheduled, published, or failed for restaurant ${restaurantId}`
       );
 
-      days = this.transformSchedulesToDays(existingSchedules, dateRange);
+      days = this.transformSchedulesToDays(existingSchedules.snaps, dateRange);
 
-      // Determine the week's status with priority: PUBLISHED > FAILED > SCHEDULED
-      // Theoretically, either all schedules are PUBLISHED or FAILED because of transactional nature.
-      if (existingSchedules.some(s => s.status === 'PUBLISHED')) {
+      // Determine the week's status with priority: PUBLISHED > FAILED > SCHEDULED > PARTIALLY_FAILED
+      if (existingSchedules.posts.some(s => s.status === 'PUBLISHED')) {
         weekStatus = 'PUBLISHED';
-      } else if (existingSchedules.some(s => s.status === 'FAILED')) {
+      } else if (existingSchedules.posts.every(s => s.status === 'FAILED')) {
         weekStatus = 'FAILED';
+      } else if (existingSchedules.posts.some(s => s.status === 'FAILED')) {
+        weekStatus = 'PARTIALLY_FAILED';
       } else {
         weekStatus = 'SCHEDULED';
       }

@@ -20,5 +20,10 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src/**/*.ts", "types/**/*.d.ts", "**/*.d.ts"]
+  "include": [
+    "src/**/*.ts",
+    "types/**/*.d.ts",
+    "**/*.d.ts",
+    "trigger.config.ts"
+  ]
 }

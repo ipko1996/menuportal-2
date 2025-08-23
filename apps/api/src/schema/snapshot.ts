@@ -10,10 +10,11 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 
-import { entityTypeEnum, MenuStatusEnum } from '../constants';
+import { entityTypeEnum } from '../constants';
 import { dish } from './dish';
 import { dishType } from './dish-type';
 import { restaurant } from './restaurant';
+import { postSnapshot } from './social';
 
 export const snapshot = pgTable(
   'snapshot',
@@ -24,7 +25,6 @@ export const snapshot = pgTable(
       .references(() => restaurant.id),
     entityType: entityTypeEnum('entity_type').notNull(),
     originalId: integer('original_id'),
-    status: MenuStatusEnum('status').default('SCHEDULED').notNull(),
     date: date('date', { mode: 'string' }).notNull(),
     createdAt: timestamp('created_at', { mode: 'string', withTimezone: true })
       .defaultNow()
@@ -88,6 +88,7 @@ export const snapshotRelations = relations(snapshot, ({ many }) => ({
   menus: many(snapshotMenu),
   offers: many(snapshotOffer),
   items: many(snapshotItem),
+  postSnapshots: many(postSnapshot),
 }));
 
 export const snapshotMenuRelations = relations(snapshotMenu, ({ one }) => ({

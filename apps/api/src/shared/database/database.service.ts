@@ -11,6 +11,10 @@ import { Pool } from 'pg';
 
 import * as schema from '@/schema';
 
+type DrizzleInstance = ReturnType<typeof drizzle<typeof schema>>;
+type TransactionCallback = Parameters<DrizzleInstance['transaction']>[0];
+export type Transaction = Parameters<TransactionCallback>[0];
+
 @Injectable()
 export class DatabaseService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(DatabaseService.name);

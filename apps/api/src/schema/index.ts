@@ -10,6 +10,8 @@ export * from './offer-add-on';
 export * from './restaurant';
 export * from './restaurant-dish-type';
 export * from './restaurant-setting';
+export * from './schedule';
 export * from './snapshot';
+export * from './social';
 export * from './user';
 export * from './user-restaurant';
