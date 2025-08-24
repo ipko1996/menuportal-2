@@ -254,7 +254,7 @@ export const PlatformIndicators: React.FC<PlatformIndicatorsProps> = ({
             className={`p-1 rounded-full bg-white/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-600 ${colorClass}`}
             title={platform}
           >
-            <Icon className="h-3 w-3" />
+            <Icon className="h-4 w-4" />
           </div>
         );
       })}
@@ -358,19 +358,30 @@ export const stateComponentMap: Record<
       </MenuStatusCard>
     );
   },
-  [PostState.Published]: ({ state, weekNumber }) => (
-    <MenuStatusCard
-      statusConfig={stateUIConfig.Published}
-      weekNumber={weekNumber}
-    >
-      <Button
-        onClick={() => mockViewPublished(weekNumber)}
-        className="bg-green-600 hover:bg-green-700 text-white"
+  [PostState.Published]: ({ state, weekNumber, posts }) => {
+    const publishedPosts =
+      posts?.filter(post => post.status === PostStatus.PUBLISHED) ?? [];
+
+    return (
+      <MenuStatusCard
+        statusConfig={stateUIConfig.Published}
+        weekNumber={weekNumber}
       >
-        <Eye className="h-3 w-3 mr-1" /> View Published
-      </Button>
-    </MenuStatusCard>
-  ),
+        <div className="flex items-center gap-2">
+          <PlatformIndicators posts={publishedPosts} />
+          <Button
+            onClick={() => mockViewPublished(weekNumber)}
+            size="sm"
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
+            <Eye className="h-3 w-3 mr-1" />
+            <span className="hidden sm:inline">View</span>
+          </Button>
+        </div>
+      </MenuStatusCard>
+    );
+  },
+
   [PostState.Failed_OneTimeRetry]: ({
     state,
     dispatch,
