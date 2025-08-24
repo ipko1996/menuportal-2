@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { and, between, count, eq, inArray } from 'drizzle-orm';
 
 import {
+  MenuStatus,
   post,
   postSnapshot,
   snapshot,
@@ -27,7 +28,7 @@ export class WeekScheduleService {
       menus: (typeof snapshotMenu.$inferSelect)[];
       items: (typeof snapshotItem.$inferSelect)[];
     })[];
-    posts: { postId: number; status: string | null }[];
+    posts: { postId: number; status: MenuStatus }[];
   }> {
     const { start: startOfWeek, end: endOfWeek } = dateRange;
 
@@ -62,7 +63,9 @@ export class WeekScheduleService {
 
     return {
       snaps,
-      posts,
+      posts: posts.filter(
+        (p): p is { postId: number; status: MenuStatus } => p.status !== null
+      ),
     };
   }
 }

@@ -6,7 +6,7 @@ import {
   parseISO,
   startOfISOWeek,
 } from 'date-fns';
-import { and, between, eq, is } from 'drizzle-orm';
+import { and, between, eq } from 'drizzle-orm';
 
 import {
   availability,
@@ -108,23 +108,35 @@ export class WeekMenuService {
 
       days = this.transformSchedulesToDays(existingSchedules.snaps, dateRange);
 
-      // Determine the week's status with priority: PUBLISHED > FAILED > SCHEDULED > PARTIALLY_FAILED
-      if (existingSchedules.posts.some(s => s.status === 'PUBLISHED')) {
+      const posts = existingSchedules.posts;
+      const hasPublished = posts.some(p => p.status === 'PUBLISHED');
+      const hasFailed = posts.some(p => p.status === 'FAILED');
+      const hasScheduled = posts.some(p => p.status === 'SCHEDULED');
+
+      // All same status cases
+      if (posts.every(p => p.status === 'PUBLISHED')) {
         weekStatus = 'PUBLISHED';
-      } else if (existingSchedules.posts.every(s => s.status === 'FAILED')) {
+      } else if (posts.every(p => p.status === 'FAILED')) {
         weekStatus = 'FAILED';
-      } else if (existingSchedules.posts.some(s => s.status === 'FAILED')) {
-        weekStatus = 'PARTIALLY_FAILED';
-      } else {
+      } else if (posts.every(p => p.status === 'SCHEDULED')) {
         weekStatus = 'SCHEDULED';
+      } else if (hasPublished) {
+        // Any mix with published posts = partially failed
+        weekStatus = 'PARTIALLY_FAILED';
+      } else if (hasScheduled && hasFailed) {
+        // Scheduled + failed (no published) = failed dominates
+        weekStatus = 'FAILED';
+      } else {
+        // Fallback (shouldn't happen)
+        weekStatus = 'PARTIALLY_FAILED';
       }
     } else {
-      // Logic for 'DRAFT' weeks
       weekStatus = 'DRAFT';
       days = await this.getWeekDays(dateRange, restaurantId);
     }
 
     return {
+      posts: existingSchedules.posts,
       weekStatus,
       weekStart: start,
       weekEnd: end,

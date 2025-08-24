@@ -206,6 +206,8 @@ export class WeekMenuResponseDto {
   })
   weekStatus: MenuStatusApi;
 
+  posts: Array<{ postId: number; status: MenuStatusApi }>;
+
   @ApiProperty({
     description: 'Reason for failure if the week menu failed to be published',
     example: 'Database connection error',
