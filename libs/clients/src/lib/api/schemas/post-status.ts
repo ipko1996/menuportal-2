@@ -7,13 +7,12 @@
  */
 
 /**
- * Status of the weekly menu
+ * Status of the post
  */
-export type WeekMenuResponseDtoWeekStatus =
-  (typeof WeekMenuResponseDtoWeekStatus)[keyof typeof WeekMenuResponseDtoWeekStatus];
+export type PostStatus = (typeof PostStatus)[keyof typeof PostStatus];
 
  
-export const WeekMenuResponseDtoWeekStatus = {
+export const PostStatus = {
   DRAFT: 'DRAFT',
   PARTIALLY_FAILED: 'PARTIALLY_FAILED',
   SCHEDULED: 'SCHEDULED',

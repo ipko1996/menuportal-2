@@ -9,6 +9,8 @@ import {
   snapshotItem,
   snapshotMenu,
   snapshotOffer,
+  socialMediaAccount,
+  SocialMediaPlatform,
 } from '@/schema';
 import { DatabaseService } from '@/shared/database/database.service';
 import { DateRange } from '@/shared/pipes';
@@ -28,7 +30,11 @@ export class WeekScheduleService {
       menus: (typeof snapshotMenu.$inferSelect)[];
       items: (typeof snapshotItem.$inferSelect)[];
     })[];
-    posts: { postId: number; status: MenuStatus }[];
+    posts: {
+      postId: number;
+      status: MenuStatus;
+      platform: SocialMediaPlatform;
+    }[];
   }> {
     const { start: startOfWeek, end: endOfWeek } = dateRange;
 
@@ -48,23 +54,34 @@ export class WeekScheduleService {
       .select({
         postId: postSnapshot.postId,
         status: post.status,
+        platform: socialMediaAccount.platform,
       })
       .from(postSnapshot)
       .leftJoin(post, eq(post.id, postSnapshot.postId))
+      .leftJoin(
+        socialMediaAccount,
+        eq(socialMediaAccount.id, post.restaurantSocialAccountId)
+      )
       .where(
         inArray(
           postSnapshot.snapshotId,
           snaps.map(s => s.id)
         )
       )
-      .groupBy(postSnapshot.postId, post.status);
+      .groupBy(postSnapshot.postId, post.status, socialMediaAccount.platform);
 
     this.logger.log(posts);
 
     return {
       snaps,
       posts: posts.filter(
-        (p): p is { postId: number; status: MenuStatus } => p.status !== null
+        (
+          p
+        ): p is {
+          postId: number;
+          status: MenuStatus;
+          platform: SocialMediaPlatform;
+        } => p.status !== null
       ),
     };
   }

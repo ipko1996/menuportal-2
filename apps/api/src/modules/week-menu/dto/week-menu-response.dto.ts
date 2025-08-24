@@ -10,7 +10,12 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-import { MenuStatusApi, MenuStatusApiValues } from '@/constants';
+import {
+  MenuStatusApi,
+  MenuStatusApiValues,
+  SocialMediaPlatform,
+  socialMediaPlatformValues,
+} from '@/constants';
 
 export class Dish {
   @ApiProperty({
@@ -182,6 +187,30 @@ export class WeekMenuDayDto {
   menus: DayMenuDto[];
 }
 
+export class Post {
+  @ApiProperty({
+    description: 'Unique identifier for the post',
+    example: 123,
+    type: Number,
+  })
+  @IsNumber()
+  postId: number;
+
+  @ApiProperty({
+    description: 'Status of the post',
+    enum: MenuStatusApiValues,
+    example: 'DRAFT',
+  })
+  status: MenuStatusApi;
+
+  @ApiProperty({
+    description: 'Social media platform where the post is published',
+    enum: socialMediaPlatformValues,
+    example: 'INSTAGRAM',
+  })
+  platform: SocialMediaPlatform;
+}
+
 export class WeekMenuResponseDto {
   @ApiProperty({
     description: 'Start date of the week in ISO date format (YYYY-MM-DD)',
@@ -206,7 +235,16 @@ export class WeekMenuResponseDto {
   })
   weekStatus: MenuStatusApi;
 
-  posts: Array<{ postId: number; status: MenuStatusApi }>;
+  @ApiProperty({
+    description: 'List of posts with their status and platform',
+    type: [Post],
+    example: [
+      { postId: 123, status: 'DRAFT', platform: 'INSTAGRAM' },
+      { postId: 456, status: 'PUBLISHED', platform: 'FACEBOOK' },
+    ],
+  })
+  @IsArray()
+  posts: Post[];
 
   @ApiProperty({
     description: 'Reason for failure if the week menu failed to be published',

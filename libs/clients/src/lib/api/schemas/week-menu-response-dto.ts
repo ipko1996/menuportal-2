@@ -5,6 +5,7 @@
  * The API description
  * OpenAPI spec version: 1.0
  */
+import type { Post } from './post';
 import type { WeekMenuResponseDtoDays } from './week-menu-response-dto-days';
 import type { WeekMenuResponseDtoWeekStatus } from './week-menu-response-dto-week-status';
 
@@ -15,6 +16,8 @@ export interface WeekMenuResponseDto {
   weekEnd: string;
   /** Status of the weekly menu */
   weekStatus: WeekMenuResponseDtoWeekStatus;
+  /** List of posts with their status and platform */
+  posts: Post[];
   /**
    * Reason for failure if the week menu failed to be published
    * @nullable

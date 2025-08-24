@@ -193,6 +193,7 @@ export default function Dashboard() {
 
       <div className="mb-4">
         <CurrentStateComponent
+          posts={menus?.posts}
           weekNumber={weekNumber}
           actions={actions}
           state={state}

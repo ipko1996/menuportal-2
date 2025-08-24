@@ -1,4 +1,9 @@
-import type { WeekMenuResponseDtoWeekStatus } from '@mono-repo/api-client';
+import {
+  Post,
+  PostPlatform,
+  PostStatus,
+  type WeekMenuResponseDtoWeekStatus,
+} from '@mono-repo/api-client';
 import {
   Clock,
   X,
@@ -8,6 +13,15 @@ import {
   Eye,
   AlertTriangle,
   Settings,
+  Facebook,
+  Globe,
+  Instagram,
+  Linkedin,
+  MessageCircle,
+  Twitter,
+  Youtube,
+  RotateCcw,
+  XCircle,
 } from 'lucide-react';
 import { Button } from '@mono-repo/ui';
 import { ReactNode } from 'react';
@@ -155,12 +169,12 @@ const stateUIConfig = {
   },
   [PostState.Failed_SeeDetails]: {
     label: 'Failed',
-    icon: Settings,
-    bgColor: 'bg-red-100 dark:bg-red-800',
-    borderColor: 'border-red-300 dark:border-red-600',
+    icon: XCircle,
+    bgColor: 'bg-red-50 dark:bg-red-950',
+    borderColor: 'border-red-200 dark:border-red-700',
     iconContainerClasses:
-      'bg-red-200 text-red-700 border-red-300 dark:bg-red-700 dark:text-red-200 dark:border-red-600',
-    textColor: 'text-red-700 dark:text-red-200',
+      'bg-red-100 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-100 dark:border-red-600',
+    textColor: 'text-red-800 dark:text-red-100',
   },
   [PostState.Missed_Deadline]: {
     label: 'Missed Deadline',
@@ -180,6 +194,15 @@ const stateUIConfig = {
       'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600',
     textColor: 'text-gray-600 dark:text-gray-300',
   },
+  [PostState.Partially_Failed]: {
+    label: 'Partially Failed',
+    icon: AlertTriangle,
+    bgColor: 'bg-amber-50 dark:bg-amber-950',
+    borderColor: 'border-amber-200 dark:border-amber-700',
+    iconContainerClasses:
+      'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900 dark:text-amber-100 dark:border-amber-600',
+    textColor: 'text-amber-800 dark:text-amber-100',
+  },
 };
 
 interface StateComponentProps {
@@ -192,7 +215,57 @@ interface StateComponentProps {
     isCancelling: boolean;
   };
   weekNumber: number;
+  posts: Post[] | undefined;
 }
+
+interface PlatformIndicatorsProps {
+  posts: Post[];
+  className?: string;
+}
+
+const platformIcons = {
+  [PostPlatform.FACEBOOK]: Facebook,
+  [PostPlatform.INSTAGRAM]: Instagram,
+  [PostPlatform.TWITTER]: Twitter,
+};
+
+const platformColors = {
+  [PostPlatform.FACEBOOK]: 'text-blue-600 dark:text-blue-400',
+  [PostPlatform.INSTAGRAM]: 'text-pink-600 dark:text-pink-400',
+  [PostPlatform.TWITTER]: 'text-sky-600 dark:text-sky-400',
+};
+
+export const PlatformIndicators: React.FC<PlatformIndicatorsProps> = ({
+  posts,
+  className = '',
+}) => {
+  const platforms = [...new Set(posts.map(post => post.platform))];
+
+  if (platforms.length === 0) return null;
+
+  return (
+    <div className={`flex items-center gap-1 ${className}`}>
+      {platforms.map(platform => {
+        const Icon = platformIcons[platform];
+        const colorClass = platformColors[platform];
+        return (
+          <div
+            key={platform}
+            className={`p-1 rounded-full bg-white/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-600 ${colorClass}`}
+            title={platform}
+          >
+            <Icon className="h-3 w-3" />
+          </div>
+        );
+      })}
+      {platforms.length > 1 && (
+        <span className="text-xs text-gray-500 dark:text-gray-400 ml-1 hidden sm:inline">
+          {platforms.length} platforms
+        </span>
+      )}
+    </div>
+  );
+};
 
 export const stateComponentMap: Record<
   PostState,
@@ -236,7 +309,7 @@ export const stateComponentMap: Record<
       statusText="Needs scheduling"
     >
       <Button
-        // onClick={() => dispatch({ type: ActionType.SCHEDULE })}
+        onClick={() => actions.handleSchedule()}
         disabled={actions.isScheduling || actions.isCancelling}
         className="bg-yellow-600 hover:bg-yellow-700 text-white"
       >
@@ -252,30 +325,39 @@ export const stateComponentMap: Record<
       </Button>
     </MenuStatusCard>
   ),
-  [PostState.Scheduled]: ({ state, weekNumber, actions }) => (
-    <MenuStatusCard
-      statusConfig={stateUIConfig.Scheduled}
-      weekNumber={weekNumber}
-      statusText="Posts Mon 9 AM"
-      statusTextColor="text-blue-700 dark:text-blue-300"
-    >
-      <Button
-        onClick={() => actions.handleCancel()}
-        disabled={actions.isCancelling}
-        className="bg-red-600 hover:bg-red-700 text-white"
+  [PostState.Scheduled]: ({ state, weekNumber, actions, posts }) => {
+    const scheduledPosts =
+      posts?.filter(post => post.status === PostStatus.SCHEDULED) ?? [];
+    console.log(state);
+    return (
+      <MenuStatusCard
+        statusConfig={stateUIConfig.Scheduled}
+        weekNumber={weekNumber}
+        statusText="Posts Mon 9 AM"
+        statusTextColor="text-blue-700 dark:text-blue-300"
       >
-        {actions.isCancelling ? (
-          <>
-            <X className="h-3 w-3 mr-1 animate-spin" /> Canceling...
-          </>
-        ) : (
-          <>
-            <X className="h-3 w-3 mr-1" /> Cancel
-          </>
-        )}
-      </Button>
-    </MenuStatusCard>
-  ),
+        <div className="flex items-center gap-2">
+          <PlatformIndicators posts={scheduledPosts} />
+
+          <Button
+            onClick={() => actions.handleCancel()}
+            disabled={actions.isCancelling}
+            className="bg-red-600 hover:bg-red-700 text-white"
+          >
+            {actions.isCancelling ? (
+              <>
+                <X className="h-3 w-3 mr-1 animate-spin" /> Canceling...
+              </>
+            ) : (
+              <>
+                <X className="h-3 w-3 mr-1" /> Cancel
+              </>
+            )}
+          </Button>
+        </div>
+      </MenuStatusCard>
+    );
+  },
   [PostState.Published]: ({ state, weekNumber }) => (
     <MenuStatusCard
       statusConfig={stateUIConfig.Published}
@@ -354,4 +436,42 @@ export const stateComponentMap: Record<
       statusText="Nothing to schedule"
     ></MenuStatusCard>
   ),
+  [PostState.Partially_Failed]: ({ state, weekNumber, posts }) => {
+    const failedPosts =
+      posts?.filter(
+        post =>
+          post.status === PostStatus.FAILED ||
+          post.status === PostStatus.SCHEDULED
+      ) ?? [];
+    const successfulPosts =
+      posts?.filter(post => post.status === PostStatus.PUBLISHED) ?? [];
+
+    return (
+      <MenuStatusCard
+        statusConfig={stateUIConfig.Partially_Failed}
+        weekNumber={weekNumber}
+      >
+        <div className="flex items-center gap-2">
+          <div className="flex flex-col items-end gap-1">
+            <div className="flex items-center gap-2">
+              <PlatformIndicators posts={successfulPosts} />
+              <span className="text-xs text-green-600 dark:text-green-400 hidden sm:inline">
+                {successfulPosts.length} success
+              </span>
+            </div>
+            <span className="text-xs text-amber-600 dark:text-amber-400">
+              {failedPosts.length} failed
+            </span>
+          </div>
+          <Button
+            size="sm"
+            className="bg-amber-600 hover:bg-amber-700 text-white"
+          >
+            <RotateCcw className="h-3 w-3 mr-1" />
+            <span className="hidden sm:inline">Retry</span>
+          </Button>
+        </div>
+      </MenuStatusCard>
+    );
+  },
 };

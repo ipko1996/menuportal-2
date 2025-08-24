@@ -141,6 +141,10 @@ export function determinePostState({
       // Published is a final, valid state for any week.
       return PostState.Published;
 
+    case WeekMenuResponseDtoWeekStatus.PARTIALLY_FAILED:
+      // Partially failed is a warning state, but still shows as published.
+      return PostState.Partially_Failed;
+
     case WeekMenuResponseDtoWeekStatus.FAILED:
       // Check for the one-time retry condition for the planning week.
       if (isPlanningWeek) {

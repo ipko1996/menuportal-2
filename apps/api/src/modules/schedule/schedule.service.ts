@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { CronExpressionParser } from 'cron-parser';
+import { isBefore } from 'date-fns';
 import { and, between, eq, inArray } from 'drizzle-orm';
 
 import {
@@ -91,6 +92,26 @@ export class ScheduleService {
           eq(socialMediaAccount.isActive, true)
         )
       );
+
+    // TODO: No active schedule settings found
+    // TODO: Handle different scheduling scenarios (e.g., multiple schedules)
+
+    // const runs = settings.map(s => {
+    //   return {
+    //     cronExpression: s.scheduleSettings.cronExpression,
+    //     nextRun: this.getNextScheduledAt(s.scheduleSettings.cronExpression),
+    //   };
+    // });
+
+    // const earliestRun = runs.reduce((earliest, current) => {
+    //   return current.nextRun < earliest.nextRun ? current : earliest;
+    // }, runs[0]);
+
+    // if (isBefore(new Date(endOfWeek), new Date(earliestRun.nextRun))) {
+    //   throw new BadRequestException(
+    //     `Cannot schedule a week in the past: ${year}-${weekNumber}`
+    //   );
+    // }
 
     await this.databaseService.db.transaction(async tx => {
       const snapshotIds = await this.createSnapshots(tx, restaurantId, days);

@@ -16,6 +16,7 @@ export enum PostState {
   Missed_Deadline = 'Missed_Deadline',
   CannotSchedule_Closed = 'CannotSchedule_Closed',
   CannotSchedule_Nothing = 'CannotSchedule_Nothing',
+  Partially_Failed = 'Partially_Failed',
 }
 
 /**
