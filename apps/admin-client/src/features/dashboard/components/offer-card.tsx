@@ -7,6 +7,10 @@ interface OfferCardProps {
 }
 
 export function OfferCard({ offer, onClick }: OfferCardProps) {
+  if (!offer || !offer.dish) {
+    return null;
+  }
+
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onClick?.(offer);
@@ -17,10 +21,15 @@ export function OfferCard({ offer, onClick }: OfferCardProps) {
       className="mb-2 p-2 bg-background rounded-md border border-dashed shadow-sm hover:border-primary cursor-pointer"
       onClick={handleClick}
     >
-      <div className="flex items-center gap-2">
-        <Tag className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-        <div className="flex-grow">
-          <div className="text-sm font-medium">{offer.dish.dishName}</div>
+      <div className="flex items-start gap-2">
+        <Tag className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" />
+        <div className="flex-grow min-w-0">
+          <div
+            className="text-sm font-medium leading-tight break-words hyphens-auto line-clamp-2 md:line-clamp-1"
+            title={offer.dish.dishName!}
+          >
+            {offer.dish.dishName}
+          </div>
         </div>
       </div>
 

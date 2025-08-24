@@ -8,5 +8,6 @@ import { TemplatesService } from './templates.service';
   controllers: [TemplatesController],
   providers: [TemplatesService],
   imports: [WeekMenuModule],
+  exports: [TemplatesService],
 })
 export class TemplatesModule {}

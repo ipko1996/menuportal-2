@@ -3,6 +3,7 @@ export * from './generated/dish/dish';
 export * from './generated/dishtype/dishtype';
 export * from './generated/menu/menu';
 export * from './generated/offer/offer';
+export * from './generated/pdf/pdf';
 export * from './generated/schedule/schedule';
 export * from './generated/templates/templates';
 export * from './generated/week-menu/week-menu';

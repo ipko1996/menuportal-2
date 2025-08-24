@@ -1,3 +1,5 @@
+'use client';
+
 import { Main } from '@/components/layout/main';
 import WeeklyCalendar from './components/weekly-calendar';
 import { useEffect, useMemo, useReducer, useState } from 'react';
@@ -9,18 +11,31 @@ import {
   parseISO,
   isSameWeek,
 } from 'date-fns';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  ChevronRight,
+  Download,
+  ChevronDown,
+  Printer,
+  ChevronLeft,
+} from 'lucide-react'; // Added Download, ChevronDown, and Printer icons
 import { ItemDialog } from './components/item-dialog';
 import {
   useGetMenusForWeek,
   type DayOffersDto,
   type DayMenuDto,
-  UpdateOfferDto,
-  UpdateMenuDto,
-  WeekMenuResponseDtoWeekStatus,
+  type UpdateOfferDto,
+  type UpdateMenuDto,
+  downloadRestaurantMenuForWeek,
+  downloadRestaurantMenuForWeekAsImage,
 } from '@mono-repo/api-client';
 import { stateComponentMap } from './components/menu-status-indicator';
-import { Button, cn } from '@mono-repo/ui';
+import { Button } from '@mono-repo/ui';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@mono-repo/ui';
 import { postStateMachine } from './components/status-indicator/state-machine';
 import { ActionType, PostState } from './components/status-indicator/types';
 import { useWeekActions } from './components/status-indicator/use-actions';
@@ -35,6 +50,8 @@ export default function Dashboard() {
     type: 'offer' | 'menu';
     data: UpdateOfferDto | UpdateMenuDto;
   } | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false); // Added download loading state
+  const restaurantId = 2; // Declared restaurantId variable
 
   const currentWeekString = useMemo(() => {
     const year = getYear(currentDate);
@@ -128,6 +145,87 @@ export default function Dashboard() {
     }
   };
 
+  const handleDownloadMenu = async (format: 'pdf' | 'image') => {
+    try {
+      setIsDownloading(true);
+
+      let response: any;
+      let mimeType: string;
+      let fileExtension: string;
+
+      if (format === 'pdf') {
+        response = await downloadRestaurantMenuForWeek(
+          restaurantId,
+          currentWeekString
+        );
+        mimeType = 'application/pdf';
+        fileExtension = 'pdf';
+      } else {
+        response = await downloadRestaurantMenuForWeekAsImage(
+          restaurantId,
+          currentWeekString
+        );
+        mimeType = 'image/png';
+        fileExtension = 'png';
+      }
+
+      // Create blob and download
+      const blob = new Blob([response], { type: mimeType });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `menu-week-${currentWeekString}.${fileExtension}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download menu:', error);
+      // You might want to show a toast notification here
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const handlePrintMenu = async () => {
+    try {
+      const response = await downloadRestaurantMenuForWeek(
+        restaurantId,
+        currentWeekString
+      );
+
+      // Create blob and object URL
+      const blob = new Blob([response], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+
+      // Create iframe for printing
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = url;
+
+      document.body.appendChild(iframe);
+
+      // Wait for PDF to load, then print
+      iframe.onload = () => {
+        iframe.contentWindow?.print();
+        // Clean up only when window focus returns (user finished with print dialog)
+        window.addEventListener(
+          'focus',
+          () => {
+            document.body.removeChild(iframe);
+            window.URL.revokeObjectURL(url);
+          },
+          { once: true }
+        );
+      };
+    } catch (error) {
+      console.error('Failed to print menu:', error);
+      // Fallback to opening in new window
+      const printUrl = `http://localhost:3000/api/templates/${restaurantId}/${currentWeekString}`;
+      window.open(printUrl, '_blank');
+    }
+  };
+
   const weekNumber = useMemo(() => getISOWeek(currentDate), [currentDate]);
 
   const CurrentStateComponent = stateComponentMap[state.status];
@@ -148,12 +246,56 @@ export default function Dashboard() {
           <Button
             variant="outline"
             size="sm"
+            onClick={handlePrintMenu}
+            disabled={!menus}
+            className="flex items-center bg-transparent"
+          >
+            <Printer className="h-4 w-4" />
+          </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={isDownloading || !menus}
+                className="flex items-center gap-1 bg-transparent"
+              >
+                <Download className="h-4 w-4" />
+                {isDownloading ? 'Downloading...' : 'Download'}
+                <ChevronDown className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => handleDownloadMenu('pdf')}
+                disabled={isDownloading}
+                className="flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Download as PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleDownloadMenu('image')}
+                disabled={isDownloading}
+                className="flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Download as Image
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Button
+            variant="outline"
+            size="sm"
             onClick={goToPreviousWeek}
             className="flex items-center gap-1 bg-transparent"
           >
             <ChevronLeft className="h-4 w-4" />
             Previous
           </Button>
+
           <Button
             size="sm"
             variant={isThisWeek ? 'default' : 'ghost'}

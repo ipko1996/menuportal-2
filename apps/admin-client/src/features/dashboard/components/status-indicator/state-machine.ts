@@ -115,7 +115,9 @@ export function determinePostState({
       // Overdue: If it's the planning week, still a draft, and we are on the weekend of the *current* week.
       // getDay() -> Sunday = 0, Saturday = 6
       if (isPlanningWeek && (getDay(now) === 0 || getDay(now) === 6)) {
-        return PostState.Overdue;
+        return isEmpty
+          ? PostState.CannotSchedule_Closed // Empty planning week on weekend
+          : PostState.Overdue;
       }
 
       // The standard "Draft" state for a non-empty planning week.

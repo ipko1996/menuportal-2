@@ -106,11 +106,11 @@ const DayCell = React.memo(
       >
         {isDisabled && (
           <div className="absolute inset-0 bg-gray-500/20 z-20 flex items-center justify-center">
-            <div className="bg-white/90 px-3 py-1 rounded-md text-xs font-medium text-gray-600 shadow-sm">
+            {/* <div className="bg-white/90 px-3 py-1 rounded-md text-xs font-medium text-gray-600 shadow-sm">
               {weekStatus === 'SCHEDULED' && 'Scheduled - No Edits'}
               {weekStatus === 'PUBLISHED' && 'Published - Read Only'}
               {weekStatus === 'FAILED' && 'Failed - No Edits'}
-            </div>
+            </div> */}
           </div>
         )}
 

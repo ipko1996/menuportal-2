@@ -28,6 +28,7 @@ interface DishAutocompleteProps {
   placeholder?: string;
   openOnFocus?: boolean;
   defaultDishTypeId?: number;
+  autoFocus?: boolean; // Add this prop
 }
 
 export const getDishIcon = (
@@ -60,6 +61,7 @@ export function DishAutocomplete({
   placeholder = 'Search dishes...',
   openOnFocus = false,
   defaultDishTypeId,
+  autoFocus = true, // Add default value
 }: DishAutocompleteProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -103,6 +105,16 @@ export function DishAutocomplete({
   );
 
   const selectedDish = dishes.find(dish => dish.id === value);
+
+  // Add useEffect for autoFocus
+  useEffect(() => {
+    if (autoFocus && inputRef.current && !dishLoading && !dishTypesLoading) {
+      inputRef.current.focus();
+      if (openOnFocus) {
+        setIsOpen(true);
+      }
+    }
+  }, [autoFocus, dishLoading, dishTypesLoading, openOnFocus]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -194,7 +206,6 @@ export function DishAutocomplete({
               : placeholder
           }
           className="pl-10 pr-8"
-          autoFocus={false}
           disabled={dishTypesLoading || dishLoading}
         />
         <Button
