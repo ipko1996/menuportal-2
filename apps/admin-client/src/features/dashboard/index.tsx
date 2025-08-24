@@ -27,6 +27,7 @@ import {
   type UpdateMenuDto,
   downloadRestaurantMenuForWeek,
   downloadRestaurantMenuForWeekAsImage,
+  useGetCurrentUserWithRestaurant,
 } from '@mono-repo/api-client';
 import { stateComponentMap } from './components/menu-status-indicator';
 import { Button } from '@mono-repo/ui';
@@ -51,7 +52,7 @@ export default function Dashboard() {
     data: UpdateOfferDto | UpdateMenuDto;
   } | null>(null);
   const [isDownloading, setIsDownloading] = useState(false); // Added download loading state
-  const restaurantId = 2; // Declared restaurantId variable
+  const { data: currenttUser } = useGetCurrentUserWithRestaurant();
 
   const currentWeekString = useMemo(() => {
     const year = getYear(currentDate);
@@ -153,6 +154,11 @@ export default function Dashboard() {
       let mimeType: string;
       let fileExtension: string;
 
+      const restaurantId = currenttUser?.restaurant?.id;
+      if (!restaurantId) {
+        throw new Error('Restaurant ID is not available.');
+      }
+
       if (format === 'pdf') {
         response = await downloadRestaurantMenuForWeek(
           restaurantId,
@@ -188,6 +194,10 @@ export default function Dashboard() {
   };
 
   const handlePrintMenu = async () => {
+    const restaurantId = currenttUser?.restaurant?.id;
+    if (!restaurantId) {
+      throw new Error('Restaurant ID is not available.');
+    }
     try {
       const response = await downloadRestaurantMenuForWeek(
         restaurantId,
