@@ -272,8 +272,9 @@ export class ScheduleService {
       const [newPost] = await tx
         .insert(post)
         .values({
-          restaurantSocialAccountId: setting.socialAccount.id,
+          socialMediaAccountId: setting.socialAccount.id,
           status: 'SCHEDULED',
+          scheduleSettingsId: setting.scheduleSettings.id,
           content: setting.scheduleSettings.contentText,
           scheduledAt: this.getNextScheduledAt(
             setting.scheduleSettings.cronExpression

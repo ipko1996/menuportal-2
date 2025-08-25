@@ -17,7 +17,6 @@ import {
 } from '../constants';
 import { restaurant } from './restaurant';
 import { scheduleSettings } from './schedule';
-// import { scheduleSettingsSocialAccount } from './schedule';
 import { snapshot } from './snapshot';
 
 export const socialMediaAccount = pgTable(
@@ -29,11 +28,9 @@ export const socialMediaAccount = pgTable(
       .references(() => restaurant.id, { onDelete: 'cascade' }),
     platform: SocialMediaPlatformEnum('platform').notNull(),
 
-    // The specific ID or handle for the platform's API, e.g., Facebook Page ID
     platformAccountId: text('platform_account_id').notNull(),
 
-    // IMPORTANT: Tokens should be encrypted
-    accessToken: text('access_token').notNull(),
+    accessToken: text('access_token').notNull(), // 🔒 store encrypted
     refreshToken: text('refresh_token'),
     tokenExpiresAt: timestamp('token_expires_at', {
       mode: 'string',
@@ -62,14 +59,18 @@ export const post = pgTable(
   'post',
   {
     id: serial('id').primaryKey(),
-    restaurantSocialAccountId: integer('restaurant_social_account_id')
+    socialMediaAccountId: integer('social_media_account_id')
       .notNull()
       .references(() => socialMediaAccount.id, { onDelete: 'cascade' }),
+
+    scheduleSettingsId: integer('schedule_settings_id').references(
+      () => scheduleSettings.id,
+      { onDelete: 'set null' }
+    ),
 
     status: MenuStatusEnum('status').default('SCHEDULED').notNull(),
 
     content: text('content'),
-
     scheduledAt: timestamp('scheduled_at', {
       mode: 'string',
       withTimezone: true,
@@ -88,7 +89,13 @@ export const post = pgTable(
       .defaultNow()
       .notNull(),
   },
-  t => [index('post_status_scheduled_idx').on(t.status, t.scheduledAt)]
+  t => [
+    index('post_status_scheduled_idx').on(t.status, t.scheduledAt),
+    unique('unique_account_schedule_time').on(
+      t.socialMediaAccountId,
+      t.scheduledAt
+    ),
+  ]
 );
 
 export const postSnapshot = pgTable(
@@ -118,15 +125,23 @@ export const postSnapshot = pgTable(
 export const socialMediaAccountRelations = relations(
   socialMediaAccount,
   ({ many, one }) => ({
+    restaurant: one(restaurant, {
+      fields: [socialMediaAccount.restaurantId],
+      references: [restaurant.id],
+    }),
+    schedules: many(scheduleSettings),
     posts: many(post),
-    scheduleSettingsSocialAccount: one(scheduleSettings),
   })
 );
 
 export const postRelations = relations(post, ({ one, many }) => ({
   socialMediaAccount: one(socialMediaAccount, {
-    fields: [post.restaurantSocialAccountId],
+    fields: [post.socialMediaAccountId],
     references: [socialMediaAccount.id],
+  }),
+  scheduleSettings: one(scheduleSettings, {
+    fields: [post.scheduleSettingsId],
+    references: [scheduleSettings.id],
   }),
   postSnapshots: many(postSnapshot),
 }));

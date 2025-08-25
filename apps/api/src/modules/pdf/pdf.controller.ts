@@ -1,4 +1,12 @@
-import { Controller, Get, Param, ParseIntPipe, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Logger,
+  Param,
+  ParseEnumPipe,
+  ParseIntPipe,
+  Res,
+} from '@nestjs/common';
 import {
   ApiOperation,
   ApiParam,
@@ -8,6 +16,7 @@ import {
 } from '@nestjs/swagger';
 import { FastifyReply } from 'fastify';
 
+import { SocialMediaPlatform, socialMediaPlatformValues } from '@/constants';
 import { DateRange, WeekToDateRangePipe } from '@/shared/pipes';
 
 import { TemplatesService } from '../template/templates.service';
@@ -18,18 +27,27 @@ const CONTENT_TYPE_PDF = 'application/pdf';
 @ApiTags('PDF')
 @Controller('pdf')
 export class PdfController {
+  private readonly logger = new Logger(PdfController.name);
+
   constructor(
     private readonly pdfService: PdfService,
     private readonly templatesService: TemplatesService
   ) {}
 
-  @Get('download/:restaurantId/:weekNumber')
+  @Get('download/:restaurantId/:weekNumber/:platform')
   @ApiOperation({
     summary: 'Download the menu for a specific week as a PDF',
     operationId: 'downloadRestaurantMenuForWeek',
   })
   @ApiParam({ name: 'restaurantId', type: Number, example: 1 })
   @ApiParam({ name: 'weekNumber', type: String, example: '2025-W32' })
+  @ApiParam({
+    name: 'platform',
+    description: 'The social media platform to generate the template for',
+    enum: socialMediaPlatformValues,
+    example: 'FACEBOOK',
+    required: true,
+  })
   @ApiProduces(CONTENT_TYPE_PDF)
   @ApiResponse({
     status: 200,
@@ -74,30 +92,48 @@ export class PdfController {
   async downloadMenuForWeek(
     @Param('restaurantId', ParseIntPipe) restaurantId: number,
     @Param('weekNumber', WeekToDateRangePipe) dateRange: DateRange,
+    @Param('platform', new ParseEnumPipe(socialMediaPlatformValues))
+    platform: SocialMediaPlatform,
     @Res() res: FastifyReply
   ) {
-    const html = await this.templatesService.renderMenuForWeek(
-      restaurantId,
-      dateRange
-    );
+    try {
+      const html = await this.templatesService.renderMenuForWeek(
+        restaurantId,
+        dateRange,
+        platform
+      );
 
-    const pdfBuffer = await this.pdfService.generatePdfFromHtml(html);
+      const pdfBuffer = await this.pdfService.generatePdfFromHtml(html);
 
-    const fileName = `menu-${restaurantId}-${dateRange.year} ${dateRange.weekNumber}.pdf`;
-    res.header('Content-Type', CONTENT_TYPE_PDF);
-    res.header('Content-Disposition', `attachment; filename="${fileName}"`);
-    res.header('Content-Length', pdfBuffer.length);
+      const fileName = `menu-${restaurantId}-${dateRange.year} ${dateRange.weekNumber}.pdf`;
+      res.header('Content-Type', CONTENT_TYPE_PDF);
+      res.header('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.header('Content-Length', pdfBuffer.length);
 
-    res.send(pdfBuffer);
+      res.send(pdfBuffer);
+    } catch (error) {
+      this.logger.error(
+        `Error generating PDF for restaurant ${restaurantId} week ${dateRange.weekNumber}:`,
+        error instanceof Error ? error.message : error
+      );
+      throw error;
+    }
   }
 
-  @Get('download/image/:restaurantId/:weekNumber')
+  @Get('download/image/:restaurantId/:weekNumber/:platform')
   @ApiOperation({
     summary: 'Download the menu for a specific week as a PNG image',
     operationId: 'downloadRestaurantMenuForWeekAsImage',
   })
   @ApiParam({ name: 'restaurantId', type: Number, example: 1 })
   @ApiParam({ name: 'weekNumber', type: String, example: '2025-W32' })
+  @ApiParam({
+    name: 'platform',
+    description: 'The social media platform to generate the template for',
+    enum: socialMediaPlatformValues,
+    example: 'FACEBOOK',
+    required: true,
+  })
   @ApiProduces('image/png')
   @ApiResponse({
     status: 200,
@@ -146,13 +182,16 @@ export class PdfController {
   async downloadMenuForWeekAsImage(
     @Param('restaurantId', ParseIntPipe) restaurantId: number,
     @Param('weekNumber', WeekToDateRangePipe) dateRange: DateRange,
+    @Param('platform', new ParseEnumPipe(socialMediaPlatformValues))
+    platform: SocialMediaPlatform,
     @Res() res: FastifyReply
   ) {
     try {
       // 1. Generate the HTML using your existing service
       const html = await this.templatesService.renderMenuForWeek(
         restaurantId,
-        dateRange
+        dateRange,
+        platform
       );
 
       // 2. Convert the HTML to an image using the service
@@ -170,7 +209,10 @@ export class PdfController {
       return res.send(imageBuffer);
     } catch (error) {
       // Log the error for debugging
-      console.error('Error generating menu image:', error);
+      this.logger.error(
+        `Error generating image for restaurant ${restaurantId} week ${dateRange.weekNumber}:`,
+        error instanceof Error ? error.message : error
+      );
 
       // Re-throw to let NestJS handle the error response
       throw error;

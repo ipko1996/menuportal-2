@@ -1,7 +1,15 @@
-import { Controller, Get, Param, ParseIntPipe, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  ParseEnumPipe,
+  ParseIntPipe,
+  Res,
+} from '@nestjs/common';
 import { ApiOperation, ApiParam } from '@nestjs/swagger';
 import { FastifyReply } from 'fastify';
 
+import { SocialMediaPlatform, socialMediaPlatformValues } from '@/schema';
 import { DateRange, WeekToDateRangePipe } from '@/shared/pipes';
 
 import { TemplatesService } from './templates.service';
@@ -10,7 +18,7 @@ import { TemplatesService } from './templates.service';
 export class TemplatesController {
   constructor(private readonly templatesService: TemplatesService) {}
 
-  @Get(':restaurantId/:weekNumber')
+  @Get(':restaurantId/:weekNumber/:platform')
   @ApiParam({
     name: 'restaurantId',
     description: 'ID of the restaurant',
@@ -23,18 +31,28 @@ export class TemplatesController {
     example: '2025-W32',
     required: true,
   })
+  @ApiParam({
+    name: 'platform',
+    description: 'The social media platform to generate the template for',
+    enum: socialMediaPlatformValues,
+    example: 'FACEBOOK',
+    required: true,
+  })
   @ApiOperation({
-    summary: 'Get the menu for a specific restaurant and week',
-    operationId: 'getRestaurantMenuForWeek',
+    summary: 'Get the menu for a specific restaurant, week, and platform',
+    operationId: 'getRestaurantMenuForWeekAndPlatform',
   })
   async renderMenuForWeek(
     @Param('restaurantId', ParseIntPipe) restaurantId: number,
     @Param('weekNumber', WeekToDateRangePipe) dateRange: DateRange,
+    @Param('platform', new ParseEnumPipe(socialMediaPlatformValues))
+    platform: SocialMediaPlatform,
     @Res() res: FastifyReply
   ) {
     const html = await this.templatesService.renderMenuForWeek(
       restaurantId,
-      dateRange
+      dateRange,
+      platform
     );
     res.type('text/html').send(html);
   }

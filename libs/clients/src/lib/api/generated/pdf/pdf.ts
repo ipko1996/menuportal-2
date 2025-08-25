@@ -29,12 +29,13 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 export const downloadRestaurantMenuForWeek = (
   restaurantId: number,
   weekNumber: string,
+  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
   options?: SecondParameter<typeof axiosInstance>,
   signal?: AbortSignal
 ) => {
   return axiosInstance<Blob>(
     {
-      url: `/api/pdf/download/${restaurantId}/${weekNumber}`,
+      url: `/api/pdf/download/${restaurantId}/${weekNumber}/${platform}`,
       method: 'GET',
       responseType: 'blob',
       signal,
@@ -45,9 +46,12 @@ export const downloadRestaurantMenuForWeek = (
 
 export const getDownloadRestaurantMenuForWeekQueryKey = (
   restaurantId?: number,
-  weekNumber?: string
+  weekNumber?: string,
+  platform?: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER'
 ) => {
-  return [`/api/pdf/download/${restaurantId}/${weekNumber}`] as const;
+  return [
+    `/api/pdf/download/${restaurantId}/${weekNumber}/${platform}`,
+  ] as const;
 };
 
 export const getDownloadRestaurantMenuForWeekQueryOptions = <
@@ -56,6 +60,7 @@ export const getDownloadRestaurantMenuForWeekQueryOptions = <
 >(
   restaurantId: number,
   weekNumber: string,
+  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
   options?: {
     query?: Partial<
       UseQueryOptions<
@@ -71,7 +76,11 @@ export const getDownloadRestaurantMenuForWeekQueryOptions = <
 
   const queryKey =
     queryOptions?.queryKey ??
-    getDownloadRestaurantMenuForWeekQueryKey(restaurantId, weekNumber);
+    getDownloadRestaurantMenuForWeekQueryKey(
+      restaurantId,
+      weekNumber,
+      platform
+    );
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof downloadRestaurantMenuForWeek>>
@@ -79,6 +88,7 @@ export const getDownloadRestaurantMenuForWeekQueryOptions = <
     downloadRestaurantMenuForWeek(
       restaurantId,
       weekNumber,
+      platform,
       requestOptions,
       signal
     );
@@ -86,7 +96,7 @@ export const getDownloadRestaurantMenuForWeekQueryOptions = <
   return {
     queryKey,
     queryFn,
-    enabled: !!(restaurantId && weekNumber),
+    enabled: !!(restaurantId && weekNumber && platform),
     ...queryOptions,
   } as UseQueryOptions<
     Awaited<ReturnType<typeof downloadRestaurantMenuForWeek>>,
@@ -106,6 +116,7 @@ export function useDownloadRestaurantMenuForWeek<
 >(
   restaurantId: number,
   weekNumber: string,
+  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
   options: {
     query: Partial<
       UseQueryOptions<
@@ -134,6 +145,7 @@ export function useDownloadRestaurantMenuForWeek<
 >(
   restaurantId: number,
   weekNumber: string,
+  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
   options?: {
     query?: Partial<
       UseQueryOptions<
@@ -162,6 +174,7 @@ export function useDownloadRestaurantMenuForWeek<
 >(
   restaurantId: number,
   weekNumber: string,
+  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
   options?: {
     query?: Partial<
       UseQueryOptions<
@@ -186,6 +199,7 @@ export function useDownloadRestaurantMenuForWeek<
 >(
   restaurantId: number,
   weekNumber: string,
+  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
   options?: {
     query?: Partial<
       UseQueryOptions<
@@ -203,6 +217,7 @@ export function useDownloadRestaurantMenuForWeek<
   const queryOptions = getDownloadRestaurantMenuForWeekQueryOptions(
     restaurantId,
     weekNumber,
+    platform,
     options
   );
 
@@ -222,12 +237,13 @@ export function useDownloadRestaurantMenuForWeek<
 export const downloadRestaurantMenuForWeekAsImage = (
   restaurantId: number,
   weekNumber: string,
+  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
   options?: SecondParameter<typeof axiosInstance>,
   signal?: AbortSignal
 ) => {
   return axiosInstance<Blob>(
     {
-      url: `/api/pdf/download/image/${restaurantId}/${weekNumber}`,
+      url: `/api/pdf/download/image/${restaurantId}/${weekNumber}/${platform}`,
       method: 'GET',
       responseType: 'blob',
       signal,
@@ -238,17 +254,21 @@ export const downloadRestaurantMenuForWeekAsImage = (
 
 export const getDownloadRestaurantMenuForWeekAsImageQueryKey = (
   restaurantId?: number,
-  weekNumber?: string
+  weekNumber?: string,
+  platform?: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER'
 ) => {
-  return [`/api/pdf/download/image/${restaurantId}/${weekNumber}`] as const;
+  return [
+    `/api/pdf/download/image/${restaurantId}/${weekNumber}/${platform}`,
+  ] as const;
 };
 
 export const getDownloadRestaurantMenuForWeekAsImageQueryOptions = <
   TData = Awaited<ReturnType<typeof downloadRestaurantMenuForWeekAsImage>>,
-  TError = ErrorType<null | null>
+  TError = ErrorType<null | null | null>
 >(
   restaurantId: number,
   weekNumber: string,
+  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
   options?: {
     query?: Partial<
       UseQueryOptions<
@@ -264,7 +284,11 @@ export const getDownloadRestaurantMenuForWeekAsImageQueryOptions = <
 
   const queryKey =
     queryOptions?.queryKey ??
-    getDownloadRestaurantMenuForWeekAsImageQueryKey(restaurantId, weekNumber);
+    getDownloadRestaurantMenuForWeekAsImageQueryKey(
+      restaurantId,
+      weekNumber,
+      platform
+    );
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof downloadRestaurantMenuForWeekAsImage>>
@@ -272,6 +296,7 @@ export const getDownloadRestaurantMenuForWeekAsImageQueryOptions = <
     downloadRestaurantMenuForWeekAsImage(
       restaurantId,
       weekNumber,
+      platform,
       requestOptions,
       signal
     );
@@ -279,7 +304,7 @@ export const getDownloadRestaurantMenuForWeekAsImageQueryOptions = <
   return {
     queryKey,
     queryFn,
-    enabled: !!(restaurantId && weekNumber),
+    enabled: !!(restaurantId && weekNumber && platform),
     ...queryOptions,
   } as UseQueryOptions<
     Awaited<ReturnType<typeof downloadRestaurantMenuForWeekAsImage>>,
@@ -292,15 +317,16 @@ export type DownloadRestaurantMenuForWeekAsImageQueryResult = NonNullable<
   Awaited<ReturnType<typeof downloadRestaurantMenuForWeekAsImage>>
 >;
 export type DownloadRestaurantMenuForWeekAsImageQueryError = ErrorType<
-  null | null
+  null | null | null
 >;
 
 export function useDownloadRestaurantMenuForWeekAsImage<
   TData = Awaited<ReturnType<typeof downloadRestaurantMenuForWeekAsImage>>,
-  TError = ErrorType<null | null>
+  TError = ErrorType<null | null | null>
 >(
   restaurantId: number,
   weekNumber: string,
+  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
   options: {
     query: Partial<
       UseQueryOptions<
@@ -325,10 +351,11 @@ export function useDownloadRestaurantMenuForWeekAsImage<
 };
 export function useDownloadRestaurantMenuForWeekAsImage<
   TData = Awaited<ReturnType<typeof downloadRestaurantMenuForWeekAsImage>>,
-  TError = ErrorType<null | null>
+  TError = ErrorType<null | null | null>
 >(
   restaurantId: number,
   weekNumber: string,
+  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
   options?: {
     query?: Partial<
       UseQueryOptions<
@@ -353,10 +380,11 @@ export function useDownloadRestaurantMenuForWeekAsImage<
 };
 export function useDownloadRestaurantMenuForWeekAsImage<
   TData = Awaited<ReturnType<typeof downloadRestaurantMenuForWeekAsImage>>,
-  TError = ErrorType<null | null>
+  TError = ErrorType<null | null | null>
 >(
   restaurantId: number,
   weekNumber: string,
+  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
   options?: {
     query?: Partial<
       UseQueryOptions<
@@ -377,10 +405,11 @@ export function useDownloadRestaurantMenuForWeekAsImage<
 
 export function useDownloadRestaurantMenuForWeekAsImage<
   TData = Awaited<ReturnType<typeof downloadRestaurantMenuForWeekAsImage>>,
-  TError = ErrorType<null | null>
+  TError = ErrorType<null | null | null>
 >(
   restaurantId: number,
   weekNumber: string,
+  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
   options?: {
     query?: Partial<
       UseQueryOptions<
@@ -398,6 +427,7 @@ export function useDownloadRestaurantMenuForWeekAsImage<
   const queryOptions = getDownloadRestaurantMenuForWeekAsImageQueryOptions(
     restaurantId,
     weekNumber,
+    platform,
     options
   );
 

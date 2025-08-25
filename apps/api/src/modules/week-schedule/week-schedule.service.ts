@@ -60,7 +60,7 @@ export class WeekScheduleService {
       .leftJoin(post, eq(post.id, postSnapshot.postId))
       .leftJoin(
         socialMediaAccount,
-        eq(socialMediaAccount.id, post.restaurantSocialAccountId)
+        eq(socialMediaAccount.id, post.socialMediaAccountId)
       )
       .where(
         inArray(

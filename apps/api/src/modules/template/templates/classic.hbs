@@ -1,0 +1,438 @@
+<html lang='hu'>
+
+<head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>Heti Ajánlat - Klasszikus</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', serif;
+            /* Reduced margins for A4 fit */
+            margin: 10px;
+            background-color: #fafafa;
+            position: relative;
+            min-height: 100vh;
+            color: #2c2c2c;
+        }
+
+        .menu-container {
+            position: relative;
+            background-color: white;
+            /* Removed container border that was causing the unwanted border line */
+            padding: 15px;
+            max-width: 800px;
+            margin: 0 auto;
+            min-height: calc(100vh - 20px);
+            /* Removed box-shadow that was causing the shadow effect */
+        }
+
+        .header {
+            text-align: center;
+            /* Reduced margin from 30px to 20px */
+            margin-bottom: 20px;
+            border-bottom: 3px double #333;
+            /* Reduced padding from 20px to 12px */
+            padding-bottom: 12px;
+        }
+
+        .restaurant-name {
+            /* Reduced font size from 24px to 20px */
+            font-size: 20px;
+            font-weight: bold;
+            text-decoration: underline;
+            /* Reduced margin from 8px to 5px */
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+
+        .restaurant-info {
+            /* Reduced font size from 14px to 12px */
+            font-size: 12px;
+            /* Reduced margin from 25px to 15px */
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .week-title {
+            /* Reduced font size from 20px to 18px */
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            /* Reduced margin from 15px to 10px */
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .week-dates {
+            /* Reduced font size from 16px to 14px */
+            font-size: 14px;
+            /* Reduced margin from 20px to 12px */
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .fixed-items {
+            /* Reduced margin from 25px to 15px */
+            margin-bottom: 15px;
+            background-color: #f8f8f8;
+            /* Reduced padding from 15px to 10px */
+            padding: 10px;
+            border: 2px solid #ddd;
+        }
+
+        .fixed-items table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .fixed-items td {
+            /* Reduced padding from 5px to 3px */
+            padding: 3px 0;
+            /* Reduced font size from 15px to 13px */
+            font-size: 13px;
+            border-bottom: 1px dotted #ccc;
+        }
+
+        .fixed-items .item-name {
+            width: 40%;
+            font-weight: bold;
+        }
+
+        .fixed-items .item-price {
+            width: 60%;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        .menu-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 3px solid #333;
+            background-color: white;
+        }
+
+        .menu-table th,
+        .menu-table td {
+            border: 2px solid #333;
+            /* Reduced padding from 12px to 8px */
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+            /* Reduced font size from 13px to 12px */
+            font-size: 12px;
+        }
+
+        .day-cell {
+            font-weight: bold;
+            width: 15%;
+            background-color: #e8e8e8;
+            text-align: center;
+            /* Reduced font size from 14px to 12px */
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .food-cell {
+            width: 65%;
+            /* Reduced padding from 10px 15px to 6px 10px */
+            padding: 6px 10px;
+            line-height: 1.4;
+        }
+
+        .price-cell {
+            width: 20%;
+            text-align: center;
+            font-weight: bold;
+            background-color: #f5f5f5;
+        }
+
+        .menu-label {
+            font-weight: bold;
+            display: inline-block;
+            /* Reduced padding from 3px 6px to 2px 4px */
+            padding: 2px 4px;
+            /* Reduced margin from 4px to 2px */
+            margin-bottom: 2px;
+            background-color: #333;
+            color: white;
+            /* Reduced font size from 12px to 10px */
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+
+        .dish-item {
+            /* Reduced margin from 4px to 2px */
+            margin: 2px 0;
+            /* Reduced padding from 3px to 2px */
+            padding: 2px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .dish-item:last-child {
+            border-bottom: none;
+        }
+
+        .empty-day {
+            color: #999;
+            font-style: italic;
+            text-align: center;
+        }
+
+        .footer {
+            /* Reduced margin from 30px to 20px */
+            margin-top: 20px;
+            /* Reduced font size from 13px to 11px */
+            font-size: 11px;
+            text-align: center;
+            /* Reduced margin from 50px to 30px */
+            margin-bottom: 30px;
+            border-top: 2px solid #333;
+            /* Reduced padding from 20px to 12px */
+            padding-top: 12px;
+        }
+
+        .footer p {
+            /* Reduced margin from 8px to 5px */
+            margin: 5px 0;
+        }
+
+        .watermark {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 12px;
+            font-style: italic;
+            color: rgba(0, 0, 0, 0.4);
+            pointer-events: none;
+            user-select: none;
+            z-index: 1000;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+
+        /* Print-specific styles */
+        @media print {
+            body {
+                margin: 0;
+                background-color: white;
+            }
+
+            .menu-container {
+                /* Removed print border that was causing the unwanted border line */
+                padding: 10px;
+                min-height: auto;
+                /* Removed box-shadow for print to eliminate any shadow effects */
+            }
+
+            .header {
+                text-align: center;
+                margin-bottom: 20px;
+                border-bottom: 3px double #333;
+                padding-bottom: 12px;
+            }
+
+            .restaurant-name {
+                font-size: 20px;
+                font-weight: bold;
+                text-decoration: underline;
+                margin-bottom: 5px;
+                letter-spacing: 1px;
+            }
+
+            .restaurant-info {
+                font-size: 12px;
+                margin-bottom: 15px;
+                font-style: italic;
+            }
+
+            .week-title {
+                font-size: 18px;
+                font-weight: bold;
+                letter-spacing: 3px;
+                margin-bottom: 10px;
+                text-transform: uppercase;
+            }
+
+            .week-dates {
+                font-size: 14px;
+                margin-bottom: 12px;
+                font-weight: 600;
+            }
+
+            .fixed-items {
+                margin-bottom: 15px;
+                background-color: #f8f8f8;
+                padding: 10px;
+                border: 2px solid #ddd;
+            }
+
+            .menu-table {
+                width: 100%;
+                border-collapse: collapse;
+                border: 3px solid #333;
+                background-color: white;
+            }
+
+            .menu-table th,
+            .menu-table td {
+                border: 2px solid #333;
+                padding: 8px;
+                text-align: left;
+                vertical-align: top;
+                font-size: 12px;
+            }
+
+            .day-cell {
+                font-weight: bold;
+                width: 15%;
+                background-color: #e8e8e8;
+                text-align: center;
+                font-size: 12px;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+
+            .food-cell {
+                width: 65%;
+                padding: 6px 10px;
+                line-height: 1.4;
+            }
+
+            .price-cell {
+                width: 20%;
+                text-align: center;
+                font-weight: bold;
+                background-color: #f5f5f5;
+            }
+
+            .menu-label {
+                font-weight: bold;
+                display: inline-block;
+                padding: 2px 4px;
+                margin-bottom: 2px;
+                background-color: #333;
+                color: white;
+                font-size: 10px;
+                text-transform: uppercase;
+            }
+
+            .dish-item {
+                margin: 2px 0;
+                padding: 2px 0;
+                border-bottom: 1px solid #eee;
+            }
+
+            .dish-item:last-child {
+                border-bottom: none;
+            }
+
+            .empty-day {
+                color: #999;
+                font-style: italic;
+                text-align: center;
+            }
+
+            .footer {
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class='menu-container'>
+        <div class='header'>
+            <div class='restaurant-name'>ZÓNA ÉTTEREM</div>
+            <div class='restaurant-name'>VESZPRÉM</div>
+            <div class='restaurant-info'>
+                RADNÓTI TÉR 2<br />
+                TEL.: 88/426-706
+            </div>
+
+            <div class='week-title'>H E T I &nbsp; A J Á N L A T</div>
+            <div class='week-dates'>{{formatDateRange weekStart weekEnd}}</div>
+        </div>
+
+        <div class='fixed-items'>
+            <table>
+                <tr>
+                    <td class='item-name'>Levesek:</td>
+                    <td class='item-price'>900.-</td>
+                </tr>
+                <tr>
+                    <td class='item-name'>Húsos levesek:</td>
+                    <td class='item-price'>1000.-</td>
+                </tr>
+                <tr>
+                    <td class='item-name'>Saláták:</td>
+                    <td class='item-price'>800.-</td>
+                </tr>
+                <tr>
+                    <td class='item-name'>Köretek:</td>
+                    <td class='item-price'>800.-</td>
+                </tr>
+            </table>
+        </div>
+
+        <table class='menu-table'>
+            {{#each (getDaysInOrder days weekStart)}}
+            <tr>
+                <td class='day-cell'>{{this.dayName}}</td>
+                <td class='food-cell'>
+                    {{#if this.dayData.offers}}
+                    {{#each this.dayData.offers}}
+                    <div class='dish-item'>{{this.dish.dishName}}</div>
+                    {{/each}}
+                    {{/if}}
+
+                    {{#if this.dayData.menus}}
+                    {{#each this.dayData.menus}}
+                    <div class='dish-item'>
+                        <div class='menu-label'>{{this.menuName}}</div>
+                        {{#each this.dishes}}
+                        {{this.dishName}}{{#unless @last}}, {{/unless}}
+                        {{/each}}
+                    </div>
+                    {{/each}}
+                    {{/if}}
+
+                    {{#unless (or this.dayData.offers this.dayData.menus)}}
+                    <span class='empty-day'>-</span>
+                    {{/unless}}
+                </td>
+                <td class='price-cell'>
+                    {{#if this.dayData.offers}}
+                    {{#each this.dayData.offers}}
+                    <div class='dish-item'>
+                        {{#if this.price}}{{formatPrice this.price}}{{/if}}
+                    </div>
+                    {{/each}}
+                    {{/if}}
+
+                    {{#if this.dayData.menus}}
+                    {{#each this.dayData.menus}}
+                    <div class='dish-item'>{{formatPrice this.price}}</div>
+                    {{/each}}
+                    {{/if}}
+
+                    {{#unless (or this.dayData.offers this.dayData.menus)}}
+                    <span class='empty-day'>-</span>
+                    {{/unless}}
+                </td>
+            </tr>
+            {{/each}}
+        </table>
+
+        <div class='footer'>
+            <p><strong>Elviteles doboz ára: 100 FT</strong></p>
+            <p>Étlapunk aktuális ajánlata a Facebook oldalon tekinthető meg.</p>
+            <p><em>Jó étvágyat kíván az egész Zóna étterem személyzete!</em></p>
+        </div>
+    </div>
+
+    <div class='watermark'>Készítette a menuportal.hu</div>
+</body>
+
+</html>

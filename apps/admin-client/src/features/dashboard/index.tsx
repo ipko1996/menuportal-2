@@ -162,14 +162,16 @@ export default function Dashboard() {
       if (format === 'pdf') {
         response = await downloadRestaurantMenuForWeek(
           restaurantId,
-          currentWeekString
+          currentWeekString,
+          'FACEBOOK'
         );
         mimeType = 'application/pdf';
         fileExtension = 'pdf';
       } else {
         response = await downloadRestaurantMenuForWeekAsImage(
           restaurantId,
-          currentWeekString
+          currentWeekString,
+          'FACEBOOK'
         );
         mimeType = 'image/png';
         fileExtension = 'png';
@@ -201,7 +203,8 @@ export default function Dashboard() {
     try {
       const response = await downloadRestaurantMenuForWeek(
         restaurantId,
-        currentWeekString
+        currentWeekString,
+        'FACEBOOK'
       );
 
       // Create blob and object URL

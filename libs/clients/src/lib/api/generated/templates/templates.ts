@@ -24,17 +24,18 @@ import { axiosInstance } from '../../../utils/axios-instance';
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 /**
- * @summary Get the menu for a specific restaurant and week
+ * @summary Get the menu for a specific restaurant, week, and platform
  */
-export const getRestaurantMenuForWeek = (
+export const getRestaurantMenuForWeekAndPlatform = (
   restaurantId: number,
   weekNumber: unknown,
+  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
   options?: SecondParameter<typeof axiosInstance>,
   signal?: AbortSignal
 ) => {
   return axiosInstance<null>(
     {
-      url: `/api/templates/${restaurantId}/${weekNumber}`,
+      url: `/api/templates/${restaurantId}/${weekNumber}/${platform}`,
       method: 'GET',
       signal,
     },
@@ -42,23 +43,25 @@ export const getRestaurantMenuForWeek = (
   );
 };
 
-export const getGetRestaurantMenuForWeekQueryKey = (
+export const getGetRestaurantMenuForWeekAndPlatformQueryKey = (
   restaurantId?: number,
-  weekNumber?: unknown
+  weekNumber?: unknown,
+  platform?: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER'
 ) => {
-  return [`/api/templates/${restaurantId}/${weekNumber}`] as const;
+  return [`/api/templates/${restaurantId}/${weekNumber}/${platform}`] as const;
 };
 
-export const getGetRestaurantMenuForWeekQueryOptions = <
-  TData = Awaited<ReturnType<typeof getRestaurantMenuForWeek>>,
+export const getGetRestaurantMenuForWeekAndPlatformQueryOptions = <
+  TData = Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>,
   TError = ErrorType<unknown>
 >(
   restaurantId: number,
   weekNumber: unknown,
+  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getRestaurantMenuForWeek>>,
+        Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>,
         TError,
         TData
       >
@@ -70,49 +73,60 @@ export const getGetRestaurantMenuForWeekQueryOptions = <
 
   const queryKey =
     queryOptions?.queryKey ??
-    getGetRestaurantMenuForWeekQueryKey(restaurantId, weekNumber);
+    getGetRestaurantMenuForWeekAndPlatformQueryKey(
+      restaurantId,
+      weekNumber,
+      platform
+    );
 
   const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof getRestaurantMenuForWeek>>
+    Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>
   > = ({ signal }) =>
-    getRestaurantMenuForWeek(restaurantId, weekNumber, requestOptions, signal);
+    getRestaurantMenuForWeekAndPlatform(
+      restaurantId,
+      weekNumber,
+      platform,
+      requestOptions,
+      signal
+    );
 
   return {
     queryKey,
     queryFn,
-    enabled: !!(restaurantId && weekNumber),
+    enabled: !!(restaurantId && weekNumber && platform),
     ...queryOptions,
   } as UseQueryOptions<
-    Awaited<ReturnType<typeof getRestaurantMenuForWeek>>,
+    Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type GetRestaurantMenuForWeekQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getRestaurantMenuForWeek>>
+export type GetRestaurantMenuForWeekAndPlatformQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>
 >;
-export type GetRestaurantMenuForWeekQueryError = ErrorType<unknown>;
+export type GetRestaurantMenuForWeekAndPlatformQueryError = ErrorType<unknown>;
 
-export function useGetRestaurantMenuForWeek<
-  TData = Awaited<ReturnType<typeof getRestaurantMenuForWeek>>,
+export function useGetRestaurantMenuForWeekAndPlatform<
+  TData = Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>,
   TError = ErrorType<unknown>
 >(
   restaurantId: number,
   weekNumber: unknown,
+  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
   options: {
     query: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getRestaurantMenuForWeek>>,
+        Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>,
         TError,
         TData
       >
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getRestaurantMenuForWeek>>,
+          Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>,
           TError,
-          Awaited<ReturnType<typeof getRestaurantMenuForWeek>>
+          Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>
         >,
         'initialData'
       >;
@@ -122,25 +136,26 @@ export function useGetRestaurantMenuForWeek<
 ): DefinedUseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useGetRestaurantMenuForWeek<
-  TData = Awaited<ReturnType<typeof getRestaurantMenuForWeek>>,
+export function useGetRestaurantMenuForWeekAndPlatform<
+  TData = Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>,
   TError = ErrorType<unknown>
 >(
   restaurantId: number,
   weekNumber: unknown,
+  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getRestaurantMenuForWeek>>,
+        Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>,
         TError,
         TData
       >
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getRestaurantMenuForWeek>>,
+          Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>,
           TError,
-          Awaited<ReturnType<typeof getRestaurantMenuForWeek>>
+          Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>
         >,
         'initialData'
       >;
@@ -150,16 +165,17 @@ export function useGetRestaurantMenuForWeek<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useGetRestaurantMenuForWeek<
-  TData = Awaited<ReturnType<typeof getRestaurantMenuForWeek>>,
+export function useGetRestaurantMenuForWeekAndPlatform<
+  TData = Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>,
   TError = ErrorType<unknown>
 >(
   restaurantId: number,
   weekNumber: unknown,
+  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getRestaurantMenuForWeek>>,
+        Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>,
         TError,
         TData
       >
@@ -171,19 +187,20 @@ export function useGetRestaurantMenuForWeek<
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 /**
- * @summary Get the menu for a specific restaurant and week
+ * @summary Get the menu for a specific restaurant, week, and platform
  */
 
-export function useGetRestaurantMenuForWeek<
-  TData = Awaited<ReturnType<typeof getRestaurantMenuForWeek>>,
+export function useGetRestaurantMenuForWeekAndPlatform<
+  TData = Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>,
   TError = ErrorType<unknown>
 >(
   restaurantId: number,
   weekNumber: unknown,
+  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getRestaurantMenuForWeek>>,
+        Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>,
         TError,
         TData
       >
@@ -194,9 +211,10 @@ export function useGetRestaurantMenuForWeek<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getGetRestaurantMenuForWeekQueryOptions(
+  const queryOptions = getGetRestaurantMenuForWeekAndPlatformQueryOptions(
     restaurantId,
     weekNumber,
+    platform,
     options
   );
 
