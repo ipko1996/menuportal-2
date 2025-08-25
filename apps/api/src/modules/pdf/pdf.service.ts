@@ -1,8 +1,4 @@
 import { spawn } from 'node:child_process';
-import * as fs from 'node:fs';
-import * as os from 'node:os';
-import * as path from 'node:path';
-import { promisify } from 'node:util';
 
 import { HttpService } from '@nestjs/axios';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
@@ -35,10 +31,10 @@ export class PdfService {
   }
 
   /**
-   * Generates an image (PNG) from an HTML string by first converting to PDF, then to image.
+   * Generates an image from an HTML string by first converting to PDF, then to image.
    * @param html The HTML content to convert.
    * @param imageOptions Options for image conversion
-   * @returns A Buffer containing the PNG image data.
+   * @returns A Buffer containing the image data.
    */
   async generateImageFromHtml(
     html: string,
@@ -60,10 +56,7 @@ export class PdfService {
    */
   private async convertToPdf(url: string, html: string): Promise<Buffer> {
     const form = new FormData();
-    // Gotenberg expects the HTML content as a file named 'index.html'
     form.append('files', Buffer.from(html), 'index.html');
-
-    // PDF-specific options
     form.append('paperWidth', '8.27');
     form.append('paperHeight', '11.7');
     form.append('orientation', 'portrait');
@@ -75,14 +68,11 @@ export class PdfService {
     try {
       const response = await firstValueFrom(
         this.httpService.post(url, form, {
-          headers: {
-            ...form.getHeaders(),
-          },
+          headers: form.getHeaders(),
           responseType: 'arraybuffer',
         })
       );
 
-      // Validate content type
       const contentType = response.headers['content-type'];
       if (contentType && !contentType.includes('application/pdf')) {
         throw new InternalServerErrorException(
@@ -104,10 +94,10 @@ export class PdfService {
   }
 
   /**
-   * Converts PDF buffer to image using ImageMagick.
+   * Converts PDF buffer to image using ImageMagick entirely in memory.
    * @param pdfBuffer The PDF buffer to convert
    * @param options Conversion options
-   * @returns A Buffer containing the PNG image data
+   * @returns A Buffer containing the image data
    */
   async convertPdfToImage(
     pdfBuffer: Buffer,
@@ -120,62 +110,58 @@ export class PdfService {
   ): Promise<Buffer> {
     const { density = 150, quality = 90, format = 'png', page = 0 } = options;
 
-    const tempDir = os.tmpdir();
-    const tempPdfPath = path.join(tempDir, `temp_${Date.now()}.pdf`);
-    const tempImagePath = path.join(tempDir, `temp_${Date.now()}.${format}`);
-
     try {
-      // Write PDF buffer to temporary file
-      await fs.promises.writeFile(tempPdfPath, pdfBuffer);
-
-      // Convert PDF to image using ImageMagick
-      await this.runImageMagick([
+      // Define the arguments for ImageMagick's 'convert' command
+      const args = [
         '-density',
         density.toString(),
         '-quality',
         quality.toString(),
         '-background',
-        'white', // Set background to white
+        'white',
         '-alpha',
-        'remove', // Remove alpha channel (make opaque)
-        `${tempPdfPath}[${page}]`, // Specify page number
-        tempImagePath,
-      ]);
+        'remove',
+        // Read from stdin ('-') and specify the page number
+        `-[${page}]`,
+        // Specify the output format and write to stdout ('-')
+        `${format}:-`,
+      ];
 
-      // Read the generated image
-      return await fs.promises.readFile(tempImagePath);
+      // Run ImageMagick, piping the PDF buffer to its stdin
+      return await this.runImageMagick(args, pdfBuffer);
     } catch (error) {
-      console.error('ImageMagick conversion failed:', error);
+      console.error('ImageMagick in-memory conversion failed:', error);
       throw new InternalServerErrorException('Failed to convert PDF to image.');
-    } finally {
-      // Cleanup temporary files
-      try {
-        await fs.promises.unlink(tempPdfPath);
-        await fs.promises.unlink(tempImagePath);
-      } catch (cleanupError) {
-        console.warn('Failed to cleanup temporary files:', cleanupError);
-      }
     }
   }
 
   /**
-   * Runs ImageMagick convert command with given arguments.
+   * Runs ImageMagick 'convert' command, piping input and collecting output.
    * @param args Arguments for the convert command
-   * @returns Promise that resolves when command completes
+   * @param inputBuffer Buffer to be piped to the process's stdin
+   * @returns A Promise that resolves with the output Buffer from stdout
    */
-  private runImageMagick(args: string[]): Promise<void> {
+  private runImageMagick(args: string[], inputBuffer: Buffer): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       const convert = spawn('convert', args);
 
+      const chunks: Buffer[] = [];
       let stderr = '';
 
+      // Collect image data from stdout
+      convert.stdout.on('data', chunk => {
+        chunks.push(chunk);
+      });
+
+      // Collect error messages from stderr
       convert.stderr.on('data', data => {
         stderr += data.toString();
       });
 
+      // Handle process exit
       convert.on('close', code => {
         if (code === 0) {
-          resolve();
+          resolve(Buffer.concat(chunks));
         } else {
           reject(
             new Error(`ImageMagick process exited with code ${code}: ${stderr}`)
@@ -183,17 +169,21 @@ export class PdfService {
         }
       });
 
+      // Handle spawn errors
       convert.on('error', error => {
         reject(
           new Error(`Failed to start ImageMagick process: ${error.message}`)
         );
       });
+
+      // Write the PDF buffer to stdin and close it
+      convert.stdin.write(inputBuffer);
+      convert.stdin.end();
     });
   }
 
   /**
    * Generates an image from HTML by first converting to PDF, then to image.
-   * This method provides an alternative when direct HTML-to-image conversion isn't suitable.
    * @param html The HTML content to convert
    * @param imageOptions Options for image conversion
    * @returns A Buffer containing the image data
@@ -208,10 +198,7 @@ export class PdfService {
     } = {}
   ): Promise<Buffer> {
     try {
-      // First convert HTML to PDF
       const pdfBuffer = await this.generatePdfFromHtml(html);
-
-      // Then convert PDF to image
       return await this.convertPdfToImage(pdfBuffer, imageOptions);
     } catch (error) {
       console.error('HTML to image via PDF conversion failed:', error);
