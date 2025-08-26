@@ -20,7 +20,11 @@ import { useQuery } from '@tanstack/react-query';
 
 import type { ErrorType } from '../../../utils/axios-instance';
 import { axiosInstance } from '../../../utils/axios-instance';
-import type { UserDto, UserDtoWithRestaurant } from '../../schemas';
+import type {
+  FacebookCallbackParams,
+  UserDto,
+  UserDtoWithRestaurant,
+} from '../../schemas';
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -304,6 +308,171 @@ export function useGetCurrentUserWithRestaurant<
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
   const queryOptions = getGetCurrentUserWithRestaurantQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Callback for Facebook OAuth flow
+ */
+export const facebookCallback = (
+  params: FacebookCallbackParams,
+  options?: SecondParameter<typeof axiosInstance>,
+  signal?: AbortSignal
+) => {
+  return axiosInstance<null>(
+    { url: `/api/auth/social/callback`, method: 'GET', params, signal },
+    options
+  );
+};
+
+export const getFacebookCallbackQueryKey = (
+  params?: FacebookCallbackParams
+) => {
+  return [`/api/auth/social/callback`, ...(params ? [params] : [])] as const;
+};
+
+export const getFacebookCallbackQueryOptions = <
+  TData = Awaited<ReturnType<typeof facebookCallback>>,
+  TError = ErrorType<null>
+>(
+  params: FacebookCallbackParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof facebookCallback>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof axiosInstance>;
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getFacebookCallbackQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof facebookCallback>>
+  > = ({ signal }) => facebookCallback(params, requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof facebookCallback>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type FacebookCallbackQueryResult = NonNullable<
+  Awaited<ReturnType<typeof facebookCallback>>
+>;
+export type FacebookCallbackQueryError = ErrorType<null>;
+
+export function useFacebookCallback<
+  TData = Awaited<ReturnType<typeof facebookCallback>>,
+  TError = ErrorType<null>
+>(
+  params: FacebookCallbackParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof facebookCallback>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof facebookCallback>>,
+          TError,
+          Awaited<ReturnType<typeof facebookCallback>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useFacebookCallback<
+  TData = Awaited<ReturnType<typeof facebookCallback>>,
+  TError = ErrorType<null>
+>(
+  params: FacebookCallbackParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof facebookCallback>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof facebookCallback>>,
+          TError,
+          Awaited<ReturnType<typeof facebookCallback>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useFacebookCallback<
+  TData = Awaited<ReturnType<typeof facebookCallback>>,
+  TError = ErrorType<null>
+>(
+  params: FacebookCallbackParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof facebookCallback>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Callback for Facebook OAuth flow
+ */
+
+export function useFacebookCallback<
+  TData = Awaited<ReturnType<typeof facebookCallback>>,
+  TError = ErrorType<null>
+>(
+  params: FacebookCallbackParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof facebookCallback>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getFacebookCallbackQueryOptions(params, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,

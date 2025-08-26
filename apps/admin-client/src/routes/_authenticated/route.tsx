@@ -14,7 +14,7 @@ export const Route = createFileRoute('/_authenticated')({
 const COUNTDOWN = 5; // Countdown seconds
 
 function AuthenticatedRoute() {
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn, getToken } = useAuth();
 
   if (!isLoaded) {
     return (

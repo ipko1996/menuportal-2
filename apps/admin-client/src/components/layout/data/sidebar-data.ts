@@ -18,6 +18,7 @@ import {
   IconUserCog,
   IconUserOff,
   IconUsers,
+  IconShare2,
 } from '@tabler/icons-react';
 import { AudioWaveform, Command, GalleryVerticalEnd } from 'lucide-react';
 import { ClerkLogo } from '@/assets/clerk-logo';
@@ -179,6 +180,11 @@ export const sidebarData: SidebarData = {
               title: 'Display',
               url: '/settings/display',
               icon: IconBrowserCheck,
+            },
+            {
+              title: 'Integration',
+              url: '/settings/integrations',
+              icon: IconShare2,
             },
           ],
         },

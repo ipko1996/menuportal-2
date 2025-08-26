@@ -46,13 +46,7 @@ export const socialMediaAccount = pgTable(
       withTimezone: true,
     }).defaultNow(),
   },
-  t => [
-    index('unique_restaurant_platform_account_idx').on(
-      t.restaurantId,
-      t.platform,
-      t.platformAccountId
-    ),
-  ]
+  t => [unique('unique_restaurant_platform_idx').on(t.restaurantId, t.platform)]
 );
 
 export const post = pgTable(

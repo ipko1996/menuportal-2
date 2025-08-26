@@ -3,6 +3,7 @@ import {
   IconBrowserCheck,
   IconNotification,
   IconPalette,
+  IconShare2,
   IconTool,
   IconUser,
 } from '@tabler/icons-react';
@@ -74,5 +75,10 @@ const sidebarNavItems = [
     title: 'Display',
     icon: <IconBrowserCheck size={18} />,
     href: '/settings/display',
+  },
+  {
+    title: 'Integrations',
+    icon: <IconShare2 size={18} />,
+    href: '/settings/integrations',
   },
 ];

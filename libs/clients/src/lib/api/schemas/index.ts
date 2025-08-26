@@ -16,6 +16,7 @@ export * from './dish-paginated-response-dto';
 export * from './dish-response-dto';
 export * from './dish-type-response-dto';
 export * from './dish-type-response-dto-dish-type-value';
+export * from './facebook-callback-params';
 export * from './get-paginated-dishes-params';
 export * from './menu-response-dto';
 export * from './offer-response-dto';

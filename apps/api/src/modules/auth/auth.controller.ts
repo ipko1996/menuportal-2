@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiForbiddenResponse,
@@ -50,5 +50,21 @@ export class AuthController {
     @CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>
   ): Promise<UserDtoWithRestaurant> {
     return this.authService.getUserWithRestaurant(user);
+  }
+
+  @ApiOperation({
+    summary: 'Callback for Facebook OAuth flow',
+    operationId: 'facebookCallback',
+  })
+  @ApiOkResponse({ description: 'Successfully connected Facebook account' })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized: Invalid token in state',
+  })
+  @Get('social/callback')
+  async facebookCallback(
+    @Query('code') code: string,
+    @Query('state') state: string
+  ) {
+    return this.authService.handleFacebookCallback(code, state);
   }
 }

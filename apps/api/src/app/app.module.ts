@@ -1,4 +1,9 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
 import { ClerkMiddleware } from '@/middleware/auth.middleware';
@@ -35,6 +40,9 @@ import { DrizzleModule } from '../shared/database/database.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(ClerkMiddleware).forRoutes('*');
+    consumer
+      .apply(ClerkMiddleware)
+      .exclude({ path: '/auth/social/callback', method: RequestMethod.GET })
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }
