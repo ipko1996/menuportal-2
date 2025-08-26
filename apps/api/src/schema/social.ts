@@ -30,7 +30,7 @@ export const socialMediaAccount = pgTable(
 
     platformAccountId: text('platform_account_id').notNull(),
 
-    accessToken: text('access_token').notNull(), // 🔒 store encrypted
+    accessToken: text('access_token').notNull(), // 🔒 Encrypted
     refreshToken: text('refresh_token'),
     tokenExpiresAt: timestamp('token_expires_at', {
       mode: 'string',

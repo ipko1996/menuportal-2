@@ -107,6 +107,7 @@ export function IntegrationsForm() {
         });
         return;
       }
+      // TODO: repalce with env variables
       const FB_APP_ID = false || '796272572985671';
       const BACKEND_REDIRECT_URI = `http://localhost:3000/api/auth/social/callback`;
 

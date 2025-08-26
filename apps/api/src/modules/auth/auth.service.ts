@@ -10,12 +10,13 @@ import { eq } from 'drizzle-orm';
 import { firstValueFrom } from 'rxjs';
 
 import {
-  restaurant,
+  restaurant as restaurantSchema,
   socialMediaAccount,
-  user as user,
+  user as userSchema,
   userRestaurant,
 } from '@/schema';
 import { DatabaseService } from '@/shared/database/database.service';
+import { EncryptionService } from '@/shared/services/encryption.service';
 import type { AppUser } from '@/shared/types';
 
 import { ClerkService } from './clerk.service';
@@ -40,7 +41,8 @@ export class AuthService {
     private readonly databaseService: DatabaseService,
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
-    private readonly clerkService: ClerkService
+    private readonly clerkService: ClerkService,
+    private readonly encryptionService: EncryptionService
   ) {}
 
   getUser(user: AppUser): UserDto {
@@ -77,7 +79,7 @@ export class AuthService {
     }
 
     this.logger.log(
-      `Handling Facebook callback for user ${user.id} at restaurant ID: ${restaurant.id}`
+      `Handling Facebook callback for user ${id} at restaurant ID: ${restaurant.id}`
     );
 
     const { accessToken, expiresIn } = await this.exchangeCodeForToken(code);
@@ -86,11 +88,13 @@ export class AuthService {
     const tokenExpiresAt = new Date();
     tokenExpiresAt.setSeconds(tokenExpiresAt.getSeconds() + expiresIn);
 
+    const encryptedAccessToken = this.encryptionService.encrypt(accessToken);
+
     const valuesToInsert = {
       restaurantId: restaurant.id,
       platform: 'FACEBOOK' as const,
       platformAccountId: facebookUser.id,
-      accessToken: accessToken, // 🔒 Remember to encrypt this in a real application
+      accessToken: encryptedAccessToken,
       tokenExpiresAt: tokenExpiresAt.toISOString(),
       isActive: true,
     };
@@ -143,15 +147,18 @@ export class AuthService {
 
       const [userData] = await this.databaseService.db
         .select({
-          id: user.id,
-          externalId: user.externalId,
-          role: user.role,
-          restaurant: restaurant,
+          id: userSchema.id,
+          externalId: userSchema.externalId,
+          role: userSchema.role,
+          restaurant: restaurantSchema,
         })
-        .from(user)
-        .leftJoin(userRestaurant, eq(user.id, userRestaurant.userId))
-        .leftJoin(restaurant, eq(userRestaurant.restaurantId, restaurant.id))
-        .where(eq(user.externalId, authedUser.id))
+        .from(userSchema)
+        .leftJoin(userRestaurant, eq(userSchema.id, userRestaurant.userId))
+        .leftJoin(
+          restaurantSchema,
+          eq(userRestaurant.restaurantId, restaurantSchema.id)
+        )
+        .where(eq(userSchema.externalId, authedUser.id))
         .limit(1);
 
       if (!userData || !userData.restaurant) {
@@ -177,7 +184,7 @@ export class AuthService {
     const appSecret = this.configService.get<string>('FB_APP_SECRET');
     const redirectUri = this.configService.get<string>('FB_CALLBACK_URL');
 
-    const url = 'https://graph.facebook.com/v18.0/oauth/access_token';
+    const url = 'https://graph.facebook.com/v23.0/oauth/access_token';
 
     try {
       const response = await firstValueFrom(
@@ -190,6 +197,7 @@ export class AuthService {
           },
         })
       );
+
       return {
         accessToken: response.data.access_token,
         expiresIn: response.data.expires_in,
