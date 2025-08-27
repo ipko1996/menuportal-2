@@ -19,6 +19,7 @@ import {
   IconUserOff,
   IconUsers,
   IconShare2,
+  IconCalendarEvent,
 } from '@tabler/icons-react';
 import { AudioWaveform, Command, GalleryVerticalEnd } from 'lucide-react';
 import { ClerkLogo } from '@/assets/clerk-logo';
@@ -60,6 +61,11 @@ export const sidebarData: SidebarData = {
           title: 'Dishes',
           url: '/dish-manager',
           icon: IconChefHat,
+        },
+        {
+          title: 'Scheduler',
+          url: '/scheduler',
+          icon: IconCalendarEvent,
         },
         {
           title: 'Tasks',

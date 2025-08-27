@@ -26,8 +26,10 @@ import { Route as authForgotPasswordRouteImport } from './routes/(auth)/forgot-p
 import { Route as ClerkAuthenticatedRouteRouteImport } from './routes/clerk/_authenticated/route'
 import { Route as ClerkauthRouteRouteImport } from './routes/clerk/(auth)/route'
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
+import { Route as AuthenticatedSchedulerRouteRouteImport } from './routes/_authenticated/scheduler/route'
 import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks/index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
+import { Route as AuthenticatedSchedulerIndexRouteImport } from './routes/_authenticated/scheduler/index'
 import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_authenticated/help-center/index'
 import { Route as AuthenticatedDishManagerIndexRouteImport } from './routes/_authenticated/dish-manager/index'
 import { Route as AuthenticatedAppsIndexRouteImport } from './routes/_authenticated/apps/index'
@@ -38,6 +40,10 @@ import { Route as AuthenticatedSettingsIntegrationsRouteImport } from './routes/
 import { Route as AuthenticatedSettingsDisplayRouteImport } from './routes/_authenticated/settings/display'
 import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
+import { Route as AuthenticatedSchedulerTemplatesRouteImport } from './routes/_authenticated/scheduler/templates'
+import { Route as AuthenticatedSchedulerScheduledPostsRouteImport } from './routes/_authenticated/scheduler/scheduled-posts'
+import { Route as AuthenticatedSchedulerPendingPostsRouteImport } from './routes/_authenticated/scheduler/pending-posts'
+import { Route as AuthenticatedSchedulerHistoryRouteImport } from './routes/_authenticated/scheduler/history'
 
 const ClerkRouteImport = createFileRoute('/clerk')()
 
@@ -120,6 +126,12 @@ const AuthenticatedSettingsRouteRoute =
     path: '/settings',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSchedulerRouteRoute =
+  AuthenticatedSchedulerRouteRouteImport.update({
+    id: '/scheduler',
+    path: '/scheduler',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedTasksIndexRoute = AuthenticatedTasksIndexRouteImport.update({
   id: '/tasks/',
   path: '/tasks/',
@@ -130,6 +142,12 @@ const AuthenticatedSettingsIndexRoute =
     id: '/',
     path: '/',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any)
+const AuthenticatedSchedulerIndexRoute =
+  AuthenticatedSchedulerIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedSchedulerRouteRoute,
   } as any)
 const AuthenticatedHelpCenterIndexRoute =
   AuthenticatedHelpCenterIndexRouteImport.update({
@@ -188,8 +206,33 @@ const AuthenticatedSettingsAccountRoute =
     path: '/account',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
   } as any)
+const AuthenticatedSchedulerTemplatesRoute =
+  AuthenticatedSchedulerTemplatesRouteImport.update({
+    id: '/templates',
+    path: '/templates',
+    getParentRoute: () => AuthenticatedSchedulerRouteRoute,
+  } as any)
+const AuthenticatedSchedulerScheduledPostsRoute =
+  AuthenticatedSchedulerScheduledPostsRouteImport.update({
+    id: '/scheduled-posts',
+    path: '/scheduled-posts',
+    getParentRoute: () => AuthenticatedSchedulerRouteRoute,
+  } as any)
+const AuthenticatedSchedulerPendingPostsRoute =
+  AuthenticatedSchedulerPendingPostsRouteImport.update({
+    id: '/pending-posts',
+    path: '/pending-posts',
+    getParentRoute: () => AuthenticatedSchedulerRouteRoute,
+  } as any)
+const AuthenticatedSchedulerHistoryRoute =
+  AuthenticatedSchedulerHistoryRouteImport.update({
+    id: '/history',
+    path: '/history',
+    getParentRoute: () => AuthenticatedSchedulerRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
+  '/scheduler': typeof AuthenticatedSchedulerRouteRouteWithChildren
   '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/clerk': typeof ClerkAuthenticatedRouteRoute
   '/forgot-password': typeof authForgotPasswordRoute
@@ -203,6 +246,10 @@ export interface FileRoutesByFullPath {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/': typeof AuthenticatedIndexRoute
+  '/scheduler/history': typeof AuthenticatedSchedulerHistoryRoute
+  '/scheduler/pending-posts': typeof AuthenticatedSchedulerPendingPostsRoute
+  '/scheduler/scheduled-posts': typeof AuthenticatedSchedulerScheduledPostsRoute
+  '/scheduler/templates': typeof AuthenticatedSchedulerTemplatesRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
@@ -213,6 +260,7 @@ export interface FileRoutesByFullPath {
   '/apps': typeof AuthenticatedAppsIndexRoute
   '/dish-manager': typeof AuthenticatedDishManagerIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
+  '/scheduler/': typeof AuthenticatedSchedulerIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
 }
@@ -229,6 +277,10 @@ export interface FileRoutesByTo {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/': typeof AuthenticatedIndexRoute
+  '/scheduler/history': typeof AuthenticatedSchedulerHistoryRoute
+  '/scheduler/pending-posts': typeof AuthenticatedSchedulerPendingPostsRoute
+  '/scheduler/scheduled-posts': typeof AuthenticatedSchedulerScheduledPostsRoute
+  '/scheduler/templates': typeof AuthenticatedSchedulerTemplatesRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
@@ -239,12 +291,14 @@ export interface FileRoutesByTo {
   '/apps': typeof AuthenticatedAppsIndexRoute
   '/dish-manager': typeof AuthenticatedDishManagerIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
+  '/scheduler': typeof AuthenticatedSchedulerIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/_authenticated/scheduler': typeof AuthenticatedSchedulerRouteRouteWithChildren
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/clerk/(auth)': typeof ClerkauthRouteRouteWithChildren
   '/clerk': typeof ClerkRouteWithChildren
@@ -260,6 +314,10 @@ export interface FileRoutesById {
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/scheduler/history': typeof AuthenticatedSchedulerHistoryRoute
+  '/_authenticated/scheduler/pending-posts': typeof AuthenticatedSchedulerPendingPostsRoute
+  '/_authenticated/scheduler/scheduled-posts': typeof AuthenticatedSchedulerScheduledPostsRoute
+  '/_authenticated/scheduler/templates': typeof AuthenticatedSchedulerTemplatesRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/_authenticated/settings/display': typeof AuthenticatedSettingsDisplayRoute
@@ -270,12 +328,14 @@ export interface FileRoutesById {
   '/_authenticated/apps/': typeof AuthenticatedAppsIndexRoute
   '/_authenticated/dish-manager/': typeof AuthenticatedDishManagerIndexRoute
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
+  '/_authenticated/scheduler/': typeof AuthenticatedSchedulerIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/scheduler'
     | '/settings'
     | '/clerk'
     | '/forgot-password'
@@ -289,6 +349,10 @@ export interface FileRouteTypes {
     | '/500'
     | '/503'
     | '/'
+    | '/scheduler/history'
+    | '/scheduler/pending-posts'
+    | '/scheduler/scheduled-posts'
+    | '/scheduler/templates'
     | '/settings/account'
     | '/settings/appearance'
     | '/settings/display'
@@ -299,6 +363,7 @@ export interface FileRouteTypes {
     | '/apps'
     | '/dish-manager'
     | '/help-center'
+    | '/scheduler/'
     | '/settings/'
     | '/tasks'
   fileRoutesByTo: FileRoutesByTo
@@ -315,6 +380,10 @@ export interface FileRouteTypes {
     | '/500'
     | '/503'
     | '/'
+    | '/scheduler/history'
+    | '/scheduler/pending-posts'
+    | '/scheduler/scheduled-posts'
+    | '/scheduler/templates'
     | '/settings/account'
     | '/settings/appearance'
     | '/settings/display'
@@ -325,11 +394,13 @@ export interface FileRouteTypes {
     | '/apps'
     | '/dish-manager'
     | '/help-center'
+    | '/scheduler'
     | '/settings'
     | '/tasks'
   id:
     | '__root__'
     | '/_authenticated'
+    | '/_authenticated/scheduler'
     | '/_authenticated/settings'
     | '/clerk/(auth)'
     | '/clerk'
@@ -345,6 +416,10 @@ export interface FileRouteTypes {
     | '/(errors)/500'
     | '/(errors)/503'
     | '/_authenticated/'
+    | '/_authenticated/scheduler/history'
+    | '/_authenticated/scheduler/pending-posts'
+    | '/_authenticated/scheduler/scheduled-posts'
+    | '/_authenticated/scheduler/templates'
     | '/_authenticated/settings/account'
     | '/_authenticated/settings/appearance'
     | '/_authenticated/settings/display'
@@ -355,6 +430,7 @@ export interface FileRouteTypes {
     | '/_authenticated/apps/'
     | '/_authenticated/dish-manager/'
     | '/_authenticated/help-center/'
+    | '/_authenticated/scheduler/'
     | '/_authenticated/settings/'
     | '/_authenticated/tasks/'
   fileRoutesById: FileRoutesById
@@ -489,6 +565,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/scheduler': {
+      id: '/_authenticated/scheduler'
+      path: '/scheduler'
+      fullPath: '/scheduler'
+      preLoaderRoute: typeof AuthenticatedSchedulerRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/tasks/': {
       id: '/_authenticated/tasks/'
       path: '/tasks'
@@ -502,6 +585,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/'
       preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
       parentRoute: typeof AuthenticatedSettingsRouteRoute
+    }
+    '/_authenticated/scheduler/': {
+      id: '/_authenticated/scheduler/'
+      path: '/'
+      fullPath: '/scheduler/'
+      preLoaderRoute: typeof AuthenticatedSchedulerIndexRouteImport
+      parentRoute: typeof AuthenticatedSchedulerRouteRoute
     }
     '/_authenticated/help-center/': {
       id: '/_authenticated/help-center/'
@@ -573,8 +663,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsAccountRouteImport
       parentRoute: typeof AuthenticatedSettingsRouteRoute
     }
+    '/_authenticated/scheduler/templates': {
+      id: '/_authenticated/scheduler/templates'
+      path: '/templates'
+      fullPath: '/scheduler/templates'
+      preLoaderRoute: typeof AuthenticatedSchedulerTemplatesRouteImport
+      parentRoute: typeof AuthenticatedSchedulerRouteRoute
+    }
+    '/_authenticated/scheduler/scheduled-posts': {
+      id: '/_authenticated/scheduler/scheduled-posts'
+      path: '/scheduled-posts'
+      fullPath: '/scheduler/scheduled-posts'
+      preLoaderRoute: typeof AuthenticatedSchedulerScheduledPostsRouteImport
+      parentRoute: typeof AuthenticatedSchedulerRouteRoute
+    }
+    '/_authenticated/scheduler/pending-posts': {
+      id: '/_authenticated/scheduler/pending-posts'
+      path: '/pending-posts'
+      fullPath: '/scheduler/pending-posts'
+      preLoaderRoute: typeof AuthenticatedSchedulerPendingPostsRouteImport
+      parentRoute: typeof AuthenticatedSchedulerRouteRoute
+    }
+    '/_authenticated/scheduler/history': {
+      id: '/_authenticated/scheduler/history'
+      path: '/history'
+      fullPath: '/scheduler/history'
+      preLoaderRoute: typeof AuthenticatedSchedulerHistoryRouteImport
+      parentRoute: typeof AuthenticatedSchedulerRouteRoute
+    }
   }
 }
+
+interface AuthenticatedSchedulerRouteRouteChildren {
+  AuthenticatedSchedulerHistoryRoute: typeof AuthenticatedSchedulerHistoryRoute
+  AuthenticatedSchedulerPendingPostsRoute: typeof AuthenticatedSchedulerPendingPostsRoute
+  AuthenticatedSchedulerScheduledPostsRoute: typeof AuthenticatedSchedulerScheduledPostsRoute
+  AuthenticatedSchedulerTemplatesRoute: typeof AuthenticatedSchedulerTemplatesRoute
+  AuthenticatedSchedulerIndexRoute: typeof AuthenticatedSchedulerIndexRoute
+}
+
+const AuthenticatedSchedulerRouteRouteChildren: AuthenticatedSchedulerRouteRouteChildren =
+  {
+    AuthenticatedSchedulerHistoryRoute: AuthenticatedSchedulerHistoryRoute,
+    AuthenticatedSchedulerPendingPostsRoute:
+      AuthenticatedSchedulerPendingPostsRoute,
+    AuthenticatedSchedulerScheduledPostsRoute:
+      AuthenticatedSchedulerScheduledPostsRoute,
+    AuthenticatedSchedulerTemplatesRoute: AuthenticatedSchedulerTemplatesRoute,
+    AuthenticatedSchedulerIndexRoute: AuthenticatedSchedulerIndexRoute,
+  }
+
+const AuthenticatedSchedulerRouteRouteWithChildren =
+  AuthenticatedSchedulerRouteRoute._addFileChildren(
+    AuthenticatedSchedulerRouteRouteChildren,
+  )
 
 interface AuthenticatedSettingsRouteRouteChildren {
   AuthenticatedSettingsAccountRoute: typeof AuthenticatedSettingsAccountRoute
@@ -603,6 +745,7 @@ const AuthenticatedSettingsRouteRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedSchedulerRouteRoute: typeof AuthenticatedSchedulerRouteRouteWithChildren
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedAppsIndexRoute: typeof AuthenticatedAppsIndexRoute
@@ -612,6 +755,8 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedSchedulerRouteRoute:
+    AuthenticatedSchedulerRouteRouteWithChildren,
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedAppsIndexRoute: AuthenticatedAppsIndexRoute,
