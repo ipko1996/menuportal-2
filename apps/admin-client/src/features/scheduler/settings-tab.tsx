@@ -1,43 +1,143 @@
 'use client';
 
-import { useState } from 'react';
-
+import { useEffect, useState } from 'react';
 import { Eye, Facebook, Instagram, Save } from 'lucide-react';
 import { toast } from 'sonner';
+import { z } from 'zod';
 import {
   Card,
   CardHeader,
+  Label,
+  Skeleton,
+  CardContent,
   CardTitle,
   CardDescription,
-  CardContent,
   Input,
-  Tabs,
-  TabsList,
-  TabsTrigger,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
+  Switch,
+  Tabs,
+  TabsList,
+  TabsTrigger,
   Select,
   Button,
-  Switch,
-  Label,
 } from '@mono-repo/ui';
+import {
+  useGetScheduleSettings,
+  useUpdateScheduleSettings,
+} from '@mono-repo/api-client';
+import SettingsLoadingSkeleton from './components/settings-tab-skeleton';
+
+const settingsSchema = z.object({
+  enabled: z.boolean(),
+  postDay: z.enum(['SATURDAY', 'SUNDAY', 'MONDAY']),
+  postTime: z
+    .string()
+    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format'),
+  message: z
+    .string()
+    .min(1, 'Message is required')
+    .max(280, 'Message must be 280 characters or less'),
+});
+
+type SettingsFormData = z.infer<typeof settingsSchema>;
 
 export function SettingsTab() {
-  const [schedulingType, setSchedulingType] = useState<string>('weekly');
   const [enabled, setEnabled] = useState(true);
   const [postTime, setPostTime] = useState('18:00');
-  const [selectedDay, setSelectedDay] = useState('sunday');
+  const [selectedDay, setSelectedDay] = useState<
+    'SATURDAY' | 'SUNDAY' | 'MONDAY'
+  >('MONDAY');
   const [message, setMessage] = useState(
     "Next week's menu is ready! Plan your weekly meals with us! 🍽️"
   );
 
-  const handleSave = () => {
-    toast.success(
-      'Your weekly scheduling settings have been updated successfully.'
-    );
+  const [validationErrors, setValidationErrors] = useState<
+    Partial<Record<keyof SettingsFormData, string>>
+  >({});
+
+  const { data: settingsData, isLoading: isLoadingSettings } =
+    useGetScheduleSettings({
+      query: {
+        staleTime: 5 * 60 * 1000,
+        select: data => data,
+      },
+    });
+
+  const { mutate: updateSettings, isPending: isUpdating } =
+    useUpdateScheduleSettings({
+      mutation: {
+        onSuccess: () => {
+          toast.success(
+            'Your weekly scheduling settings have been updated successfully.'
+          );
+          setValidationErrors({});
+        },
+        onError: error => {
+          toast.error('Failed to save settings', {
+            description:
+              error.response?.data?.message || 'An unexpected error occurred.',
+          });
+        },
+      },
+    });
+
+  useEffect(() => {
+    if (settingsData) {
+      setEnabled(settingsData.enabled);
+      setSelectedDay(settingsData.postDay);
+      setPostTime(settingsData.postTime);
+      setMessage(settingsData.message);
+    }
+  }, [settingsData]);
+
+  const validateForm = (): boolean => {
+    const formData: SettingsFormData = {
+      enabled,
+      postDay: selectedDay,
+      postTime,
+      message,
+    };
+
+    const result = settingsSchema.safeParse(formData);
+
+    if (!result.success) {
+      const errors: Partial<Record<keyof SettingsFormData, string>> = {};
+      result.error.issues.forEach(error => {
+        const field = error.path[0] as keyof SettingsFormData;
+        errors[field] = error.message;
+      });
+      setValidationErrors(errors);
+      return false;
+    }
+
+    setValidationErrors({});
+    return true;
   };
+
+  const handleSave = () => {
+    if (isUpdating) return;
+
+    if (!validateForm()) {
+      toast.error('Please fix the validation errors before saving.');
+      return;
+    }
+
+    updateSettings({
+      data: {
+        enabled,
+        postDay: selectedDay,
+        postTime,
+        message,
+      },
+    });
+  };
+
+  if (isLoadingSettings) {
+    return <SettingsLoadingSkeleton />;
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -52,11 +152,7 @@ export function SettingsTab() {
           <CardContent className="space-y-6">
             <div className="space-y-4">
               <Label className="text-base">Scheduling Type</Label>
-              <Tabs
-                value={schedulingType}
-                onValueChange={setSchedulingType}
-                className="w-full"
-              >
+              <Tabs defaultValue="weekly" className="w-full">
                 <TabsList className="w-full">
                   <TabsTrigger value="weekly" className="flex-1">
                     Weekly
@@ -83,22 +179,32 @@ export function SettingsTab() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="post-day">Post Day</Label>
-                    <Select value={selectedDay} onValueChange={setSelectedDay}>
+                    <Select
+                      value={selectedDay}
+                      onValueChange={(
+                        value: 'SATURDAY' | 'SUNDAY' | 'MONDAY'
+                      ) => setSelectedDay(value)}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select day to post" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="saturday">
+                        <SelectItem value="SATURDAY">
                           Saturday (This Week)
                         </SelectItem>
-                        <SelectItem value="sunday">
+                        <SelectItem value="SUNDAY">
                           Sunday (This Week)
                         </SelectItem>
-                        <SelectItem value="monday">
+                        <SelectItem value="MONDAY">
                           Monday (Planned Week)
                         </SelectItem>
                       </SelectContent>
                     </Select>
+                    {validationErrors.postDay && (
+                      <p className="text-sm text-destructive">
+                        {validationErrors.postDay}
+                      </p>
+                    )}
                     <p className="text-sm text-muted-foreground">
                       Choose when to post your weekly menu
                     </p>
@@ -111,7 +217,15 @@ export function SettingsTab() {
                       type="time"
                       value={postTime}
                       onChange={e => setPostTime(e.target.value)}
+                      className={
+                        validationErrors.postTime ? 'border-destructive' : ''
+                      }
                     />
+                    {validationErrors.postTime && (
+                      <p className="text-sm text-destructive">
+                        {validationErrors.postTime}
+                      </p>
+                    )}
                     <p className="text-sm text-muted-foreground">
                       Time to automatically post
                     </p>
@@ -122,22 +236,34 @@ export function SettingsTab() {
                   <Label htmlFor="message">Post Message</Label>
                   <textarea
                     id="message"
-                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    className={`flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+                      validationErrors.message ? 'border-destructive' : ''
+                    }`}
                     placeholder="Write your weekly menu post message..."
                     value={message}
                     onChange={e => setMessage(e.target.value)}
                     rows={4}
                   />
+                  {validationErrors.message && (
+                    <p className="text-sm text-destructive">
+                      {validationErrors.message}
+                    </p>
+                  )}
                   <p className="text-sm text-muted-foreground">
-                    This message will appear with your weekly menu post (max 280
-                    characters)
+                    This message will appear with your weekly menu post (
+                    {message.length}/280 characters)
                   </p>
                 </div>
 
                 <div className="flex justify-end">
-                  <Button onClick={handleSave}>
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Settings
+                  <Button onClick={handleSave} disabled={isUpdating}>
+                    {isUpdating ? (
+                      'Saving...'
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" /> Save Settings
+                      </>
+                    )}
                   </Button>
                 </div>
               </>
@@ -146,7 +272,6 @@ export function SettingsTab() {
         </Card>
       </div>
 
-      {/* Preview Panel */}
       <div className="lg:col-span-1">
         <Card className="sticky top-4">
           <CardHeader>
@@ -164,9 +289,9 @@ export function SettingsTab() {
                 <div>
                   <div className="font-semibold">Your Restaurant</div>
                   <div className="text-xs text-muted-foreground">
-                    {selectedDay === 'saturday'
+                    {selectedDay === 'SATURDAY'
                       ? 'Saturday'
-                      : selectedDay === 'sunday'
+                      : selectedDay === 'SUNDAY'
                       ? 'Sunday'
                       : 'Monday'}{' '}
                     at {postTime}

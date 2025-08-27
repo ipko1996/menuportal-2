@@ -8,5 +8,4 @@
 
 export type FacebookCallbackParams = {
   code: string;
-  state: string;
 };

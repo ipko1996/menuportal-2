@@ -6,18 +6,274 @@
  * OpenAPI spec version: 1.0
  */
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
   QueryClient,
+  QueryFunction,
+  QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
   UseMutationResult,
+  UseQueryOptions,
+  UseQueryResult,
 } from '@tanstack/react-query';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
-import type { ErrorType } from '../../../utils/axios-instance';
+import type { BodyType,ErrorType } from '../../../utils/axios-instance';
 import { axiosInstance } from '../../../utils/axios-instance';
+import type {
+  GetScheduleSettingsResponseDto,
+  UpdateScheduleSettingsDto,
+} from '../../schemas';
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
+/**
+ * @summary Get schedule settings for the restaurant
+ */
+export const getScheduleSettings = (
+  options?: SecondParameter<typeof axiosInstance>,
+  signal?: AbortSignal
+) => {
+  return axiosInstance<GetScheduleSettingsResponseDto>(
+    { url: `/api/schedule/settings`, method: 'GET', signal },
+    options
+  );
+};
+
+export const getGetScheduleSettingsQueryKey = () => {
+  return [`/api/schedule/settings`] as const;
+};
+
+export const getGetScheduleSettingsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getScheduleSettings>>,
+  TError = ErrorType<null>
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof getScheduleSettings>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<typeof axiosInstance>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetScheduleSettingsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getScheduleSettings>>
+  > = ({ signal }) => getScheduleSettings(requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getScheduleSettings>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetScheduleSettingsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getScheduleSettings>>
+>;
+export type GetScheduleSettingsQueryError = ErrorType<null>;
+
+export function useGetScheduleSettings<
+  TData = Awaited<ReturnType<typeof getScheduleSettings>>,
+  TError = ErrorType<null>
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getScheduleSettings>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getScheduleSettings>>,
+          TError,
+          Awaited<ReturnType<typeof getScheduleSettings>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetScheduleSettings<
+  TData = Awaited<ReturnType<typeof getScheduleSettings>>,
+  TError = ErrorType<null>
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getScheduleSettings>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getScheduleSettings>>,
+          TError,
+          Awaited<ReturnType<typeof getScheduleSettings>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetScheduleSettings<
+  TData = Awaited<ReturnType<typeof getScheduleSettings>>,
+  TError = ErrorType<null>
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getScheduleSettings>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Get schedule settings for the restaurant
+ */
+
+export function useGetScheduleSettings<
+  TData = Awaited<ReturnType<typeof getScheduleSettings>>,
+  TError = ErrorType<null>
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getScheduleSettings>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetScheduleSettingsQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Update schedule settings for the restaurant
+ */
+export const updateScheduleSettings = (
+  updateScheduleSettingsDto: BodyType<UpdateScheduleSettingsDto>,
+  options?: SecondParameter<typeof axiosInstance>
+) => {
+  return axiosInstance<null>(
+    {
+      url: `/api/schedule/settings`,
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      data: updateScheduleSettingsDto,
+    },
+    options
+  );
+};
+
+export const getUpdateScheduleSettingsMutationOptions = <
+  TError = ErrorType<null>,
+  TContext = unknown
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateScheduleSettings>>,
+    TError,
+    { data: BodyType<UpdateScheduleSettingsDto> },
+    TContext
+  >;
+  request?: SecondParameter<typeof axiosInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateScheduleSettings>>,
+  TError,
+  { data: BodyType<UpdateScheduleSettingsDto> },
+  TContext
+> => {
+  const mutationKey = ['updateScheduleSettings'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateScheduleSettings>>,
+    { data: BodyType<UpdateScheduleSettingsDto> }
+  > = props => {
+    const { data } = props ?? {};
+
+    return updateScheduleSettings(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateScheduleSettingsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateScheduleSettings>>
+>;
+export type UpdateScheduleSettingsMutationBody =
+  BodyType<UpdateScheduleSettingsDto>;
+export type UpdateScheduleSettingsMutationError = ErrorType<null>;
+
+/**
+ * @summary Update schedule settings for the restaurant
+ */
+export const useUpdateScheduleSettings = <
+  TError = ErrorType<null>,
+  TContext = unknown
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateScheduleSettings>>,
+      TError,
+      { data: BodyType<UpdateScheduleSettingsDto> },
+      TContext
+    >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof updateScheduleSettings>>,
+  TError,
+  { data: BodyType<UpdateScheduleSettingsDto> },
+  TContext
+> => {
+  const mutationOptions = getUpdateScheduleSettingsMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
 /**
  * @summary Schedule a week for a restaurant
  */

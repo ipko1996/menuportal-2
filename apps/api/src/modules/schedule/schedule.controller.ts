@@ -1,15 +1,21 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
   Param,
   Post,
+  Put,
   UseGuards,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
+  ApiBody,
   ApiExtraModels,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
@@ -21,15 +27,52 @@ import { DateRange, WeekToDateRangePipe } from '@/shared/pipes';
 import { AppUser } from '@/shared/types';
 
 import { WeekMenuDayDto } from '../week-menu/dto/week-menu-response.dto';
+import {
+  GetScheduleSettingsResponseDto,
+  UpdateScheduleSettingsDto,
+} from './dto/schedule-settings.dto';
 import { ScheduleService } from './schedule.service';
 
-@ApiExtraModels(WeekMenuDayDto)
+@ApiExtraModels(WeekMenuDayDto, GetScheduleSettingsResponseDto)
 @UseGuards(RoleAuthGuard)
 @Roles('ADMIN', 'MANAGER')
 @ApiBearerAuth()
 @Controller('schedule')
 export class ScheduleController {
   constructor(private readonly scheduleService: ScheduleService) {}
+
+  @Get('settings')
+  @ApiOperation({
+    summary: 'Get schedule settings for the restaurant',
+    operationId: 'getScheduleSettings',
+  })
+  @ApiOkResponse({
+    description: 'Schedule settings retrieved successfully.',
+    type: GetScheduleSettingsResponseDto,
+  })
+  @ApiNotFoundResponse({ description: 'No active settings found.' })
+  getScheduleSettings(@CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>) {
+    return this.scheduleService.getScheduleSettings(user.restaurant.id);
+  }
+
+  @Put('settings')
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+  @ApiOperation({
+    summary: 'Update schedule settings for the restaurant',
+    operationId: 'updateScheduleSettings',
+  })
+  @ApiBody({ type: UpdateScheduleSettingsDto })
+  @ApiOkResponse({ description: 'Schedule settings updated successfully.' })
+  @ApiBadRequestResponse({ description: 'Invalid data provided.' })
+  updateScheduleSettings(
+    @CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>,
+    @Body() updateScheduleSettingsDto: UpdateScheduleSettingsDto
+  ) {
+    return this.scheduleService.updateScheduleSettings(
+      user.restaurant.id,
+      updateScheduleSettingsDto
+    );
+  }
 
   @Post(':weekNumber')
   @ApiOperation({
