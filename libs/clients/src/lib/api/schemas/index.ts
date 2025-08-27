@@ -26,6 +26,8 @@ export * from './post-platform';
 export * from './post-status';
 export * from './restaurant-dto';
 export * from './search-dishes-by-name-params';
+export * from './social-account-dto';
+export * from './social-account-dto-platform';
 export * from './update-dish-dto';
 export * from './update-menu-dto';
 export * from './update-offer-dto';

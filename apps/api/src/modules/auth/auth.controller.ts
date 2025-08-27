@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, Res, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiForbiddenResponse,
@@ -7,12 +7,15 @@ import {
   ApiOperation,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { FastifyReply } from 'fastify';
 
+import { SocialMediaPlatform } from '@/constants';
 import { CurrentUser } from '@/decorators/user.decorator';
 import { RoleAuthGuard, Roles } from '@/guards/role.guard';
 import type { AppUser } from '@/shared/types';
 
 import { AuthService } from './auth.service';
+import { SocialAccountDto } from './dto/social-account.dto';
 import { UserDto, UserDtoWithRestaurant } from './dto/user.dto';
 
 @ApiBearerAuth()
@@ -29,7 +32,6 @@ export class AuthController {
   @ApiOkResponse({ type: UserDto })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiForbiddenResponse({ description: 'Forbidden: User is banned' })
-  @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   @Get()
   getUser(@CurrentUser() user: AppUser) {
     return this.authService.getUser(user);
@@ -44,7 +46,6 @@ export class AuthController {
   @ApiOkResponse({ type: UserDtoWithRestaurant })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @ApiForbiddenResponse({ description: 'Forbidden: User is banned' })
-  @ApiInternalServerErrorResponse({ description: 'Internal server error' })
   @Get('with-restaurant')
   getUserWithRestaurant(
     @CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>
@@ -52,6 +53,27 @@ export class AuthController {
     return this.authService.getUserWithRestaurant(user);
   }
 
+  @UseGuards(RoleAuthGuard)
+  @Roles('MANAGER', 'ADMIN')
+  @ApiOperation({
+    summary: "Get the user's connected social media accounts",
+    operationId: 'getSocials',
+  })
+  @ApiOkResponse({
+    description: 'A list of connected social media platforms.',
+    type: [SocialAccountDto],
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiInternalServerErrorResponse({ description: 'Internal server error' })
+  @Get('socials')
+  getSocials(
+    @CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>
+  ): Promise<SocialAccountDto[]> {
+    return this.authService.getSocialAccounts(user);
+  }
+
+  @UseGuards(RoleAuthGuard)
+  @Roles('MANAGER', 'ADMIN')
   @ApiOperation({
     summary: 'Callback for Facebook OAuth flow',
     operationId: 'facebookCallback',
@@ -63,8 +85,43 @@ export class AuthController {
   @Get('social/callback')
   async facebookCallback(
     @Query('code') code: string,
-    @Query('state') state: string
+    @Query('state') state: SocialMediaPlatform,
+    @Res() reply: FastifyReply
   ) {
-    return this.authService.handleFacebookCallback(code, state);
+    try {
+      const platform = await this.authService.handleFacebookCallback(
+        code,
+        state
+      );
+      const successHtml = this.createResponseHtml(true, platform);
+      reply.type('text/html').send(successHtml);
+    } catch {
+      const errorHtml = this.createResponseHtml(false, 'FACEBOOK');
+      reply.type('text/html').send(errorHtml);
+    }
+  }
+
+  private createResponseHtml(
+    success: boolean,
+    platform: SocialMediaPlatform
+  ): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head><title>Authentication</title></head>
+      <body>
+        <script>
+          const targetOrigin = '${this.authService.getFrontendUrl()}';
+          window.opener.postMessage({
+            type: 'OAUTH_SUCCESS',
+            success: ${success},
+            platform: '${platform}'
+          }, targetOrigin);
+          window.close();
+        </script>
+        <p>Please wait...</p>
+      </body>
+      </html>
+    `;
   }
 }

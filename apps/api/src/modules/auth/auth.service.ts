@@ -12,6 +12,7 @@ import { firstValueFrom } from 'rxjs';
 import {
   restaurant as restaurantSchema,
   socialMediaAccount,
+  SocialMediaPlatform,
   user as userSchema,
   userRestaurant,
 } from '@/schema';
@@ -20,6 +21,7 @@ import { EncryptionService } from '@/shared/services/encryption.service';
 import type { AppUser } from '@/shared/types';
 
 import { ClerkService } from './clerk.service';
+import { SocialAccountDto } from './dto/social-account.dto';
 import { UserDto, UserDtoWithRestaurant } from './dto/user.dto';
 
 interface FacebookTokenResponse {
@@ -45,6 +47,14 @@ export class AuthService {
     private readonly encryptionService: EncryptionService
   ) {}
 
+  // Helper to get frontend URL from config for the controller
+  getFrontendUrl(): string {
+    return this.configService.get<string>(
+      'MENUPORTAL_FRONTEND_URL',
+      'http://localhost:4200'
+    );
+  }
+
   getUser(user: AppUser): UserDto {
     return {
       id: user.db.id,
@@ -64,10 +74,43 @@ export class AuthService {
     };
   }
 
+  /**
+   * Fetches the connected social media accounts for the user's restaurant.
+   */
+  async getSocialAccounts(
+    user: AppUser<'MANAGER' | 'ADMIN'>
+  ): Promise<SocialAccountDto[]> {
+    this.logger.log(`Getting social accounts for user ${user.db.id}`);
+
+    const restaurantId = user.restaurant.id;
+    try {
+      const accounts = await this.databaseService.db
+        .select({
+          platform: socialMediaAccount.platform,
+          isActive: socialMediaAccount.isActive,
+        })
+        .from(socialMediaAccount)
+        .where(eq(socialMediaAccount.restaurantId, restaurantId));
+
+      this.logger.log(
+        `Found ${accounts.length} social accounts for restaurant ${restaurantId}`
+      );
+      return accounts;
+    } catch (error) {
+      this.logger.error(
+        `Failed to fetch social media accounts for restaurant ${restaurantId}`,
+        error.stack
+      );
+      throw new InternalServerErrorException(
+        'Could not fetch social media accounts.'
+      );
+    }
+  }
+
   async handleFacebookCallback(
     code: string,
-    state: string
-  ): Promise<{ message: string }> {
+    state: SocialMediaPlatform
+  ): Promise<SocialMediaPlatform> {
     const clerkToken = state;
     const { id, restaurant } = await this.getUserFromClerkToken(clerkToken);
 
@@ -90,9 +133,11 @@ export class AuthService {
 
     const encryptedAccessToken = this.encryptionService.encrypt(accessToken);
 
+    const platform = 'FACEBOOK' as const;
+
     const valuesToInsert = {
       restaurantId: restaurant.id,
-      platform: 'FACEBOOK' as const,
+      platform,
       platformAccountId: facebookUser.id,
       accessToken: encryptedAccessToken,
       tokenExpiresAt: tokenExpiresAt.toISOString(),
@@ -120,7 +165,8 @@ export class AuthService {
       this.logger.log(
         `Successfully saved Facebook account for restaurant ${restaurant.id}`
       );
-      return { message: 'Facebook account connected successfully.' };
+      // Return the platform name on success for the controller to use
+      return platform;
     } catch (error) {
       this.logger.error('Failed to save social media account', error.stack);
       throw new InternalServerErrorException(
@@ -184,7 +230,7 @@ export class AuthService {
     const appSecret = this.configService.get<string>('FB_APP_SECRET');
     const redirectUri = this.configService.get<string>('FB_CALLBACK_URL');
 
-    const url = 'https://graph.facebook.com/v23.0/oauth/access_token';
+    const url = 'https://graph.facebook.com/v18.0/oauth/access_token';
 
     try {
       const response = await firstValueFrom(

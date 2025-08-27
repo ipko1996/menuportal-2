@@ -22,6 +22,7 @@ import type { ErrorType } from '../../../utils/axios-instance';
 import { axiosInstance } from '../../../utils/axios-instance';
 import type {
   FacebookCallbackParams,
+  SocialAccountDto,
   UserDto,
   UserDtoWithRestaurant,
 } from '../../schemas';
@@ -47,7 +48,7 @@ export const getGetCurrentUserQueryKey = () => {
 
 export const getGetCurrentUserQueryOptions = <
   TData = Awaited<ReturnType<typeof getCurrentUser>>,
-  TError = ErrorType<null | null | null>
+  TError = ErrorType<null | null>
 >(options?: {
   query?: Partial<
     UseQueryOptions<Awaited<ReturnType<typeof getCurrentUser>>, TError, TData>
@@ -72,11 +73,11 @@ export const getGetCurrentUserQueryOptions = <
 export type GetCurrentUserQueryResult = NonNullable<
   Awaited<ReturnType<typeof getCurrentUser>>
 >;
-export type GetCurrentUserQueryError = ErrorType<null | null | null>;
+export type GetCurrentUserQueryError = ErrorType<null | null>;
 
 export function useGetCurrentUser<
   TData = Awaited<ReturnType<typeof getCurrentUser>>,
-  TError = ErrorType<null | null | null>
+  TError = ErrorType<null | null>
 >(
   options: {
     query: Partial<
@@ -98,7 +99,7 @@ export function useGetCurrentUser<
 };
 export function useGetCurrentUser<
   TData = Awaited<ReturnType<typeof getCurrentUser>>,
-  TError = ErrorType<null | null | null>
+  TError = ErrorType<null | null>
 >(
   options?: {
     query?: Partial<
@@ -120,7 +121,7 @@ export function useGetCurrentUser<
 };
 export function useGetCurrentUser<
   TData = Awaited<ReturnType<typeof getCurrentUser>>,
-  TError = ErrorType<null | null | null>
+  TError = ErrorType<null | null>
 >(
   options?: {
     query?: Partial<
@@ -138,7 +139,7 @@ export function useGetCurrentUser<
 
 export function useGetCurrentUser<
   TData = Awaited<ReturnType<typeof getCurrentUser>>,
-  TError = ErrorType<null | null | null>
+  TError = ErrorType<null | null>
 >(
   options?: {
     query?: Partial<
@@ -181,7 +182,7 @@ export const getGetCurrentUserWithRestaurantQueryKey = () => {
 
 export const getGetCurrentUserWithRestaurantQueryOptions = <
   TData = Awaited<ReturnType<typeof getCurrentUserWithRestaurant>>,
-  TError = ErrorType<null | null | null>
+  TError = ErrorType<null | null>
 >(options?: {
   query?: Partial<
     UseQueryOptions<
@@ -211,13 +212,11 @@ export const getGetCurrentUserWithRestaurantQueryOptions = <
 export type GetCurrentUserWithRestaurantQueryResult = NonNullable<
   Awaited<ReturnType<typeof getCurrentUserWithRestaurant>>
 >;
-export type GetCurrentUserWithRestaurantQueryError = ErrorType<
-  null | null | null
->;
+export type GetCurrentUserWithRestaurantQueryError = ErrorType<null | null>;
 
 export function useGetCurrentUserWithRestaurant<
   TData = Awaited<ReturnType<typeof getCurrentUserWithRestaurant>>,
-  TError = ErrorType<null | null | null>
+  TError = ErrorType<null | null>
 >(
   options: {
     query: Partial<
@@ -243,7 +242,7 @@ export function useGetCurrentUserWithRestaurant<
 };
 export function useGetCurrentUserWithRestaurant<
   TData = Awaited<ReturnType<typeof getCurrentUserWithRestaurant>>,
-  TError = ErrorType<null | null | null>
+  TError = ErrorType<null | null>
 >(
   options?: {
     query?: Partial<
@@ -269,7 +268,7 @@ export function useGetCurrentUserWithRestaurant<
 };
 export function useGetCurrentUserWithRestaurant<
   TData = Awaited<ReturnType<typeof getCurrentUserWithRestaurant>>,
-  TError = ErrorType<null | null | null>
+  TError = ErrorType<null | null>
 >(
   options?: {
     query?: Partial<
@@ -291,7 +290,7 @@ export function useGetCurrentUserWithRestaurant<
 
 export function useGetCurrentUserWithRestaurant<
   TData = Awaited<ReturnType<typeof getCurrentUserWithRestaurant>>,
-  TError = ErrorType<null | null | null>
+  TError = ErrorType<null | null>
 >(
   options?: {
     query?: Partial<
@@ -308,6 +307,140 @@ export function useGetCurrentUserWithRestaurant<
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
   const queryOptions = getGetCurrentUserWithRestaurantQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * @summary Get the user's connected social media accounts
+ */
+export const getSocials = (
+  options?: SecondParameter<typeof axiosInstance>,
+  signal?: AbortSignal
+) => {
+  return axiosInstance<SocialAccountDto[]>(
+    { url: `/api/auth/socials`, method: 'GET', signal },
+    options
+  );
+};
+
+export const getGetSocialsQueryKey = () => {
+  return [`/api/auth/socials`] as const;
+};
+
+export const getGetSocialsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getSocials>>,
+  TError = ErrorType<null | null>
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<Awaited<ReturnType<typeof getSocials>>, TError, TData>
+  >;
+  request?: SecondParameter<typeof axiosInstance>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetSocialsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getSocials>>> = ({
+    signal,
+  }) => getSocials(requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getSocials>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetSocialsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getSocials>>
+>;
+export type GetSocialsQueryError = ErrorType<null | null>;
+
+export function useGetSocials<
+  TData = Awaited<ReturnType<typeof getSocials>>,
+  TError = ErrorType<null | null>
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getSocials>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSocials>>,
+          TError,
+          Awaited<ReturnType<typeof getSocials>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetSocials<
+  TData = Awaited<ReturnType<typeof getSocials>>,
+  TError = ErrorType<null | null>
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getSocials>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSocials>>,
+          TError,
+          Awaited<ReturnType<typeof getSocials>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetSocials<
+  TData = Awaited<ReturnType<typeof getSocials>>,
+  TError = ErrorType<null | null>
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getSocials>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Get the user's connected social media accounts
+ */
+
+export function useGetSocials<
+  TData = Awaited<ReturnType<typeof getSocials>>,
+  TError = ErrorType<null | null>
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getSocials>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetSocialsQueryOptions(options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,
