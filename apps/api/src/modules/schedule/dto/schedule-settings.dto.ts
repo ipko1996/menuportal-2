@@ -10,7 +10,6 @@ import {
 
 import { DayName } from '@/constants';
 
-// Used for the PUT request body
 export class UpdateScheduleSettingsDto {
   @ApiProperty({
     description: 'Enable or disable the weekly scheduling.',
@@ -47,5 +46,4 @@ export class UpdateScheduleSettingsDto {
   message: string;
 }
 
-// Used for the GET request response
 export class GetScheduleSettingsResponseDto extends UpdateScheduleSettingsDto {}

@@ -61,8 +61,7 @@ export const scheduleSettings = pgTable(
     ),
     unique('unique_restaurant_social_account_schedule').on(
       table.restaurantId,
-      table.socialMediaAccountId,
-      table.cronExpression
+      table.socialMediaAccountId
     ),
   ]
 );
