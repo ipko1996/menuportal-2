@@ -4,7 +4,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 import {
   post,
@@ -18,10 +18,10 @@ import {
 } from '@/shared/database/database.service';
 import { DateRange } from '@/shared/pipes';
 import { CronHelperService } from '@/shared/services/cron.helper.service';
+import { WeeklyOfferQueryService } from '@/shared/services/weekly-offer-query.service';
 
+import { PostService } from '../post/post.service';
 import { SnapshotService } from '../snapshot/snapshot.service';
-import { WeekMenuService } from '../week-menu/week-menu.service';
-import { WeekScheduleService } from '../week-schedule/week-schedule.service';
 import {
   GetScheduleSettingsResponseDto,
   UpdateScheduleSettingsDto,
@@ -32,10 +32,10 @@ export class ScheduleService {
   private readonly logger = new Logger(ScheduleService.name);
   constructor(
     private readonly databaseService: DatabaseService,
-    private readonly weekMenuService: WeekMenuService,
-    private readonly weekScheduleService: WeekScheduleService,
     private readonly cronHelperService: CronHelperService,
-    private readonly snapshotService: SnapshotService
+    private readonly snapshotService: SnapshotService,
+    private readonly weeklyOfferQueryService: WeeklyOfferQueryService,
+    private readonly postService: PostService
   ) {}
 
   async getScheduleSettings(
@@ -115,16 +115,10 @@ export class ScheduleService {
           updatedAt: new Date().toISOString(),
         };
 
-        // Upsert logic: insert or update settings for each social media account.
         await tx
           .insert(scheduleSettings)
           .values(valuesToInsert)
           .onConflictDoUpdate({
-            // The unique constraint is on (restaurantId, socialMediaAccountId)
-            // But we need to target just one for upsert logic if cron changes.
-            // A more robust way is to target a unique combination.
-            // Let's target the unique schedule for a restaurant/social account.
-            // For simplicity in this context, we assume one schedule setting per social account.
             target: [
               scheduleSettings.restaurantId,
               scheduleSettings.socialMediaAccountId,
@@ -151,18 +145,18 @@ export class ScheduleService {
       `Scheduling from ${startOfWeek} to ${endOfWeek} for restaurant ID ${restaurantId}`
     );
 
-    const existing = await this.weekScheduleService.getExistingSchedules(
+    const existing = await this.snapshotService.getSnapshots(
       dateRange,
       restaurantId
     );
 
-    if (existing.snaps.length > 0) {
+    if (existing.length > 0) {
       throw new BadRequestException(
         `Week ${year}-${weekNumber} is already scheduled or published for restaurant ${restaurantId}`
       );
     }
 
-    const days = await this.weekMenuService.getWeekDays(
+    const days = await this.weeklyOfferQueryService.getWeeklyDataForWeek(
       dateRange,
       restaurantId
     );
@@ -184,8 +178,11 @@ export class ScheduleService {
     // Get the schedule settings for the restaurant
     const settings = await this.databaseService.db
       .select({
-        scheduleSettings: scheduleSettings,
-        socialAccount: socialMediaAccount,
+        socialAccountId: socialMediaAccount.id,
+        scheduleSettingsId: scheduleSettings.id,
+        content: scheduleSettings.contentText,
+        cron: scheduleSettings.cronExpression,
+        // socialAccount: socialMediaAccount,
       })
       .from(scheduleSettings)
       .innerJoin(
@@ -202,23 +199,7 @@ export class ScheduleService {
 
     // TODO: No active schedule settings found
     // TODO: Handle different scheduling scenarios (e.g., multiple schedules)
-
-    // const runs = settings.map(s => {
-    //   return {
-    //     cronExpression: s.scheduleSettings.cronExpression,
-    //     nextRun: this.getNextScheduledAt(s.scheduleSettings.cronExpression),
-    //   };
-    // });
-
-    // const earliestRun = runs.reduce((earliest, current) => {
-    //   return current.nextRun < earliest.nextRun ? current : earliest;
-    // }, runs[0]);
-
-    // if (isBefore(new Date(endOfWeek), new Date(earliestRun.nextRun))) {
-    //   throw new BadRequestException(
-    //     `Cannot schedule a week in the past: ${year}-${weekNumber}`
-    //   );
-    // }
+    // TODO: Hanle past, future, SCHEDULED, PUBLISHED, FAILED weeks ...
 
     await this.databaseService.db.transaction(async tx => {
       const snapshotIds = await this.snapshotService.createSnapshots(
@@ -226,47 +207,8 @@ export class ScheduleService {
         restaurantId,
         tx
       );
-      await this.createPostsForSnapshots(tx, settings, snapshotIds);
+      await this.postService.createPosts(snapshotIds, settings, tx);
     });
-  }
-
-  private async createPostsForSnapshots(
-    tx: Transaction,
-    settings: {
-      scheduleSettings: typeof scheduleSettings.$inferSelect;
-      socialAccount: typeof socialMediaAccount.$inferSelect;
-    }[],
-    snapshotIds: number[]
-  ): Promise<void> {
-    for (const setting of settings) {
-      const [newPost] = await tx
-        .insert(post)
-        .values({
-          socialMediaAccountId: setting.socialAccount.id,
-          status: 'SCHEDULED',
-          scheduleSettingsId: setting.scheduleSettings.id,
-          content: setting.scheduleSettings.contentText,
-          scheduledAt: this.cronHelperService.getNextScheduledAt(
-            setting.scheduleSettings.cronExpression
-          ),
-        })
-        .returning();
-
-      await this.associateSnapshotsWithPost(tx, newPost.id, snapshotIds);
-    }
-  }
-
-  private async associateSnapshotsWithPost(
-    tx: Transaction,
-    postId: number,
-    snapshotIds: number[]
-  ): Promise<void> {
-    await tx.insert(postSnapshot).values(
-      snapshotIds.map(snapshotId => ({
-        postId,
-        snapshotId,
-      }))
-    );
   }
 
   async cancelScheduledWeek(dateRange: DateRange, restaurantId: number) {
@@ -276,19 +218,15 @@ export class ScheduleService {
       `Cancelling scheduled week from ${startOfWeek} to ${endOfWeek} for restaurant ID ${restaurantId}`
     );
 
-    const existing = await this.weekScheduleService.getExistingSchedules(
-      dateRange,
-      restaurantId
-    );
-
     await this.databaseService.db.transaction(async tx => {
       // Fetch snapshots for this restaurant and week that are scheduled
-      await this.snapshotService.deleteSnapshots(dateRange, restaurantId, tx);
+      const ids = await this.snapshotService.deleteSnapshots(
+        dateRange,
+        restaurantId,
+        tx
+      );
 
-      const postIds = existing.posts.map(p => p.postId);
-      await tx
-        .delete(post)
-        .where(and(eq(post.status, 'SCHEDULED'), inArray(post.id, postIds)));
+      await this.postService.deletePostsBySnapshotIds(ids, tx);
 
       this.logger.log(
         `Deleted scheduled snapshot(s) for week ${year}-${weekNumber}`

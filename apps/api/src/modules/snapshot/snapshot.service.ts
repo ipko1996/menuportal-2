@@ -15,6 +15,8 @@ import {
 import { DateRange } from '@/shared/pipes';
 import { WeeklyOfferQueryService } from '@/shared/services/weekly-offer-query.service';
 
+import { WeekMenuResponseDto } from '../week-menu/dto/week-menu-response.dto';
+
 @Injectable()
 export class SnapshotService {
   private readonly logger = new Logger(SnapshotService.name);
@@ -69,8 +71,6 @@ export class SnapshotService {
       restaurantId
     );
 
-    this.logger.debug(weeklyData);
-
     const snapshotIds: number[] = [];
 
     await tx.transaction(async tx => {
@@ -110,7 +110,7 @@ export class SnapshotService {
         }))
       );
 
-      // --- Menus (fixed) ---
+      // --- Menus
       // Step 1: snapshots
       const menuSnapshots = await tx
         .insert(snapshot)
@@ -223,5 +223,80 @@ export class SnapshotService {
     // Since CASCADE is set up, related postSnapshots will be deleted automatically
 
     return snapshotIds;
+  }
+
+  public async getSnapshotsForWeek(
+    dateRange: DateRange,
+    restaurantId: number
+  ): Promise<{ days: WeekMenuResponseDto['days']; snaps: number[] }> {
+    const { start: startOfWeek, end: endOfWeek } = dateRange;
+    const schedules = await this.getSnapshots(dateRange, restaurantId);
+
+    const days: WeekMenuResponseDto['days'] = {};
+
+    for (
+      let d = new Date(startOfWeek);
+      d <= new Date(endOfWeek);
+      d.setDate(d.getDate() + 1)
+    ) {
+      const key = d.toISOString().slice(0, 10);
+      days[key] = { offers: [], menus: [] };
+    }
+
+    for (const schedule of schedules) {
+      // A null originalId indicates invalid data, so we still skip those.
+      if (!schedule.originalId) {
+        this.logger.warn(
+          `Skipping schedule with ID ${schedule.id} due to missing originalId.`
+        );
+        continue;
+      }
+
+      const dayKey = schedule.date;
+      if (!days[dayKey]) continue;
+
+      if (schedule.entityType === 'OFFER') {
+        const offerData = schedule.offers[0];
+        const dishData = schedule.items[0];
+
+        if (!offerData || !dishData) {
+          this.logger.error(
+            `Incomplete snapshot data for offer with original ID ${schedule.originalId}`
+          );
+          continue;
+        }
+
+        days[dayKey].offers.push({
+          offerId: schedule.originalId,
+          price: offerData.price,
+          dish: {
+            dishId: dishData.originalDishId,
+            dishName: dishData.dishName,
+            dishTypeId: dishData.dishTypeId,
+          },
+        });
+      } else if (schedule.entityType === 'MENU') {
+        const menuData = schedule.menus[0];
+        if (!menuData) {
+          this.logger.error(
+            `Incomplete snapshot data for menu with original ID ${schedule.originalId}`
+          );
+          continue;
+        }
+
+        days[dayKey].menus.push({
+          menuId: schedule.originalId,
+          menuName: menuData.menuName,
+          price: menuData.price,
+          dishes: schedule.items.map(item => ({
+            dishId: item.originalDishId,
+            dishName: item.dishName,
+            dishTypeId: item.dishTypeId,
+          })),
+        });
+      }
+    }
+
+    return { days, snaps: schedules.map(s => s.id) };
   }
 }

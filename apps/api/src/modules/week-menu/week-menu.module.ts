@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
 
-import { WeekScheduleModule } from '../week-schedule/week-schedule.module';
+import { SharedModule } from '@/shared/shared.module';
+
+import { PostModule } from '../post/post.module';
+import { SnapshotModule } from '../snapshot/snapshot.module';
 import { WeekMenuController } from './week-menu.controller';
 import { WeekMenuService } from './week-menu.service';
 
@@ -8,6 +11,6 @@ import { WeekMenuService } from './week-menu.service';
   controllers: [WeekMenuController],
   providers: [WeekMenuService],
   exports: [WeekMenuService],
-  imports: [WeekScheduleModule],
+  imports: [SharedModule, PostModule, SnapshotModule],
 })
 export class WeekMenuModule {}
