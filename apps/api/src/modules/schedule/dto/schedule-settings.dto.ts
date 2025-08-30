@@ -42,7 +42,7 @@ export class PlatformSettingsDto {
 export class ScheduleSettingsDto {
   @ApiProperty({
     description: 'The time of day to post in HH:mm format.',
-    example: '18:00',
+    example: '09:00',
   })
   @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
     message: 'postTime must be in HH:mm format',

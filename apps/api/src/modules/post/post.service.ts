@@ -95,7 +95,7 @@ export class PostService {
     await tx.insert(postSnapshot).values(postSnapshotValues);
   }
 
-  async deletePosts(ids: number[], tx: Transaction) {
+  async deletePostsForSnapshots(ids: number[], tx: Transaction) {
     // Delete the join rows
     await tx.delete(postSnapshot).where(inArray(postSnapshot.snapshotId, ids));
 

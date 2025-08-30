@@ -1,8 +1,9 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
+  InternalServerErrorException,
   Logger,
-  NotFoundException,
 } from '@nestjs/common';
 import CronExpressionParser from 'cron-parser';
 import { and, eq, sql } from 'drizzle-orm';
@@ -10,14 +11,10 @@ import { and, eq, sql } from 'drizzle-orm';
 import {
   platformSchedules,
   post,
-  postSnapshot,
   schedules,
   socialMediaAccount,
 } from '@/schema';
-import {
-  DatabaseService,
-  Transaction,
-} from '@/shared/database/database.service';
+import { DatabaseService } from '@/shared/database/database.service';
 import { DateRange } from '@/shared/pipes';
 import { CronHelperService } from '@/shared/services/cron.helper.service';
 import { WeeklyOfferQueryService } from '@/shared/services/weekly-offer-query.service';
@@ -71,22 +68,46 @@ export class ScheduleService {
   //   };
   // }
 
+  /**
+   * Creates a new schedule campaign for a restaurant, including its platform-specific settings.
+   * Prevents creation if a schedule of the same type already exists for the restaurant.
+   * @param restaurantId The ID of the restaurant.
+   * @param dto The schedule settings data transfer object.
+   * @throws {ConflictException} If a schedule of the same type already exists.
+   * @throws {BadRequestException} If validation fails (e.g., no accounts, invalid platform ID).
+   */
   async createScheduleSettings(
     restaurantId: number,
-    dto: ScheduleSettingsDto // Assumes this DTO now includes scheduleName and defaultTemplateUrl
+    dto: ScheduleSettingsDto
   ): Promise<void> {
     this.logger.log(
-      `Creating new schedule settings for restaurant ${restaurantId}`
+      `Attempting to create '${dto.scheduleType}' schedule for restaurant ${restaurantId}`
     );
-    // Assumes DTO is updated to include scheduleName and defaultTemplateUrl
     const { platforms, postTime, defaultContentText, scheduleType } = dto;
+
+    // First, check if a schedule of this type already exists for the restaurant.
+    const existingSchedule = await this.databaseService.db
+      .select({ id: schedules.id })
+      .from(schedules)
+      .where(
+        and(
+          eq(schedules.restaurantId, restaurantId),
+          eq(schedules.scheduleType, scheduleType)
+        )
+      )
+      .limit(1);
+
+    if (existingSchedule.length > 0) {
+      throw new ConflictException(
+        `A '${scheduleType}' schedule already exists for this restaurant.`
+      );
+    }
 
     const cronExpression = this.cronHelperService.dayTimeToCron(
       scheduleType,
       postTime
     );
 
-    // Find all active social media accounts for this restaurant to use for validation
     const validAccounts = await this.databaseService.db
       .select({ id: socialMediaAccount.id })
       .from(socialMediaAccount)
@@ -102,13 +123,9 @@ export class ScheduleService {
         'No active social media accounts found for this restaurant.'
       );
     }
-    this.logger.debug(
-      `Found ${validAccounts.length} active social media accounts for validation.`
-    );
     const validAccountIds = new Set(validAccounts.map(acc => acc.id));
 
     await this.databaseService.db.transaction(async tx => {
-      // Step 1: Create the main 'schedules' record and get its new ID.
       const [newSchedule] = await tx
         .insert(schedules)
         .values({
@@ -121,30 +138,21 @@ export class ScheduleService {
         })
         .returning({ id: schedules.id });
 
-      this.logger.debug({ newSchedule });
-
-      const scheduleId = newSchedule.id;
-      this.logger.debug(`Created schedule with ID ${scheduleId}`);
-
-      if (!scheduleId) {
-        // This would indicate a serious insertion failure
-        tx.rollback();
-        throw new Error('Failed to create the main schedule record.');
+      if (!newSchedule?.id) {
+        throw new InternalServerErrorException(
+          'Failed to create the main schedule record and retrieve its ID.'
+        );
       }
+      const scheduleId = newSchedule.id;
 
-      // Step 2: Validate that all platform accounts belong to the restaurant
       for (const platform of platforms) {
-        this.logger.debug({ message: 'creataing platform', platform });
         if (!validAccountIds.has(platform.socialMediaAccountId)) {
-          tx.rollback();
           throw new BadRequestException(
             `Social media account with ID ${platform.socialMediaAccountId} does not belong to this restaurant or is not active.`
           );
         }
       }
 
-      // Step 3: Prepare and bulk-insert all 'platform_schedules' records.
-      // Assumes PlatformSettingsDto has an optional `templateUrl` property
       const platformSchedulesToInsert = platforms.map(p => ({
         scheduleId: scheduleId,
         socialMediaAccountId: p.socialMediaAccountId,
@@ -152,27 +160,33 @@ export class ScheduleService {
         isActive: p.isActive,
       }));
 
-      this.logger.debug('platformSchedulesToInsert', platformSchedulesToInsert);
-
-      // Ensure there's at least one platform to schedule for
       if (platformSchedulesToInsert.length === 0) {
-        tx.rollback();
         throw new BadRequestException(
           'At least one platform must be configured for the schedule.'
         );
       }
-      this.logger.debug('platformSchedulesToInsert', platformSchedulesToInsert);
+
       await tx.insert(platformSchedules).values(platformSchedulesToInsert);
     });
 
     this.logger.log(
-      `Successfully created schedule "${scheduleType}" for ${platforms.length} account(s).`
+      `Successfully created '${scheduleType}' schedule for ${platforms.length} account(s).`
     );
   }
 
-  async scheduleWeek(dateRange: DateRange, restaurantId: number) {
+  /**
+   * Generates and saves all scheduled posts for a given restaurant and week.
+   * It evaluates all active scheduling rules (daily, weekly) and creates post records
+   * for each match within the date range.
+   * @param dateRange The week to schedule posts for.
+   * @param restaurantId The ID of the restaurant.
+   * @throws {BadRequestException} If the week is already scheduled or has no content.
+   */
+  async scheduleWeek(
+    dateRange: DateRange,
+    restaurantId: number
+  ): Promise<void> {
     const { start: startOfWeek, end: endOfWeek, year, weekNumber } = dateRange;
-
     this.logger.log(
       `Scheduling from ${startOfWeek} to ${endOfWeek} for restaurant ID ${restaurantId}`
     );
@@ -183,17 +197,15 @@ export class ScheduleService {
     );
     if (existing.length > 0) {
       throw new BadRequestException(
-        `Week ${year}-${weekNumber} is already scheduled or published for restaurant ${restaurantId}`
+        `Week ${year}-${weekNumber} is already scheduled for restaurant ${restaurantId}`
       );
     }
 
-    // 1. Fetch all active scheduling rules for the restaurant with updated schema.
     const schedulingRules = await this.databaseService.db
       .select({
         platformScheduleId: platformSchedules.id,
         socialMediaAccountId: socialMediaAccount.id,
         cronExpression: schedules.cronExpression,
-        // UPDATED: Using COALESCE on the new `templateId` fields.
         finalTemplateId:
           sql<string>`COALESCE(${platformSchedules.templateId}, ${schedules.defaultTemplateId})`.as(
             'finalTemplateId'
@@ -227,15 +239,8 @@ export class ScheduleService {
       );
     }
 
-    // 2. Iterate through each day, parsing cron expressions to generate posts.
-    const postsToCreate: Array<
-      Omit<
-        typeof post.$inferInsert,
-        'id' | 'createdAt' | 'generatedImageUrl' | 'generatedPdfUrl'
-      >
-    > = [];
-
-    // FIX: Parse string dates into Date objects for correct comparison.
+    const postsToCreate: Omit<typeof post.$inferInsert, 'id' | 'createdAt'>[] =
+      [];
     const startDate = new Date(startOfWeek);
     const endDate = new Date(endOfWeek);
 
@@ -245,66 +250,46 @@ export class ScheduleService {
       );
     }
 
-    const currentDate = startDate;
-    while (currentDate <= endDate) {
+    for (
+      let day = new Date(startDate);
+      day <= endDate;
+      day.setUTCDate(day.getUTCDate() + 1)
+    ) {
       for (const rule of schedulingRules) {
-        try {
-          // FIX: Using the new parser syntax and robust date checking.
-          const interval = CronExpressionParser.parse(rule.cronExpression, {
-            currentDate: new Date(currentDate.setUTCHours(0, 0, 0, 0)), // Start check from beginning of the day
-            tz: 'UTC',
+        const nextRun = this.cronHelperService.getScheduledRunForDay(
+          rule.cronExpression,
+          day
+        );
+
+        // If the helper function returns a valid date, create the post.
+        if (nextRun) {
+          postsToCreate.push({
+            platformScheduleId: rule.platformScheduleId,
+            socialMediaAccountId: rule.socialMediaAccountId,
+            status: 'SCHEDULED',
+            content: rule.finalContentText,
+            scheduledAt: nextRun.toISOString(),
+            // templateId: rule.finalTemplateId, // Assuming you need this from the query
+            retryCount: 0,
           });
-
-          const nextRun = interval.next().toDate();
-
-          const endOfDay = new Date(currentDate);
-          endOfDay.setUTCHours(23, 59, 59, 999);
-
-          // If the next scheduled run is within the current day, we have a match.
-          if (nextRun <= endOfDay) {
-            postsToCreate.push({
-              platformScheduleId: rule.platformScheduleId,
-              socialMediaAccountId: rule.socialMediaAccountId,
-              status: 'SCHEDULED',
-              content: rule.finalContentText,
-              scheduledAt: nextRun.toISOString(),
-              // templateId: rule.finalTemplateId,
-              retryCount: 0,
-            });
-          }
-        } catch (error) {
-          this.logger.error(
-            `Invalid cron expression "${rule.cronExpression}" for platform schedule ID ${rule.platformScheduleId}`,
-            error.stack
-          );
         }
       }
-      // Move to the next day
-      currentDate.setUTCDate(currentDate.getUTCDate() + 1);
     }
 
     if (postsToCreate.length === 0) {
       this.logger.warn(
-        `No posts were generated for restaurant ${restaurantId} for week ${year}-${weekNumber}. Check schedule timings.`
+        `No posts were generated for restaurant ${restaurantId} for week ${year}-${weekNumber}.`
       );
       return;
     }
 
-    // 3. Create snapshots and all generated posts in a single transaction.
-    this.logger.log(
-      `Generated ${postsToCreate.length} posts to be scheduled for restaurant ${restaurantId}.`
-    );
+    this.logger.log(`Generated ${postsToCreate.length} posts to be scheduled.`);
     await this.databaseService.db.transaction(async tx => {
-      this.logger.debug({
-        message: 'Creating snapshots and linking posts',
-        postsToCreate,
-      });
       const snapshotIds = await this.snapshotService.createSnapshots(
         dateRange,
         restaurantId,
         tx
       );
-      // This service method would need to be adapted to also link snapshots.
       await this.postService.createPostsAndLinkSnapshots(
         snapshotIds,
         postsToCreate,
@@ -313,27 +298,38 @@ export class ScheduleService {
     });
   }
 
-  async cancelScheduledWeek(dateRange: DateRange, restaurantId: number) {
-    const { start: startOfWeek, end: endOfWeek, year, weekNumber } = dateRange;
-
+  /**
+   * Cancels and deletes all scheduled (but not yet published) posts and their
+   * associated snapshots for a given week.
+   * @param dateRange The week to cancel.
+   * @param restaurantId The ID of the restaurant.
+   */
+  async cancelScheduledWeek(
+    dateRange: DateRange,
+    restaurantId: number
+  ): Promise<void> {
+    const { year, weekNumber } = dateRange;
     this.logger.log(
-      `Cancelling scheduled week from ${startOfWeek} to ${endOfWeek} for restaurant ID ${restaurantId}`
+      `Cancelling scheduled week ${year}-${weekNumber} for restaurant ID ${restaurantId}`
     );
 
     await this.databaseService.db.transaction(async tx => {
-      // Fetch snapshots for this restaurant and week that are scheduled
-      const ids = await this.snapshotService.deleteSnapshots(
+      const deletedSnapshotIds = await this.snapshotService.deleteSnapshots(
         dateRange,
         restaurantId,
         tx
       );
-      this.logger.debug({ deletedSnapshotIds: ids });
 
-      await this.postService.deletePosts(ids, tx);
-
-      this.logger.log(
-        `Deleted scheduled snapshot(s) for week ${year}-${weekNumber}`
-      );
+      if (deletedSnapshotIds.length > 0) {
+        await this.postService.deletePostsForSnapshots(deletedSnapshotIds, tx);
+        this.logger.log(
+          `Deleted posts and snapshots for week ${year}-${weekNumber}.`
+        );
+      } else {
+        this.logger.warn(
+          `No scheduled snapshots found to cancel for week ${year}-${weekNumber}.`
+        );
+      }
     });
   }
 }
