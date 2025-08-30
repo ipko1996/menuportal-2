@@ -26,14 +26,13 @@ import { RoleAuthGuard, Roles } from '@/guards/role.guard';
 import { DateRange, WeekToDateRangePipe } from '@/shared/pipes';
 import { AppUser } from '@/shared/types';
 
-import { WeekMenuDayDto } from '../week-menu/dto/week-menu-response.dto';
 import {
-  GetScheduleSettingsResponseDto,
-  UpdateScheduleSettingsDto,
+  PlatformSettingsDto,
+  ScheduleSettingsDto,
 } from './dto/schedule-settings.dto';
 import { ScheduleService } from './schedule.service';
 
-@ApiExtraModels(WeekMenuDayDto, GetScheduleSettingsResponseDto)
+@ApiExtraModels(PlatformSettingsDto)
 @UseGuards(RoleAuthGuard)
 @Roles('ADMIN', 'MANAGER')
 @ApiBearerAuth()
@@ -41,36 +40,20 @@ import { ScheduleService } from './schedule.service';
 export class ScheduleController {
   constructor(private readonly scheduleService: ScheduleService) {}
 
-  @Get('settings')
+  @Post('settings')
   @ApiOperation({
-    summary: 'Get schedule settings for the restaurant',
-    operationId: 'getScheduleSettings',
+    summary: 'Creates schedule settings for a restaurant',
+    operationId: 'createScheduleSettings',
   })
-  @ApiOkResponse({
-    description: 'Schedule settings retrieved successfully.',
-    type: GetScheduleSettingsResponseDto,
-  })
-  @ApiNotFoundResponse({ description: 'No active settings found.' })
-  getScheduleSettings(@CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>) {
-    return this.scheduleService.getScheduleSettings(user.restaurant.id);
-  }
-
-  @Put('settings')
-  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  @ApiOperation({
-    summary: 'Update schedule settings for the restaurant',
-    operationId: 'updateScheduleSettings',
-  })
-  @ApiBody({ type: UpdateScheduleSettingsDto })
-  @ApiOkResponse({ description: 'Schedule settings updated successfully.' })
+  @ApiBody({ type: ScheduleSettingsDto })
   @ApiBadRequestResponse({ description: 'Invalid data provided.' })
-  updateScheduleSettings(
+  createScheduleSettings(
     @CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>,
-    @Body() updateScheduleSettingsDto: UpdateScheduleSettingsDto
+    @Body() createScheduleSettingsDto: ScheduleSettingsDto
   ) {
-    return this.scheduleService.updateScheduleSettings(
+    return this.scheduleService.createScheduleSettings(
       user.restaurant.id,
-      updateScheduleSettingsDto
+      createScheduleSettingsDto
     );
   }
 

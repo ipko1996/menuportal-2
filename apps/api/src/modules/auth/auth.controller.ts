@@ -72,8 +72,6 @@ export class AuthController {
     return this.authService.getSocialAccounts(user);
   }
 
-  @UseGuards(RoleAuthGuard)
-  @Roles('MANAGER', 'ADMIN')
   @ApiOperation({
     summary: 'Callback for Social OAuth flows',
     operationId: 'socialCallback',

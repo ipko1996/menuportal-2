@@ -181,7 +181,7 @@ export class AuthService {
     platform: SocialMediaPlatform,
     code: string,
     state: string
-  ): Promise<any> {
+  ) {
     // First, validate the 'state' parameter for security (CSRF protection)
     // this.validateState(state);
 

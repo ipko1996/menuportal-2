@@ -42,7 +42,10 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
     consumer
       .apply(ClerkMiddleware)
-      .exclude({ path: '/auth/social/callback', method: RequestMethod.GET })
+      .exclude({
+        path: '/auth/social/FACEBOOK/callback',
+        method: RequestMethod.GET,
+      })
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }

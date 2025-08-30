@@ -1,31 +1,45 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
+  IsArray,
   IsBoolean,
   IsIn,
   IsNotEmpty,
+  IsOptional,
   IsString,
   Matches,
   MaxLength,
+  ValidateNested,
 } from 'class-validator';
 
-import { DayName } from '@/constants';
+import { DayName, ScheduleType, ScheduleTypeEnum } from '@/constants';
 
-export class UpdateScheduleSettingsDto {
+export class PlatformSettingsDto {
   @ApiProperty({
-    description: 'Enable or disable the weekly scheduling.',
+    description: 'The text that will accompany the social media post.',
+    example: "Next week's menu is ready!",
+  })
+  @IsString()
+  @MaxLength(280)
+  @IsOptional()
+  contentText?: string;
+
+  @ApiProperty({
+    description: 'Whether posting to this social media account is active.',
     example: true,
   })
   @IsBoolean()
-  enabled: boolean;
+  isActive: boolean;
 
   @ApiProperty({
-    description: 'The day of the week to post the menu.',
-    enum: ['SATURDAY', 'SUNDAY', 'MONDAY'],
-    example: 'SUNDAY',
+    description: 'The ID of the social media account these settings apply to.',
+    example: 1,
   })
-  @IsIn(['SATURDAY', 'SUNDAY', 'MONDAY'])
-  postDay: DayName;
+  @IsNotEmpty()
+  socialMediaAccountId: number;
+}
 
+export class ScheduleSettingsDto {
   @ApiProperty({
     description: 'The time of day to post in HH:mm format.',
     example: '18:00',
@@ -43,7 +57,30 @@ export class UpdateScheduleSettingsDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(280)
-  message: string;
-}
+  defaultContentText: string;
 
-export class GetScheduleSettingsResponseDto extends UpdateScheduleSettingsDto {}
+  @ApiProperty({
+    description: '',
+    enum: ScheduleTypeEnum.enumValues,
+    example: ScheduleTypeEnum.enumValues[0],
+  })
+  @IsIn(ScheduleTypeEnum.enumValues)
+  scheduleType: ScheduleType;
+
+  @ApiProperty({
+    description:
+      'Array of platform-specific settings for social media posting.',
+    type: [PlatformSettingsDto],
+    example: [
+      {
+        contentText: "Check out next week's special menu!",
+        isActive: true,
+        socialMediaAccountId: 1,
+      },
+    ],
+  })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PlatformSettingsDto)
+  platforms: PlatformSettingsDto[];
+}

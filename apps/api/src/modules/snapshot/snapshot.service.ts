@@ -56,6 +56,13 @@ export class SnapshotService {
     // Check if snapshots already exist for the given date range and restaurant
     const exists = await this.checkSnapshotsExist(dateRange, restaurantId);
 
+    this.logger.debug({
+      message: 'Checking if snapshots exist',
+      exists,
+      dateRange,
+      restaurantId,
+    });
+
     if (exists) {
       this.logger.warn(
         `Snapshots already exist for restaurant ID ${restaurantId} in the specified date range. Skipping creation.`
@@ -71,46 +78,68 @@ export class SnapshotService {
       restaurantId
     );
 
+    // Check if weeklyData has any offers or menus
+    const hasItems = Object.values(weeklyData).some(day => day.length > 0);
+    if (!hasItems) {
+      throw new BadRequestException(
+        `No menus or offers found to schedule for week ${year}-${weekNumber}`
+      );
+    }
+
+    this.logger.debug({
+      message: 'Weekly data fetched for snapshot creation',
+      weeklyData,
+      hasItems,
+    });
+
     const snapshotIds: number[] = [];
 
     await tx.transaction(async tx => {
-      // --- Offers (unchanged, works fine) ---
-      const offerSnapshots = await tx
-        .insert(snapshot)
-        .values(
+      // --- Offers ---
+      if (weeklyData.weeklyOffers.length === 0) {
+        // Skip offers processing
+      } else {
+        const offerSnapshots = await tx
+          .insert(snapshot)
+          .values(
+            weeklyData.weeklyOffers.map(o => ({
+              restaurantId,
+              entityType: 'OFFER' as const,
+              originalId: o.offerId,
+              date: o.availabilityDate!,
+            }))
+          )
+          .returning({ id: snapshot.id, originalId: snapshot.originalId });
+
+        const offerSnapshotMap = new Map(
+          offerSnapshots.map(s => [s.originalId, s.id])
+        );
+        snapshotIds.push(...offerSnapshots.map(s => s.id));
+
+        await tx.insert(snapshotOffer).values(
           weeklyData.weeklyOffers.map(o => ({
-            restaurantId,
-            entityType: 'OFFER' as const,
-            originalId: o.offerId,
-            date: o.availabilityDate!,
+            snapshotId: offerSnapshotMap.get(o.offerId)!,
+            originalOfferId: o.offerId,
+            price: o.offerPrice,
           }))
-        )
-        .returning({ id: snapshot.id, originalId: snapshot.originalId });
+        );
 
-      const offerSnapshotMap = new Map(
-        offerSnapshots.map(s => [s.originalId, s.id])
-      );
-      snapshotIds.push(...offerSnapshots.map(s => s.id));
+        await tx.insert(snapshotItem).values(
+          weeklyData.weeklyOffers.map(o => ({
+            snapshotId: offerSnapshotMap.get(o.offerId)!,
+            originalDishId: o.dishId!,
+            dishName: o.dishName!,
+            dishTypeId: o.dishTypeId!,
+            restaurantId,
+          }))
+        );
+      }
 
-      await tx.insert(snapshotOffer).values(
-        weeklyData.weeklyOffers.map(o => ({
-          snapshotId: offerSnapshotMap.get(o.offerId)!,
-          originalOfferId: o.offerId,
-          price: o.offerPrice,
-        }))
-      );
+      // --- Menus ---
+      if (weeklyData.weeklyMenus.length === 0) {
+        return; // Early return - no menus to process
+      }
 
-      await tx.insert(snapshotItem).values(
-        weeklyData.weeklyOffers.map(o => ({
-          snapshotId: offerSnapshotMap.get(o.offerId)!,
-          originalDishId: o.dishId!,
-          dishName: o.dishName!,
-          dishTypeId: o.dishTypeId!,
-          restaurantId,
-        }))
-      );
-
-      // --- Menus
       // Step 1: snapshots
       const menuSnapshots = await tx
         .insert(snapshot)
@@ -220,7 +249,6 @@ export class SnapshotService {
       .where(inArray(snapshotOffer.snapshotId, snapshotIds));
 
     await tx.delete(snapshot).where(inArray(snapshot.id, snapshotIds));
-    // Since CASCADE is set up, related postSnapshots will be deleted automatically
 
     return snapshotIds;
   }

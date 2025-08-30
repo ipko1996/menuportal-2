@@ -52,7 +52,8 @@ export class TemplatesController {
     const html = await this.templatesService.renderMenuForWeek(
       restaurantId,
       dateRange,
-      platform
+      platform,
+      'WEEKLY'
     );
     res.type('text/html').send(html);
   }

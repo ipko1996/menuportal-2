@@ -1,36 +1,33 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { CronExpressionParser } from 'cron-parser';
 
-import { DayName, dayNames } from '@/constants';
+import { DayName, dayNames, ScheduleType } from '@/constants';
 
 @Injectable()
 export class CronHelperService {
   private readonly logger = new Logger(CronHelperService.name);
 
-  public dayTimeToCron(day: DayName, time: string): string {
+  public dayTimeToCron(scheduleType: ScheduleType, time: string): string {
     const timeParts = time.split(':');
 
     // Validate that the time is in HH:mm format
     if (timeParts.length !== 2) {
-      console.error(`Invalid time format: "${time}". Expected "HH:mm".`);
+      this.logger.error(`Invalid time format: "${time}". Expected "HH:mm".`);
       throw new Error(`Invalid time format: "${time}". Expected "HH:mm".`);
     }
 
-    const [hour, minute] = timeParts;
+    const [hour, minute] = timeParts.map(part => Number.parseInt(part, 10));
 
-    const dayOfWeekMap: Record<DayName, number> = {
-      SUNDAY: 0,
-      MONDAY: 1,
-      TUESDAY: 2,
-      WEDNESDAY: 3,
-      THURSDAY: 4,
-      FRIDAY: 5,
-      SATURDAY: 6,
-    };
-
-    const dayOfWeek = dayOfWeekMap[day];
-
-    return `${minute} ${hour} * * ${dayOfWeek}`;
+    if (scheduleType === 'DAILY') {
+      // For daily schedules, set up a string for each day of the week with the specified time
+      return `${minute} ${hour} * * 0-6`;
+    } else if (scheduleType === 'WEEKLY') {
+      // For weekly schedules, only set Monday with the specified time
+      return `${minute} ${hour} * * 1`;
+    } else {
+      this.logger.error(`Unsupported schedule type: "${scheduleType}".`);
+      throw new Error(`Unsupported schedule type: "${scheduleType}".`);
+    }
   }
 
   public cronToDayTime(cron: string): { day: DayName; time: string } {

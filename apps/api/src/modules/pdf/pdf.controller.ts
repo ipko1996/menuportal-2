@@ -100,7 +100,8 @@ export class PdfController {
       const html = await this.templatesService.renderMenuForWeek(
         restaurantId,
         dateRange,
-        platform
+        platform,
+        'WEEKLY'
       );
 
       const pdfBuffer = await this.pdfService.generatePdfFromHtml(html);
@@ -191,7 +192,8 @@ export class PdfController {
       const html = await this.templatesService.renderMenuForWeek(
         restaurantId,
         dateRange,
-        platform
+        platform,
+        'WEEKLY'
       );
 
       // 2. Convert the HTML to an image using the service

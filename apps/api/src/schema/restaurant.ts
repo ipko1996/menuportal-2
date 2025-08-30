@@ -14,7 +14,7 @@ import { menu } from './menu';
 import { offer } from './offer';
 import { restaurantDishType } from './restaurant-dish-type';
 import { restaurantSetting } from './restaurant-setting';
-import { scheduleSettings } from './schedule';
+import { schedules } from './schedule';
 import { snapshot } from './snapshot';
 import { socialMediaAccount } from './social';
 import { userRestaurant } from './user-restaurant';
@@ -49,7 +49,7 @@ export const restaurantRelations = relations(restaurant, ({ many, one }) => ({
   menus: many(menu),
   addOns: many(addOn),
   settings: one(restaurantSetting),
-  scheduleSettings: many(scheduleSettings),
+  schedules: many(schedules),
   socialAccounts: many(socialMediaAccount),
   snapshots: many(snapshot),
 }));
