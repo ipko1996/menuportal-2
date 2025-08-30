@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, Res, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiForbiddenResponse,
@@ -75,28 +75,28 @@ export class AuthController {
   @UseGuards(RoleAuthGuard)
   @Roles('MANAGER', 'ADMIN')
   @ApiOperation({
-    summary: 'Callback for Facebook OAuth flow',
-    operationId: 'facebookCallback',
+    summary: 'Callback for Social OAuth flows',
+    operationId: 'socialCallback',
   })
-  @ApiOkResponse({ description: 'Successfully connected Facebook account' })
+  @ApiOkResponse({ description: 'Successfully connected social account' })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized: Invalid token in state',
   })
-  @Get('social/callback')
-  async facebookCallback(
+  @Get('social/:platform/callback')
+  async socialCallback(
+    @Param('platform') platform: SocialMediaPlatform,
     @Query('code') code: string,
-    @Query('state') state: SocialMediaPlatform,
+    @Query('state') state: string,
     @Res() reply: FastifyReply
   ) {
     try {
-      const platform = await this.authService.handleFacebookCallback(
-        code,
-        state
-      );
+      // Call a single, generalized handler in your service
+      await this.authService.handleCallback(platform, code, state);
       const successHtml = this.createResponseHtml(true, platform);
       reply.type('text/html').send(successHtml);
-    } catch {
-      const errorHtml = this.createResponseHtml(false, 'FACEBOOK');
+    } catch (error) {
+      console.error(`Error during ${platform} OAuth callback:`, error);
+      const errorHtml = this.createResponseHtml(false, platform);
       reply.type('text/html').send(errorHtml);
     }
   }
