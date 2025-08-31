@@ -6,11 +6,11 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface PlatformSettingsDto {
-  /** The text that will accompany the social media post. */
-  contentText: string;
-  /** Whether posting to this social media account is active. */
-  isActive: boolean;
+export interface PlatformCreationDto {
   /** The ID of the social media account these settings apply to. */
   socialMediaAccountId: number;
+  /** Custom text for this platform. If omitted, the default will be used. */
+  contentText?: string;
+  /** Whether posting to this social media account is active. */
+  isActive: boolean;
 }

@@ -9,16 +9,16 @@ import type { GetPlatformSettingsResponseDto } from './get-platform-settings-res
 import type { GetScheduleSettingsResponseDtoScheduleType } from './get-schedule-settings-response-dto-schedule-type';
 
 export interface GetScheduleSettingsResponseDto {
-  /** The unique identifier of the schedule settings. */
+  /** Unique identifier of the schedule setting */
   id: number;
-  /** The type of schedule. */
+  /** Type of schedule (e.g. DAILY, WEEKLY) */
   scheduleType: GetScheduleSettingsResponseDtoScheduleType;
-  /** The time of day to post in HH:mm format. */
+  /** Time of day when the post should be published (HH:mm) */
   postTime: string;
-  /** The default message content for posts. */
+  /** Default text for scheduled posts */
   defaultContentText: string;
-  /** Whether this schedule is globally active. */
+  /** Whether the schedule is active */
   isActive: boolean;
-  /** Array of platform-specific settings. */
+  /** List of platform-specific settings for this schedule */
   platforms: GetPlatformSettingsResponseDto[];
 }

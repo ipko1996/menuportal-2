@@ -83,7 +83,7 @@ export class CronHelperService {
 
       const interval = CronExpressionParser.parse(cronExpression, {
         currentDate: startOfDay,
-        tz: 'UTC',
+        // tz: 'UTC',
       });
       const nextRun = interval.next().toDate();
 

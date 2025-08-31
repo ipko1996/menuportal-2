@@ -7,7 +7,7 @@
  */
 
 /**
- * The type of schedule.
+ * Type of schedule (e.g. DAILY, WEEKLY)
  */
 export type GetScheduleSettingsResponseDtoScheduleType =
   (typeof GetScheduleSettingsResponseDtoScheduleType)[keyof typeof GetScheduleSettingsResponseDtoScheduleType];

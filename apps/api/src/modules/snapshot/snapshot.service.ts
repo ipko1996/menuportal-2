@@ -288,7 +288,7 @@ export class SnapshotService {
         const dishData = schedule.items[0];
 
         if (!offerData || !dishData) {
-          this.logger.error(
+          this.logger.warn(
             `Incomplete snapshot data for offer with original ID ${schedule.originalId}`
           );
           continue;
@@ -306,7 +306,7 @@ export class SnapshotService {
       } else if (schedule.entityType === 'MENU') {
         const menuData = schedule.menus[0];
         if (!menuData) {
-          this.logger.error(
+          this.logger.warn(
             `Incomplete snapshot data for menu with original ID ${schedule.originalId}`
           );
           continue;

@@ -5,18 +5,17 @@
  * The API description
  * OpenAPI spec version: 1.0
  */
-import type { GetPlatformSettingsResponseDtoContentText } from './get-platform-settings-response-dto-content-text';
 
 export interface GetPlatformSettingsResponseDto {
-  /** The unique identifier of the platform settings. */
+  /** Unique identifier of the platform setting */
   id: number;
-  /** The ID of the social media account these settings apply to. */
+  /** ID of the linked social media account */
   socialMediaAccountId: number;
   /**
-   * The text that will accompany the social media post. Null means use default.
+   * Optional custom content text for this platform
    * @nullable
    */
-  contentText: GetPlatformSettingsResponseDtoContentText;
-  /** Whether posting to this social media account is active. */
+  contentText?: string | null;
+  /** Whether the platform is active */
   isActive: boolean;
 }

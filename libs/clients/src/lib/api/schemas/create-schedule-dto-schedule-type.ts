@@ -9,11 +9,11 @@
 /**
  * The type of the schedule, e.g., WEEKLY.
  */
-export type UpdateScheduleSettingsDtoScheduleType =
-  (typeof UpdateScheduleSettingsDtoScheduleType)[keyof typeof UpdateScheduleSettingsDtoScheduleType];
+export type CreateScheduleDtoScheduleType =
+  (typeof CreateScheduleDtoScheduleType)[keyof typeof CreateScheduleDtoScheduleType];
 
  
-export const UpdateScheduleSettingsDtoScheduleType = {
+export const CreateScheduleDtoScheduleType = {
   WEEKLY: 'WEEKLY',
   DAILY: 'DAILY',
 } as const;

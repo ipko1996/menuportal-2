@@ -24,15 +24,16 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import type { BodyType,ErrorType } from '../../../utils/axios-instance';
 import { axiosInstance } from '../../../utils/axios-instance';
 import type {
+  CreateScheduleDto,
   GetScheduleSettingsResponseDto,
-  ScheduleSettingsDto,
-  UpdateScheduleSettingsDto,
+  UpdatePlatformScheduleDto,
+  UpdateScheduleDto,
 } from '../../schemas';
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 /**
- * @summary Gets schedule settings for a restaurant
+ * @summary Get schedule settings
  */
 export const getScheduleSettings = (
   scheduleType: 'WEEKLY' | 'DAILY',
@@ -167,7 +168,7 @@ export function useGetScheduleSettings<
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 /**
- * @summary Gets schedule settings for a restaurant
+ * @summary Get schedule settings
  */
 
 export function useGetScheduleSettings<
@@ -205,36 +206,43 @@ export function useGetScheduleSettings<
 }
 
 /**
- * @summary Deactivates schedule settings for a restaurant
+ * Updates the main settings like post time, default text, and the global active status.
+ * @summary Update core schedule settings
  */
-export const deactivateScheduleSettings = (
+export const updateCoreScheduleSettings = (
   scheduleType: 'WEEKLY' | 'DAILY',
+  updateScheduleDto: BodyType<UpdateScheduleDto>,
   options?: SecondParameter<typeof axiosInstance>
 ) => {
   return axiosInstance<null>(
-    { url: `/api/schedule/settings/${scheduleType}`, method: 'DELETE' },
+    {
+      url: `/api/schedule/settings/${scheduleType}`,
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      data: updateScheduleDto,
+    },
     options
   );
 };
 
-export const getDeactivateScheduleSettingsMutationOptions = <
+export const getUpdateCoreScheduleSettingsMutationOptions = <
   TError = ErrorType<null>,
   TContext = unknown
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof deactivateScheduleSettings>>,
+    Awaited<ReturnType<typeof updateCoreScheduleSettings>>,
     TError,
-    { scheduleType: 'WEEKLY' | 'DAILY' },
+    { scheduleType: 'WEEKLY' | 'DAILY'; data: BodyType<UpdateScheduleDto> },
     TContext
   >;
   request?: SecondParameter<typeof axiosInstance>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof deactivateScheduleSettings>>,
+  Awaited<ReturnType<typeof updateCoreScheduleSettings>>,
   TError,
-  { scheduleType: 'WEEKLY' | 'DAILY' },
+  { scheduleType: 'WEEKLY' | 'DAILY'; data: BodyType<UpdateScheduleDto> },
   TContext
 > => {
-  const mutationKey = ['deactivateScheduleSettings'];
+  const mutationKey = ['updateCoreScheduleSettings'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
@@ -244,55 +252,56 @@ export const getDeactivateScheduleSettingsMutationOptions = <
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof deactivateScheduleSettings>>,
-    { scheduleType: 'WEEKLY' | 'DAILY' }
+    Awaited<ReturnType<typeof updateCoreScheduleSettings>>,
+    { scheduleType: 'WEEKLY' | 'DAILY'; data: BodyType<UpdateScheduleDto> }
   > = props => {
-    const { scheduleType } = props ?? {};
+    const { scheduleType, data } = props ?? {};
 
-    return deactivateScheduleSettings(scheduleType, requestOptions);
+    return updateCoreScheduleSettings(scheduleType, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type DeactivateScheduleSettingsMutationResult = NonNullable<
-  Awaited<ReturnType<typeof deactivateScheduleSettings>>
+export type UpdateCoreScheduleSettingsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateCoreScheduleSettings>>
 >;
-
-export type DeactivateScheduleSettingsMutationError = ErrorType<null>;
+export type UpdateCoreScheduleSettingsMutationBody =
+  BodyType<UpdateScheduleDto>;
+export type UpdateCoreScheduleSettingsMutationError = ErrorType<null>;
 
 /**
- * @summary Deactivates schedule settings for a restaurant
+ * @summary Update core schedule settings
  */
-export const useDeactivateScheduleSettings = <
+export const useUpdateCoreScheduleSettings = <
   TError = ErrorType<null>,
   TContext = unknown
 >(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof deactivateScheduleSettings>>,
+      Awaited<ReturnType<typeof updateCoreScheduleSettings>>,
       TError,
-      { scheduleType: 'WEEKLY' | 'DAILY' },
+      { scheduleType: 'WEEKLY' | 'DAILY'; data: BodyType<UpdateScheduleDto> },
       TContext
     >;
     request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
-  Awaited<ReturnType<typeof deactivateScheduleSettings>>,
+  Awaited<ReturnType<typeof updateCoreScheduleSettings>>,
   TError,
-  { scheduleType: 'WEEKLY' | 'DAILY' },
+  { scheduleType: 'WEEKLY' | 'DAILY'; data: BodyType<UpdateScheduleDto> },
   TContext
 > => {
-  const mutationOptions = getDeactivateScheduleSettingsMutationOptions(options);
+  const mutationOptions = getUpdateCoreScheduleSettingsMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };
 /**
- * @summary Creates schedule settings for a restaurant
+ * @summary Create new schedule settings
  */
 export const createScheduleSettings = (
-  scheduleSettingsDto: BodyType<ScheduleSettingsDto>,
+  createScheduleDto: BodyType<CreateScheduleDto>,
   options?: SecondParameter<typeof axiosInstance>,
   signal?: AbortSignal
 ) => {
@@ -301,7 +310,7 @@ export const createScheduleSettings = (
       url: `/api/schedule/settings`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      data: scheduleSettingsDto,
+      data: createScheduleDto,
       signal,
     },
     options
@@ -315,14 +324,14 @@ export const getCreateScheduleSettingsMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createScheduleSettings>>,
     TError,
-    { data: BodyType<ScheduleSettingsDto> },
+    { data: BodyType<CreateScheduleDto> },
     TContext
   >;
   request?: SecondParameter<typeof axiosInstance>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createScheduleSettings>>,
   TError,
-  { data: BodyType<ScheduleSettingsDto> },
+  { data: BodyType<CreateScheduleDto> },
   TContext
 > => {
   const mutationKey = ['createScheduleSettings'];
@@ -336,7 +345,7 @@ export const getCreateScheduleSettingsMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createScheduleSettings>>,
-    { data: BodyType<ScheduleSettingsDto> }
+    { data: BodyType<CreateScheduleDto> }
   > = props => {
     const { data } = props ?? {};
 
@@ -349,11 +358,11 @@ export const getCreateScheduleSettingsMutationOptions = <
 export type CreateScheduleSettingsMutationResult = NonNullable<
   Awaited<ReturnType<typeof createScheduleSettings>>
 >;
-export type CreateScheduleSettingsMutationBody = BodyType<ScheduleSettingsDto>;
+export type CreateScheduleSettingsMutationBody = BodyType<CreateScheduleDto>;
 export type CreateScheduleSettingsMutationError = ErrorType<null>;
 
 /**
- * @summary Creates schedule settings for a restaurant
+ * @summary Create new schedule settings
  */
 export const useCreateScheduleSettings = <
   TError = ErrorType<null>,
@@ -363,7 +372,7 @@ export const useCreateScheduleSettings = <
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createScheduleSettings>>,
       TError,
-      { data: BodyType<ScheduleSettingsDto> },
+      { data: BodyType<CreateScheduleDto> },
       TContext
     >;
     request?: SecondParameter<typeof axiosInstance>;
@@ -372,7 +381,7 @@ export const useCreateScheduleSettings = <
 ): UseMutationResult<
   Awaited<ReturnType<typeof createScheduleSettings>>,
   TError,
-  { data: BodyType<ScheduleSettingsDto> },
+  { data: BodyType<CreateScheduleDto> },
   TContext
 > => {
   const mutationOptions = getCreateScheduleSettingsMutationOptions(options);
@@ -380,41 +389,43 @@ export const useCreateScheduleSettings = <
   return useMutation(mutationOptions, queryClient);
 };
 /**
- * @summary Updates schedule settings for a restaurant
+ * Updates a specific platform's active status or custom content text.
+ * @summary Update a single platform's settings
  */
-export const updateScheduleSettings = (
-  updateScheduleSettingsDto: BodyType<UpdateScheduleSettingsDto>,
+export const updatePlatformScheduleSettings = (
+  platformScheduleId: number,
+  updatePlatformScheduleDto: BodyType<UpdatePlatformScheduleDto>,
   options?: SecondParameter<typeof axiosInstance>
 ) => {
   return axiosInstance<null>(
     {
-      url: `/api/schedule/settings`,
+      url: `/api/schedule/settings/platforms/${platformScheduleId}`,
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      data: updateScheduleSettingsDto,
+      data: updatePlatformScheduleDto,
     },
     options
   );
 };
 
-export const getUpdateScheduleSettingsMutationOptions = <
-  TError = ErrorType<null | null>,
+export const getUpdatePlatformScheduleSettingsMutationOptions = <
+  TError = ErrorType<null>,
   TContext = unknown
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof updateScheduleSettings>>,
+    Awaited<ReturnType<typeof updatePlatformScheduleSettings>>,
     TError,
-    { data: BodyType<UpdateScheduleSettingsDto> },
+    { platformScheduleId: number; data: BodyType<UpdatePlatformScheduleDto> },
     TContext
   >;
   request?: SecondParameter<typeof axiosInstance>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof updateScheduleSettings>>,
+  Awaited<ReturnType<typeof updatePlatformScheduleSettings>>,
   TError,
-  { data: BodyType<UpdateScheduleSettingsDto> },
+  { platformScheduleId: number; data: BodyType<UpdatePlatformScheduleDto> },
   TContext
 > => {
-  const mutationKey = ['updateScheduleSettings'];
+  const mutationKey = ['updatePlatformScheduleSettings'];
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
@@ -424,48 +435,53 @@ export const getUpdateScheduleSettingsMutationOptions = <
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof updateScheduleSettings>>,
-    { data: BodyType<UpdateScheduleSettingsDto> }
+    Awaited<ReturnType<typeof updatePlatformScheduleSettings>>,
+    { platformScheduleId: number; data: BodyType<UpdatePlatformScheduleDto> }
   > = props => {
-    const { data } = props ?? {};
+    const { platformScheduleId, data } = props ?? {};
 
-    return updateScheduleSettings(data, requestOptions);
+    return updatePlatformScheduleSettings(
+      platformScheduleId,
+      data,
+      requestOptions
+    );
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type UpdateScheduleSettingsMutationResult = NonNullable<
-  Awaited<ReturnType<typeof updateScheduleSettings>>
+export type UpdatePlatformScheduleSettingsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updatePlatformScheduleSettings>>
 >;
-export type UpdateScheduleSettingsMutationBody =
-  BodyType<UpdateScheduleSettingsDto>;
-export type UpdateScheduleSettingsMutationError = ErrorType<null | null>;
+export type UpdatePlatformScheduleSettingsMutationBody =
+  BodyType<UpdatePlatformScheduleDto>;
+export type UpdatePlatformScheduleSettingsMutationError = ErrorType<null>;
 
 /**
- * @summary Updates schedule settings for a restaurant
+ * @summary Update a single platform's settings
  */
-export const useUpdateScheduleSettings = <
-  TError = ErrorType<null | null>,
+export const useUpdatePlatformScheduleSettings = <
+  TError = ErrorType<null>,
   TContext = unknown
 >(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof updateScheduleSettings>>,
+      Awaited<ReturnType<typeof updatePlatformScheduleSettings>>,
       TError,
-      { data: BodyType<UpdateScheduleSettingsDto> },
+      { platformScheduleId: number; data: BodyType<UpdatePlatformScheduleDto> },
       TContext
     >;
     request?: SecondParameter<typeof axiosInstance>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
-  Awaited<ReturnType<typeof updateScheduleSettings>>,
+  Awaited<ReturnType<typeof updatePlatformScheduleSettings>>,
   TError,
-  { data: BodyType<UpdateScheduleSettingsDto> },
+  { platformScheduleId: number; data: BodyType<UpdatePlatformScheduleDto> },
   TContext
 > => {
-  const mutationOptions = getUpdateScheduleSettingsMutationOptions(options);
+  const mutationOptions =
+    getUpdatePlatformScheduleSettingsMutationOptions(options);
 
   return useMutation(mutationOptions, queryClient);
 };
