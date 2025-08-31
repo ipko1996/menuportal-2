@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 
-export type FacebookCallbackParams = {
+export type SocialCallbackParams = {
   code: string;
+  state: string;
 };

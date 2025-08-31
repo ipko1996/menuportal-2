@@ -25,50 +25,63 @@ import type { BodyType,ErrorType } from '../../../utils/axios-instance';
 import { axiosInstance } from '../../../utils/axios-instance';
 import type {
   GetScheduleSettingsResponseDto,
+  ScheduleSettingsDto,
   UpdateScheduleSettingsDto,
 } from '../../schemas';
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 /**
- * @summary Get schedule settings for the restaurant
+ * @summary Gets schedule settings for a restaurant
  */
 export const getScheduleSettings = (
+  scheduleType: 'WEEKLY' | 'DAILY',
   options?: SecondParameter<typeof axiosInstance>,
   signal?: AbortSignal
 ) => {
   return axiosInstance<GetScheduleSettingsResponseDto>(
-    { url: `/api/schedule/settings`, method: 'GET', signal },
+    { url: `/api/schedule/settings/${scheduleType}`, method: 'GET', signal },
     options
   );
 };
 
-export const getGetScheduleSettingsQueryKey = () => {
-  return [`/api/schedule/settings`] as const;
+export const getGetScheduleSettingsQueryKey = (
+  scheduleType?: 'WEEKLY' | 'DAILY'
+) => {
+  return [`/api/schedule/settings/${scheduleType}`] as const;
 };
 
 export const getGetScheduleSettingsQueryOptions = <
   TData = Awaited<ReturnType<typeof getScheduleSettings>>,
   TError = ErrorType<null>
->(options?: {
-  query?: Partial<
-    UseQueryOptions<
-      Awaited<ReturnType<typeof getScheduleSettings>>,
-      TError,
-      TData
-    >
-  >;
-  request?: SecondParameter<typeof axiosInstance>;
-}) => {
+>(
+  scheduleType: 'WEEKLY' | 'DAILY',
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getScheduleSettings>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof axiosInstance>;
+  }
+) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey = queryOptions?.queryKey ?? getGetScheduleSettingsQueryKey();
+  const queryKey =
+    queryOptions?.queryKey ?? getGetScheduleSettingsQueryKey(scheduleType);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof getScheduleSettings>>
-  > = ({ signal }) => getScheduleSettings(requestOptions, signal);
+  > = ({ signal }) => getScheduleSettings(scheduleType, requestOptions, signal);
 
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!scheduleType,
+    ...queryOptions,
+  } as UseQueryOptions<
     Awaited<ReturnType<typeof getScheduleSettings>>,
     TError,
     TData
@@ -84,6 +97,7 @@ export function useGetScheduleSettings<
   TData = Awaited<ReturnType<typeof getScheduleSettings>>,
   TError = ErrorType<null>
 >(
+  scheduleType: 'WEEKLY' | 'DAILY',
   options: {
     query: Partial<
       UseQueryOptions<
@@ -110,6 +124,7 @@ export function useGetScheduleSettings<
   TData = Awaited<ReturnType<typeof getScheduleSettings>>,
   TError = ErrorType<null>
 >(
+  scheduleType: 'WEEKLY' | 'DAILY',
   options?: {
     query?: Partial<
       UseQueryOptions<
@@ -136,6 +151,7 @@ export function useGetScheduleSettings<
   TData = Awaited<ReturnType<typeof getScheduleSettings>>,
   TError = ErrorType<null>
 >(
+  scheduleType: 'WEEKLY' | 'DAILY',
   options?: {
     query?: Partial<
       UseQueryOptions<
@@ -151,13 +167,14 @@ export function useGetScheduleSettings<
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 /**
- * @summary Get schedule settings for the restaurant
+ * @summary Gets schedule settings for a restaurant
  */
 
 export function useGetScheduleSettings<
   TData = Awaited<ReturnType<typeof getScheduleSettings>>,
   TError = ErrorType<null>
 >(
+  scheduleType: 'WEEKLY' | 'DAILY',
   options?: {
     query?: Partial<
       UseQueryOptions<
@@ -172,7 +189,10 @@ export function useGetScheduleSettings<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getGetScheduleSettingsQueryOptions(options);
+  const queryOptions = getGetScheduleSettingsQueryOptions(
+    scheduleType,
+    options
+  );
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,
@@ -185,7 +205,182 @@ export function useGetScheduleSettings<
 }
 
 /**
- * @summary Update schedule settings for the restaurant
+ * @summary Deactivates schedule settings for a restaurant
+ */
+export const deactivateScheduleSettings = (
+  scheduleType: 'WEEKLY' | 'DAILY',
+  options?: SecondParameter<typeof axiosInstance>
+) => {
+  return axiosInstance<null>(
+    { url: `/api/schedule/settings/${scheduleType}`, method: 'DELETE' },
+    options
+  );
+};
+
+export const getDeactivateScheduleSettingsMutationOptions = <
+  TError = ErrorType<null>,
+  TContext = unknown
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deactivateScheduleSettings>>,
+    TError,
+    { scheduleType: 'WEEKLY' | 'DAILY' },
+    TContext
+  >;
+  request?: SecondParameter<typeof axiosInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deactivateScheduleSettings>>,
+  TError,
+  { scheduleType: 'WEEKLY' | 'DAILY' },
+  TContext
+> => {
+  const mutationKey = ['deactivateScheduleSettings'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deactivateScheduleSettings>>,
+    { scheduleType: 'WEEKLY' | 'DAILY' }
+  > = props => {
+    const { scheduleType } = props ?? {};
+
+    return deactivateScheduleSettings(scheduleType, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeactivateScheduleSettingsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deactivateScheduleSettings>>
+>;
+
+export type DeactivateScheduleSettingsMutationError = ErrorType<null>;
+
+/**
+ * @summary Deactivates schedule settings for a restaurant
+ */
+export const useDeactivateScheduleSettings = <
+  TError = ErrorType<null>,
+  TContext = unknown
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deactivateScheduleSettings>>,
+      TError,
+      { scheduleType: 'WEEKLY' | 'DAILY' },
+      TContext
+    >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof deactivateScheduleSettings>>,
+  TError,
+  { scheduleType: 'WEEKLY' | 'DAILY' },
+  TContext
+> => {
+  const mutationOptions = getDeactivateScheduleSettingsMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * @summary Creates schedule settings for a restaurant
+ */
+export const createScheduleSettings = (
+  scheduleSettingsDto: BodyType<ScheduleSettingsDto>,
+  options?: SecondParameter<typeof axiosInstance>,
+  signal?: AbortSignal
+) => {
+  return axiosInstance<null>(
+    {
+      url: `/api/schedule/settings`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: scheduleSettingsDto,
+      signal,
+    },
+    options
+  );
+};
+
+export const getCreateScheduleSettingsMutationOptions = <
+  TError = ErrorType<null>,
+  TContext = unknown
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createScheduleSettings>>,
+    TError,
+    { data: BodyType<ScheduleSettingsDto> },
+    TContext
+  >;
+  request?: SecondParameter<typeof axiosInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createScheduleSettings>>,
+  TError,
+  { data: BodyType<ScheduleSettingsDto> },
+  TContext
+> => {
+  const mutationKey = ['createScheduleSettings'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createScheduleSettings>>,
+    { data: BodyType<ScheduleSettingsDto> }
+  > = props => {
+    const { data } = props ?? {};
+
+    return createScheduleSettings(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateScheduleSettingsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createScheduleSettings>>
+>;
+export type CreateScheduleSettingsMutationBody = BodyType<ScheduleSettingsDto>;
+export type CreateScheduleSettingsMutationError = ErrorType<null>;
+
+/**
+ * @summary Creates schedule settings for a restaurant
+ */
+export const useCreateScheduleSettings = <
+  TError = ErrorType<null>,
+  TContext = unknown
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof createScheduleSettings>>,
+      TError,
+      { data: BodyType<ScheduleSettingsDto> },
+      TContext
+    >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof createScheduleSettings>>,
+  TError,
+  { data: BodyType<ScheduleSettingsDto> },
+  TContext
+> => {
+  const mutationOptions = getCreateScheduleSettingsMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * @summary Updates schedule settings for a restaurant
  */
 export const updateScheduleSettings = (
   updateScheduleSettingsDto: BodyType<UpdateScheduleSettingsDto>,
@@ -203,7 +398,7 @@ export const updateScheduleSettings = (
 };
 
 export const getUpdateScheduleSettingsMutationOptions = <
-  TError = ErrorType<null>,
+  TError = ErrorType<null | null>,
   TContext = unknown
 >(options?: {
   mutation?: UseMutationOptions<
@@ -245,13 +440,13 @@ export type UpdateScheduleSettingsMutationResult = NonNullable<
 >;
 export type UpdateScheduleSettingsMutationBody =
   BodyType<UpdateScheduleSettingsDto>;
-export type UpdateScheduleSettingsMutationError = ErrorType<null>;
+export type UpdateScheduleSettingsMutationError = ErrorType<null | null>;
 
 /**
- * @summary Update schedule settings for the restaurant
+ * @summary Updates schedule settings for a restaurant
  */
 export const useUpdateScheduleSettings = <
-  TError = ErrorType<null>,
+  TError = ErrorType<null | null>,
   TContext = unknown
 >(
   options?: {

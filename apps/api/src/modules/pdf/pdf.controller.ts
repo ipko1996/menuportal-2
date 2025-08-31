@@ -3,220 +3,98 @@ import {
   Get,
   Logger,
   Param,
-  ParseEnumPipe,
   ParseIntPipe,
+  Query,
   Res,
 } from '@nestjs/common';
-import {
-  ApiOperation,
-  ApiParam,
-  ApiProduces,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiProduces, ApiTags } from '@nestjs/swagger';
 import { FastifyReply } from 'fastify';
 
-import { SocialMediaPlatform, socialMediaPlatformValues } from '@/constants';
-import { DateRange, WeekToDateRangePipe } from '@/shared/pipes';
+import {
+  DateRange,
+  DateToDateRangePipe,
+  WeekToDateRangePipe,
+} from '@/shared/pipes';
+import { GenerateMenuQueryDto } from '@/shared/types';
 
-import { TemplatesService } from '../template/templates.service';
 import { PdfService } from './pdf.service';
 
-const CONTENT_TYPE_PDF = 'application/pdf';
+const APPLICATION_PDF = 'application/pdf';
+const IMAGE_PNG = 'image/png';
 
-@ApiTags('PDF')
+@ApiTags('PDF & Image Generation')
 @Controller('pdf')
 export class PdfController {
   private readonly logger = new Logger(PdfController.name);
 
-  constructor(
-    private readonly pdfService: PdfService,
-    private readonly templatesService: TemplatesService
-  ) {}
+  constructor(private readonly pdfService: PdfService) {}
 
-  @Get('download/:restaurantId/:weekNumber/:platform')
+  @Get('weekly/:restaurantId/:weekNumber')
   @ApiOperation({
-    summary: 'Download the menu for a specific week as a PDF',
-    operationId: 'downloadRestaurantMenuForWeek',
-  })
-  @ApiParam({ name: 'restaurantId', type: Number, example: 1 })
-  @ApiParam({ name: 'weekNumber', type: String, example: '2025-W32' })
-  @ApiParam({
-    name: 'platform',
-    description: 'The social media platform to generate the template for',
-    enum: socialMediaPlatformValues,
-    example: 'FACEBOOK',
-    required: true,
-  })
-  @ApiProduces(CONTENT_TYPE_PDF)
-  @ApiResponse({
-    status: 200,
-    description: 'PDF file download',
-    schema: {
-      type: 'string',
-      format: 'binary',
-    },
-    headers: {
-      'Content-Type': {
-        description: 'MIME type of the file',
-        schema: {
-          type: 'string',
-          example: CONTENT_TYPE_PDF,
-        },
-      },
-      'Content-Disposition': {
-        description: 'Indicates the file should be downloaded',
-        schema: {
-          type: 'string',
-          example: 'attachment; filename="menu-1-2025 32.pdf"',
-        },
-      },
-      'Content-Length': {
-        description: 'Size of the file in bytes',
-        schema: {
-          type: 'number',
-          example: 123_456,
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 404,
+    summary: 'Download a weekly menu as a PDF or PNG image',
     description:
-      'Restaurant not found or no menu available for the specified week',
+      'Generates a weekly menu. Use the query parameters to select the format (PDF/PNG) and to specify a platform-specific template.',
+    operationId: 'getWeeklyMenu',
   })
-  @ApiResponse({
-    status: 400,
-    description: 'Invalid restaurant ID or week number format',
-  })
-  async downloadMenuForWeek(
+  @ApiParam({ name: 'restaurantId', example: 1 })
+  @ApiParam({ name: 'weekNumber', example: '2025-W32' })
+  @ApiProduces(APPLICATION_PDF, IMAGE_PNG)
+  async getWeeklyMenu(
     @Param('restaurantId', ParseIntPipe) restaurantId: number,
     @Param('weekNumber', WeekToDateRangePipe) dateRange: DateRange,
-    @Param('platform', new ParseEnumPipe(socialMediaPlatformValues))
-    platform: SocialMediaPlatform,
+    @Query() query: GenerateMenuQueryDto,
     @Res() res: FastifyReply
   ) {
-    try {
-      const html = await this.templatesService.renderMenuForWeek(
+    const { buffer, fileName, contentType } =
+      await this.pdfService.generateWeeklyMenuFile(
         restaurantId,
         dateRange,
-        platform,
-        'WEEKLY'
+        query
       );
 
-      const pdfBuffer = await this.pdfService.generatePdfFromHtml(html);
-
-      const fileName = `menu-${restaurantId}-${dateRange.year} ${dateRange.weekNumber}.pdf`;
-      res.header('Content-Type', CONTENT_TYPE_PDF);
-      res.header('Content-Disposition', `attachment; filename="${fileName}"`);
-      res.header('Content-Length', pdfBuffer.length);
-
-      res.send(pdfBuffer);
-    } catch (error) {
-      this.logger.error(
-        `Error generating PDF for restaurant ${restaurantId} week ${dateRange.weekNumber}:`,
-        error instanceof Error ? error.message : error
-      );
-      throw error;
-    }
+    await this._sendFile(res, buffer, contentType, fileName);
   }
 
-  @Get('download/image/:restaurantId/:weekNumber/:platform')
+  @Get('daily/:restaurantId/:date')
   @ApiOperation({
-    summary: 'Download the menu for a specific week as a PNG image',
-    operationId: 'downloadRestaurantMenuForWeekAsImage',
-  })
-  @ApiParam({ name: 'restaurantId', type: Number, example: 1 })
-  @ApiParam({ name: 'weekNumber', type: String, example: '2025-W32' })
-  @ApiParam({
-    name: 'platform',
-    description: 'The social media platform to generate the template for',
-    enum: socialMediaPlatformValues,
-    example: 'FACEBOOK',
-    required: true,
-  })
-  @ApiProduces('image/png')
-  @ApiResponse({
-    status: 200,
-    description: 'PNG image file download',
-    schema: {
-      type: 'string',
-      format: 'binary',
-    },
-    headers: {
-      'Content-Type': {
-        description: 'MIME type of the file',
-        schema: {
-          type: 'string',
-          example: 'image/png',
-        },
-      },
-      'Content-Disposition': {
-        description: 'Indicates the file should be downloaded',
-        schema: {
-          type: 'string',
-          example: 'attachment; filename="menu-1-2025-W32.png"',
-        },
-      },
-      'Content-Length': {
-        description: 'Size of the file in bytes',
-        schema: {
-          type: 'number',
-          example: 123_456,
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 404,
+    summary: 'Download a daily menu as a PDF or PNG image',
     description:
-      'Restaurant not found or no menu available for the specified week',
+      'Generates a daily menu. Use the query parameters to select the format (PDF/PNG) and to specify a platform-specific template.',
+    operationId: 'getDailyMenu',
   })
-  @ApiResponse({
-    status: 400,
-    description: 'Invalid restaurant ID or week number format',
-  })
-  @ApiResponse({
-    status: 500,
-    description: 'Internal server error during image generation',
-  })
-  async downloadMenuForWeekAsImage(
+  @ApiParam({ name: 'restaurantId', example: 1 })
+  @ApiParam({ name: 'date', example: '2025-08-31' })
+  @ApiProduces(APPLICATION_PDF, IMAGE_PNG)
+  async getDailyMenu(
     @Param('restaurantId', ParseIntPipe) restaurantId: number,
-    @Param('weekNumber', WeekToDateRangePipe) dateRange: DateRange,
-    @Param('platform', new ParseEnumPipe(socialMediaPlatformValues))
-    platform: SocialMediaPlatform,
+    @Param('date', DateToDateRangePipe) dateRange: DateRange,
+    @Query() query: GenerateMenuQueryDto,
     @Res() res: FastifyReply
   ) {
-    try {
-      // 1. Generate the HTML using your existing service
-      const html = await this.templatesService.renderMenuForWeek(
+    const { buffer, fileName, contentType } =
+      await this.pdfService.generateDailyMenuFile(
         restaurantId,
         dateRange,
-        platform,
-        'WEEKLY'
+        query
       );
 
-      // 2. Convert the HTML to an image using the service
-      const imageBuffer = await this.pdfService.generateImageFromHtml(html);
+    await this._sendFile(res, buffer, contentType, fileName);
+  }
 
-      // 3. Set response headers to trigger a download
-      const fileName = `menu-${restaurantId}-${dateRange.year}-W${dateRange.weekNumber}.png`;
-
-      res.header('Content-Type', 'image/png');
+  private async _sendFile(
+    res: FastifyReply,
+    buffer: Buffer,
+    contentType: string,
+    fileName: string
+  ): Promise<void> {
+    try {
+      res.header('Content-Type', contentType);
       res.header('Content-Disposition', `attachment; filename="${fileName}"`);
-      res.header('Content-Length', imageBuffer.length.toString());
+      res.header('Content-Length', buffer.length.toString());
       res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
-
-      // 4. Send the image buffer as the response
-      return res.send(imageBuffer);
+      res.send(buffer);
     } catch (error) {
-      // Log the error for debugging
-      this.logger.error(
-        `Error generating image for restaurant ${restaurantId} week ${dateRange.weekNumber}:`,
-        error instanceof Error ? error.message : error
-      );
-
-      // Re-throw to let NestJS handle the error response
+      this.logger.error(`Error sending file: ${fileName}`, error.stack);
       throw error;
     }
   }

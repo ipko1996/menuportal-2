@@ -14,6 +14,7 @@ import { MenuModule } from '@/modules/menu/menu.module';
 import { OfferModule } from '@/modules/offer/offer.module';
 import { PdfModule } from '@/modules/pdf/pdf.module';
 import { ScheduleModule } from '@/modules/schedule/schedule.module';
+import { SocialModule } from '@/modules/social/social.module';
 import { TemplatesModule } from '@/modules/template/templates.module';
 import { WeekMenuModule } from '@/modules/week-menu/week-menu.module';
 
@@ -31,8 +32,9 @@ import { DrizzleModule } from '../shared/database/database.module';
     MenuModule,
     OfferModule,
     PdfModule,
-    TemplatesModule,
     ScheduleModule,
+    SocialModule,
+    TemplatesModule,
     WeekMenuModule,
   ],
   controllers: [],

@@ -28,6 +28,46 @@ export class CronHelperService {
   }
 
   /**
+   * Converts a cron expression string back to a schedule type and time string.
+   * @param cronExpression The cron expression to parse.
+   * @returns An object containing the schedule type and time.
+   */
+  public cronToDayTime(cronExpression: string): {
+    day: ScheduleType;
+    time: string;
+  } {
+    const parts = cronExpression.split(' ');
+    if (parts.length !== 5) {
+      this.logger.error(`Invalid cron expression format: "${cronExpression}"`);
+      throw new Error(`Invalid cron expression format: "${cronExpression}"`);
+    }
+
+    const [minute, hour, , , dayOfWeek] = parts;
+
+    // Pad with '0' to ensure HH:mm format
+    const formattedHour = hour.padStart(2, '0');
+    const formattedMinute = minute.padStart(2, '0');
+    const formattedTime = `${formattedHour}:${formattedMinute}`;
+
+    let scheduleType: ScheduleType;
+
+    if (dayOfWeek === '1') {
+      scheduleType = 'WEEKLY';
+    } else if (dayOfWeek === '0-6' || dayOfWeek === '*') {
+      scheduleType = 'DAILY';
+    } else {
+      this.logger.error(
+        `Unsupported day of week in cron expression: "${dayOfWeek}"`
+      );
+      throw new Error(
+        `Unsupported day of week in cron expression: "${dayOfWeek}"`
+      );
+    }
+
+    return { day: scheduleType, time: formattedTime };
+  }
+
+  /**
    * Checks if a cron expression has a scheduled run on a specific day.
    * @param cronExpression The cron expression to evaluate.
    * @param day The specific day to check against.

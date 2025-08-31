@@ -7,17 +7,82 @@ import { AxiosError } from 'axios';
 import FormData from 'form-data';
 import { firstValueFrom } from 'rxjs';
 
+import { DateRange } from '@/shared/pipes';
+import { GenerateMenuQueryDto } from '@/shared/types';
+
+import { TemplatesService } from '../template/templates.service';
+
+export interface GeneratedFile {
+  buffer: Buffer;
+  fileName: string;
+  contentType: string;
+}
+
 @Injectable()
 export class PdfService {
   private readonly gotenbergUrl: string;
 
   constructor(
     private readonly httpService: HttpService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    private readonly templatesService: TemplatesService
   ) {
     this.gotenbergUrl =
       this.configService.get<string>('GOTENBERG_URL') ||
       'http://localhost:3001';
+  }
+
+  async generateWeeklyMenuFile(
+    restaurantId: number,
+    dateRange: DateRange,
+    query: GenerateMenuQueryDto
+  ): Promise<GeneratedFile> {
+    const { format, platform } = query;
+    const finalFormat = format ?? 'pdf';
+
+    const html = await this.templatesService.renderWeeklyMenuHtml(
+      restaurantId,
+      dateRange,
+      platform
+    );
+
+    const buffer =
+      finalFormat === 'png'
+        ? await this.generateImageFromHtml(html)
+        : await this.generatePdfFromHtml(html);
+
+    const platformString = platform ? `-${platform}` : '';
+    const fileName = `menu-weekly-${restaurantId}-${dateRange.year}-W${dateRange.weekNumber}${platformString}.${finalFormat}`;
+    const contentType = finalFormat === 'png' ? 'image/png' : 'application/pdf';
+
+    return { buffer, fileName, contentType };
+  }
+
+  // New method to handle daily menu generation
+  async generateDailyMenuFile(
+    restaurantId: number,
+    dateRange: DateRange,
+    query: GenerateMenuQueryDto
+  ): Promise<GeneratedFile> {
+    const { format, platform } = query;
+    const finalFormat = format ?? 'pdf';
+
+    const html = await this.templatesService.renderDailyMenuHtml(
+      restaurantId,
+      dateRange,
+      platform
+    );
+
+    const buffer =
+      finalFormat === 'png'
+        ? await this.generateImageFromHtml(html)
+        : await this.generatePdfFromHtml(html);
+
+    const platformString = platform ? `-${platform}` : '';
+    const fileName = `menu-daily-${restaurantId}-${dateRange.start}${platformString}.${finalFormat}`;
+    const contentType = finalFormat === 'png' ? 'image/png' : 'application/pdf';
+
+    return { buffer, fileName, contentType };
   }
 
   /**

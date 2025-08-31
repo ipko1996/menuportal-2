@@ -6,9 +6,9 @@
  * OpenAPI spec version: 1.0
  */
 import type { PlatformSettingsDto } from './platform-settings-dto';
-import type { UpdateScheduleSettingsDtoScheduleType } from './update-schedule-settings-dto-schedule-type';
+import type { ScheduleSettingsDtoScheduleType } from './schedule-settings-dto-schedule-type';
 
-export interface UpdateScheduleSettingsDto {
+export interface ScheduleSettingsDto {
   /** The time of day to post in HH:mm format. */
   postTime: string;
   /**
@@ -17,9 +17,7 @@ export interface UpdateScheduleSettingsDto {
    */
   defaultContentText: string;
   /** The type of the schedule, e.g., WEEKLY. */
-  scheduleType: UpdateScheduleSettingsDtoScheduleType;
+  scheduleType: ScheduleSettingsDtoScheduleType;
   /** Array of platform-specific settings for social media posting. */
   platforms: PlatformSettingsDto[];
-  /** Globally enable or disable this schedule. */
-  isActive: boolean;
 }

@@ -20,39 +20,75 @@ import Handlebars from './helpers/helper';
 @Injectable()
 export class TemplatesService {
   private readonly logger = new Logger(TemplatesService.name);
+
   constructor(
     private readonly weekMenuService: WeekMenuService,
     private readonly databaseService: DatabaseService
   ) {}
 
-  /**
-   * Renders a menu for a given week, platform, and schedule type.
-   * It finds the correct template (platform-specific or default) and compiles it with menu data.
-   * @param restaurantId The ID of the restaurant.
-   * @param dateRange The date range for which to fetch menu data.
-   * @param platform The social media platform to render for (e.g., 'FACEBOOK').
-   * @param scheduleType The type of schedule to render (e.g., 'weekly', 'daily').
-   */
-  async renderMenuForWeek(
+  public async renderWeeklyMenuHtml(
     restaurantId: number,
     dateRange: DateRange,
-    platform: SocialMediaPlatform,
-    scheduleType: ScheduleType // Added to specify which schedule to render
-  ) {
-    // This part remains the same: it fetches the data to inject into the template.
-    const weekMenu = await this.weekMenuService.getMenusForWeek(
+    platform?: SocialMediaPlatform
+  ): Promise<string> {
+    const menuData = await this.weekMenuService.getMenusForWeek(
       dateRange,
       restaurantId
     );
-    this.logger.log(
-      `Rendering menu for '${scheduleType}' schedule, platform: ${platform}`
-    );
+    const templateId = platform
+      ? await this._getPlatformTemplateId(restaurantId, 'WEEKLY', platform)
+      : await this._getDefaultTemplateId(restaurantId, 'WEEKLY');
 
-    // --- REFACTORED QUERY ---
-    // This query now finds the correct templateId using the new schema.
+    return this._compileTemplate(templateId, menuData);
+  }
+
+  public async renderDailyMenuHtml(
+    restaurantId: number,
+    dateRange: DateRange,
+    platform?: SocialMediaPlatform
+  ): Promise<string> {
+    const menuData = await this.weekMenuService.getMenusForWeek(
+      dateRange,
+      restaurantId
+    );
+    const templateId = platform
+      ? await this._getPlatformTemplateId(restaurantId, 'DAILY', platform)
+      : await this._getDefaultTemplateId(restaurantId, 'DAILY');
+
+    return this._compileTemplate(templateId, menuData);
+  }
+
+  private async _getDefaultTemplateId(
+    restaurantId: number,
+    scheduleType: ScheduleType
+  ): Promise<string> {
+    const result = await this.databaseService.db
+      .select({ templateId: schedules.defaultTemplateId })
+      .from(schedules)
+      .where(
+        and(
+          eq(schedules.restaurantId, restaurantId),
+          eq(schedules.scheduleType, scheduleType),
+          eq(schedules.isActive, true)
+        )
+      )
+      .limit(1);
+
+    if (!result[0]?.templateId) {
+      throw new NotFoundException(
+        `No active default '${scheduleType}' schedule found for restaurant ${restaurantId}.`
+      );
+    }
+    return result[0].templateId;
+  }
+
+  private async _getPlatformTemplateId(
+    restaurantId: number,
+    scheduleType: ScheduleType,
+    platform: SocialMediaPlatform
+  ): Promise<string> {
     const result = await this.databaseService.db
       .select({
-        // Use COALESCE to pick the platform-specific override, or fall back to the default.
         templateId:
           sql<string>`COALESCE(${platformSchedules.templateId}, ${schedules.defaultTemplateId})`.as(
             'templateId'
@@ -70,45 +106,47 @@ export class TemplatesService {
       .where(
         and(
           eq(schedules.restaurantId, restaurantId),
-          eq(schedules.scheduleType, scheduleType), // Filter by the specific schedule type
+          eq(schedules.scheduleType, scheduleType),
           eq(socialMediaAccount.platform, platform),
           eq(schedules.isActive, true),
           eq(platformSchedules.isActive, true),
           eq(socialMediaAccount.isActive, true)
         )
       )
-      .limit(1); // We only expect one result for this specific combination
+      .limit(1);
 
-    if (result.length === 0 || !result[0].templateId) {
+    if (!result[0]?.templateId) {
       throw new NotFoundException(
-        `No active '${scheduleType}' schedule with a valid template found for restaurant ${restaurantId} and platform ${platform}.`
+        `No active '${scheduleType}' schedule for platform ${platform} found for restaurant ${restaurantId}.`
       );
     }
+    return result[0].templateId;
+  }
 
-    const templateId = result[0].templateId;
-
-    // This part for reading and compiling the template remains the same.
-    let templateSource: string;
+  private _compileTemplate(templateId: string, data: unknown): string {
     try {
       const templatePath = path.join(
-        // This path might need adjustment based on your project structure
         // eslint-disable-next-line unicorn/prefer-module
         __dirname,
-        '../template/templates',
+        'modules/template/templates',
         `${templateId}.hbs`
       );
-      templateSource = fs.readFileSync(templatePath, 'utf8');
+      this.logger.debug({
+        message: `Compiling template with ID '${templateId}'`,
+        templatePath,
+      });
+      const templateSource = fs.readFileSync(templatePath, 'utf8');
+
+      const compiled = Handlebars.compile(templateSource);
+      return compiled(data);
     } catch (error) {
       this.logger.error(
-        `Template with ID '${templateId}' not found.`,
+        `Template with ID '${templateId}' not found or failed to compile.`,
         error.stack
       );
       throw new NotFoundException(
         `Template with ID '${templateId}' not found.`
       );
     }
-
-    const compiled = Handlebars.compile(templateSource);
-    return compiled(weekMenu);
   }
 }

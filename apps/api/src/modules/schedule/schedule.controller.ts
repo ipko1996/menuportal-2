@@ -7,8 +7,6 @@ import {
   Post,
   Put,
   UseGuards,
-  UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -21,18 +19,21 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 
+import { ScheduleType, ScheduleTypeEnum } from '@/constants';
 import { CurrentUser } from '@/decorators/user.decorator';
 import { RoleAuthGuard, Roles } from '@/guards/role.guard';
 import { DateRange, WeekToDateRangePipe } from '@/shared/pipes';
 import { AppUser } from '@/shared/types';
 
 import {
+  GetScheduleSettingsResponseDto,
   PlatformSettingsDto,
   ScheduleSettingsDto,
+  UpdateScheduleSettingsDto,
 } from './dto/schedule-settings.dto';
 import { ScheduleService } from './schedule.service';
 
-@ApiExtraModels(PlatformSettingsDto)
+@ApiExtraModels(PlatformSettingsDto, GetScheduleSettingsResponseDto)
 @UseGuards(RoleAuthGuard)
 @Roles('ADMIN', 'MANAGER')
 @ApiBearerAuth()
@@ -40,12 +41,31 @@ import { ScheduleService } from './schedule.service';
 export class ScheduleController {
   constructor(private readonly scheduleService: ScheduleService) {}
 
+  @Get('settings/:scheduleType')
+  @ApiOperation({
+    summary: 'Gets schedule settings for a restaurant',
+    operationId: 'getScheduleSettings',
+  })
+  @ApiParam({ name: 'scheduleType', enum: ScheduleTypeEnum.enumValues })
+  @ApiOkResponse({ type: GetScheduleSettingsResponseDto })
+  @ApiNotFoundResponse({ description: 'Settings not found.' })
+  getScheduleSettings(
+    @CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>,
+    @Param('scheduleType') scheduleType: ScheduleType
+  ) {
+    return this.scheduleService.getScheduleSettings(
+      user.restaurant.id,
+      scheduleType
+    );
+  }
+
   @Post('settings')
   @ApiOperation({
     summary: 'Creates schedule settings for a restaurant',
     operationId: 'createScheduleSettings',
   })
   @ApiBody({ type: ScheduleSettingsDto })
+  @ApiOkResponse({ description: 'Settings created successfully.' })
   @ApiBadRequestResponse({ description: 'Invalid data provided.' })
   createScheduleSettings(
     @CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>,
@@ -54,6 +74,43 @@ export class ScheduleController {
     return this.scheduleService.createScheduleSettings(
       user.restaurant.id,
       createScheduleSettingsDto
+    );
+  }
+
+  @Put('settings')
+  @ApiOperation({
+    summary: 'Updates schedule settings for a restaurant',
+    operationId: 'updateScheduleSettings',
+  })
+  @ApiBody({ type: UpdateScheduleSettingsDto })
+  @ApiOkResponse({ description: 'Settings updated successfully.' })
+  @ApiNotFoundResponse({ description: 'Settings not found to update.' })
+  @ApiBadRequestResponse({ description: 'Invalid data provided.' })
+  updateScheduleSettings(
+    @CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>,
+    @Body() updateScheduleSettingsDto: UpdateScheduleSettingsDto
+  ) {
+    return this.scheduleService.updateScheduleSettings(
+      user.restaurant.id,
+      updateScheduleSettingsDto
+    );
+  }
+
+  @Delete('settings/:scheduleType')
+  @ApiOperation({
+    summary: 'Deactivates schedule settings for a restaurant',
+    operationId: 'deactivateScheduleSettings',
+  })
+  @ApiParam({ name: 'scheduleType', enum: ScheduleTypeEnum.enumValues })
+  @ApiOkResponse({ description: 'Schedule deactivated successfully.' })
+  @ApiNotFoundResponse({ description: 'Settings not found to deactivate.' })
+  deactivateScheduleSettings(
+    @CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>,
+    @Param('scheduleType') scheduleType: ScheduleType
+  ) {
+    return this.scheduleService.deactivateScheduleSettings(
+      user.restaurant.id,
+      scheduleType
     );
   }
 

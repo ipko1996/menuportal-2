@@ -1,15 +1,24 @@
-import { Controller, Get, Param, Query, Res, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  ParseEnumPipe,
+  Query,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { FastifyReply } from 'fastify';
 
-import { SocialMediaPlatform } from '@/constants';
+import { SocialMediaPlatform, socialMediaPlatformValues } from '@/constants';
 import { CurrentUser } from '@/decorators/user.decorator';
 import { RoleAuthGuard, Roles } from '@/guards/role.guard';
 import type { AppUser } from '@/shared/types';
@@ -80,15 +89,20 @@ export class AuthController {
   @ApiUnauthorizedResponse({
     description: 'Unauthorized: Invalid token in state',
   })
+  @ApiParam({
+    name: 'platform',
+    enum: socialMediaPlatformValues,
+    description: 'The social media platform used for OAuth',
+  })
   @Get('social/:platform/callback')
   async socialCallback(
-    @Param('platform') platform: SocialMediaPlatform,
+    @Param('platform', new ParseEnumPipe(socialMediaPlatformValues))
+    platform: SocialMediaPlatform,
     @Query('code') code: string,
     @Query('state') state: string,
     @Res() reply: FastifyReply
   ) {
     try {
-      // Call a single, generalized handler in your service
       await this.authService.handleCallback(platform, code, state);
       const successHtml = this.createResponseHtml(true, platform);
       reply.type('text/html').send(successHtml);

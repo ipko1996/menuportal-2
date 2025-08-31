@@ -8,7 +8,7 @@ import {
 } from 'date-fns';
 
 import { MenuStatusApi } from '@/schema';
-import type { DateRange } from '@/shared/pipes/week-to-date-range.pipe';
+import type { DateRange } from '@/shared/pipes';
 import { WeeklyOfferQueryService } from '@/shared/services/weekly-offer-query.service';
 
 import { PostService } from '../post/post.service';

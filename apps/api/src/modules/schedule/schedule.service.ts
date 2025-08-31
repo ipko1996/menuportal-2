@@ -4,10 +4,11 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
-import CronExpressionParser from 'cron-parser';
 import { and, eq, sql } from 'drizzle-orm';
 
+import { ScheduleType } from '@/constants';
 import {
   platformSchedules,
   post,
@@ -17,11 +18,14 @@ import {
 import { DatabaseService } from '@/shared/database/database.service';
 import { DateRange } from '@/shared/pipes';
 import { CronHelperService } from '@/shared/services/cron.helper.service';
-import { WeeklyOfferQueryService } from '@/shared/services/weekly-offer-query.service';
 
 import { PostService } from '../post/post.service';
 import { SnapshotService } from '../snapshot/snapshot.service';
-import { type ScheduleSettingsDto } from './dto/schedule-settings.dto';
+import {
+  GetScheduleSettingsResponseDto,
+  ScheduleSettingsDto,
+  UpdateScheduleSettingsDto,
+} from './dto/schedule-settings.dto';
 
 @Injectable()
 export class ScheduleService {
@@ -30,43 +34,138 @@ export class ScheduleService {
     private readonly databaseService: DatabaseService,
     private readonly cronHelperService: CronHelperService,
     private readonly snapshotService: SnapshotService,
-    private readonly weeklyOfferQueryService: WeeklyOfferQueryService,
     private readonly postService: PostService
   ) {}
 
-  // async getScheduleSettings(
-  //   restaurantId: number
-  // ): Promise<GetScheduleSettingsResponseDto> {
-  //   this.logger.log(
-  //     `Fetching schedule settings for restaurant ${restaurantId}`
-  //   );
+  async getScheduleSettings(
+    restaurantId: number,
+    scheduleType: ScheduleType
+  ): Promise<GetScheduleSettingsResponseDto> {
+    this.logger.log(
+      `Fetching '${scheduleType}' schedule settings for restaurant ${restaurantId}`
+    );
 
-  //   // Find the first active schedule setting for the restaurant
-  //   const settings =
-  //     await this.databaseService.db.query.scheduleSettings.findFirst({
-  //       where: and(
-  //         eq(scheduleSettings.restaurantId, restaurantId),
-  //         eq(scheduleSettings.isActive, true)
-  //       ),
-  //     });
+    const schedule = await this.databaseService.db.query.schedules.findFirst({
+      where: and(
+        eq(schedules.restaurantId, restaurantId),
+        eq(schedules.scheduleType, scheduleType)
+      ),
+      with: {
+        platformSchedules: true,
+      },
+    });
 
-  //   if (!settings) {
-  //     throw new NotFoundException(
-  //       `No active schedule settings found for restaurant ${restaurantId}`
-  //     );
-  //   }
+    if (!schedule) {
+      throw new NotFoundException(
+        `No '${scheduleType}' schedule settings found for restaurant ${restaurantId}`
+      );
+    }
 
-  //   const { day, time } = this.cronHelperService.cronToDayTime(
-  //     settings.cronExpression
-  //   );
+    const { time } = this.cronHelperService.cronToDayTime(
+      schedule.cronExpression
+    );
 
-  //   return {
-  //     enabled: settings.isActive,
-  //     postDay: day,
-  //     postTime: time,
-  //     message: settings.contentText ?? '',
-  //   };
-  // }
+    return {
+      id: schedule.id,
+      scheduleType: schedule.scheduleType,
+      postTime: time,
+      defaultContentText: schedule.defaultContentText ?? '',
+      isActive: schedule.isActive,
+      platforms: schedule.platformSchedules.map(ps => ({
+        id: ps.id,
+        socialMediaAccountId: ps.socialMediaAccountId,
+        contentText: ps.contentText,
+        isActive: ps.isActive,
+      })),
+    };
+  }
+
+  async updateScheduleSettings(
+    restaurantId: number,
+    dto: UpdateScheduleSettingsDto
+  ): Promise<void> {
+    const { scheduleType, postTime, defaultContentText, platforms, isActive } =
+      dto;
+    this.logger.log(
+      `Updating '${scheduleType}' schedule for restaurant ${restaurantId}`
+    );
+
+    const schedule = await this.databaseService.db.query.schedules.findFirst({
+      where: and(
+        eq(schedules.restaurantId, restaurantId),
+        eq(schedules.scheduleType, scheduleType)
+      ),
+      columns: { id: true },
+    });
+
+    if (!schedule) {
+      throw new NotFoundException(
+        `Schedule with type '${scheduleType}' not found for this restaurant.`
+      );
+    }
+
+    const cronExpression = this.cronHelperService.dayTimeToCron(
+      scheduleType,
+      postTime
+    );
+
+    await this.databaseService.db.transaction(async tx => {
+      await tx
+        .update(schedules)
+        .set({
+          cronExpression,
+          defaultContentText,
+          isActive,
+        })
+        .where(eq(schedules.id, schedule.id));
+
+      await tx
+        .delete(platformSchedules)
+        .where(eq(platformSchedules.scheduleId, schedule.id));
+
+      if (platforms?.length > 0) {
+        const platformSchedulesToInsert = platforms.map(p => ({
+          scheduleId: schedule.id,
+          socialMediaAccountId: p.socialMediaAccountId,
+          contentText: p.contentText,
+          isActive: p.isActive,
+        }));
+        await tx.insert(platformSchedules).values(platformSchedulesToInsert);
+      }
+    });
+
+    this.logger.log(
+      `Successfully updated '${scheduleType}' schedule for restaurant ${restaurantId}`
+    );
+  }
+
+  async deactivateScheduleSettings(
+    restaurantId: number,
+    scheduleType: ScheduleType
+  ): Promise<void> {
+    this.logger.log(
+      `Deactivating '${scheduleType}' schedule for restaurant ${restaurantId}`
+    );
+
+    const result = await this.databaseService.db
+      .update(schedules)
+      .set({ isActive: false })
+      .where(
+        and(
+          eq(schedules.restaurantId, restaurantId),
+          eq(schedules.scheduleType, scheduleType)
+        )
+      );
+
+    if (result.rowCount === 0) {
+      throw new NotFoundException(
+        `No '${scheduleType}' schedule settings found to deactivate for restaurant ${restaurantId}`
+      );
+    }
+    this.logger.log(
+      `Successfully deactivated '${scheduleType}' schedule for restaurant ${restaurantId}`
+    );
+  }
 
   /**
    * Creates a new schedule campaign for a restaurant, including its platform-specific settings.
@@ -85,7 +184,6 @@ export class ScheduleService {
     );
     const { platforms, postTime, defaultContentText, scheduleType } = dto;
 
-    // First, check if a schedule of this type already exists for the restaurant.
     const existingSchedule = await this.databaseService.db
       .select({ id: schedules.id })
       .from(schedules)
@@ -156,7 +254,7 @@ export class ScheduleService {
       const platformSchedulesToInsert = platforms.map(p => ({
         scheduleId: scheduleId,
         socialMediaAccountId: p.socialMediaAccountId,
-        contentText: p.contentText, // This is the override
+        contentText: p.contentText,
         isActive: p.isActive,
       }));
 
@@ -261,7 +359,6 @@ export class ScheduleService {
           day
         );
 
-        // If the helper function returns a valid date, create the post.
         if (nextRun) {
           postsToCreate.push({
             platformScheduleId: rule.platformScheduleId,
@@ -269,7 +366,6 @@ export class ScheduleService {
             status: 'SCHEDULED',
             content: rule.finalContentText,
             scheduledAt: nextRun.toISOString(),
-            // templateId: rule.finalTemplateId, // Assuming you need this from the query
             retryCount: 0,
           });
         }

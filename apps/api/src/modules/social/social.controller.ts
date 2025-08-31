@@ -8,7 +8,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 
 import { CurrentUser } from '@/decorators/user.decorator';
 import { RoleAuthGuard, Roles } from '@/guards/role.guard';
@@ -29,6 +29,7 @@ export class SocialController {
     summary: 'Get all social media accounts for the restaurant',
     operationId: 'getAllSocialAccountsForRestaurant',
   })
+  @ApiOkResponse({ type: [SocialDto] })
   findAllSocaialsForRestaurant(
     @CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>
   ): Promise<SocialDto[]> {
