@@ -16,9 +16,11 @@ import {
   SocialMediaPlatformEnum,
 } from '../constants';
 import { restaurant } from './restaurant';
-import { scheduleSettings } from './schedule';
+// Import the new platformSchedules table
+import { platformSchedules } from './schedule';
 import { snapshot } from './snapshot';
 
+// No changes needed for this table itself
 export const socialMediaAccount = pgTable(
   'social_account',
   {
@@ -30,8 +32,7 @@ export const socialMediaAccount = pgTable(
 
     platformAccountId: text('platform_account_id').notNull(),
 
-    accessToken: text('access_token').notNull(), // 🔒 Encrypted
-    refreshToken: text('refresh_token'),
+    accessToken: text('access_token').notNull(),
     tokenExpiresAt: timestamp('token_expires_at', {
       mode: 'string',
       withTimezone: true,
@@ -57,8 +58,10 @@ export const post = pgTable(
       .notNull()
       .references(() => socialMediaAccount.id, { onDelete: 'cascade' }),
 
-    scheduleSettingsId: integer('schedule_settings_id').references(
-      () => scheduleSettings.id,
+    // UPDATED: Renamed and now references the new `platformSchedules` table.
+    // A post is generated from a specific platform's schedule settings.
+    platformScheduleId: integer('platform_schedule_id').references(
+      () => platformSchedules.id,
       { onDelete: 'set null' }
     ),
 
@@ -85,6 +88,8 @@ export const post = pgTable(
   },
   t => [
     index('post_status_scheduled_idx').on(t.status, t.scheduledAt),
+    // This unique constraint ensures you don't schedule two different posts
+    // for the same account at the exact same time.
     unique('unique_account_schedule_time').on(
       t.socialMediaAccountId,
       t.scheduledAt
@@ -92,6 +97,7 @@ export const post = pgTable(
   ]
 );
 
+// No changes needed for this table
 export const postSnapshot = pgTable(
   'post_snapshot',
   {
@@ -116,6 +122,8 @@ export const postSnapshot = pgTable(
   ]
 );
 
+// --- UPDATED DRIZZLE RELATIONS ---
+
 export const socialMediaAccountRelations = relations(
   socialMediaAccount,
   ({ many, one }) => ({
@@ -123,7 +131,8 @@ export const socialMediaAccountRelations = relations(
       fields: [socialMediaAccount.restaurantId],
       references: [restaurant.id],
     }),
-    schedules: many(scheduleSettings),
+    // UPDATED: A social account can be part of many platform-specific schedules.
+    platformSchedules: many(platformSchedules),
     posts: many(post),
   })
 );
@@ -133,13 +142,15 @@ export const postRelations = relations(post, ({ one, many }) => ({
     fields: [post.socialMediaAccountId],
     references: [socialMediaAccount.id],
   }),
-  scheduleSettings: one(scheduleSettings, {
-    fields: [post.scheduleSettingsId],
-    references: [scheduleSettings.id],
+  // UPDATED: A post now belongs to one `platformSchedule`.
+  platformSchedule: one(platformSchedules, {
+    fields: [post.platformScheduleId],
+    references: [platformSchedules.id],
   }),
   postSnapshots: many(postSnapshot),
 }));
 
+// No changes needed for these relations
 export const postSnapshotRelations = relations(postSnapshot, ({ one }) => ({
   post: one(post, {
     fields: [postSnapshot.postId],

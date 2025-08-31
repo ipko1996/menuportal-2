@@ -21,8 +21,8 @@ import { useQuery } from '@tanstack/react-query';
 import type { ErrorType } from '../../../utils/axios-instance';
 import { axiosInstance } from '../../../utils/axios-instance';
 import type {
-  FacebookCallbackParams,
   SocialAccountDto,
+  SocialCallbackParams,
   UserDto,
   UserDtoWithRestaurant,
 } from '../../schemas';
@@ -453,37 +453,44 @@ export function useGetSocials<
 }
 
 /**
- * @summary Callback for Facebook OAuth flow
+ * @summary Callback for Social OAuth flows
  */
-export const facebookCallback = (
-  params: FacebookCallbackParams,
+export const socialCallback = (
+  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
+  params: SocialCallbackParams,
   options?: SecondParameter<typeof axiosInstance>,
   signal?: AbortSignal
 ) => {
   return axiosInstance<null>(
-    { url: `/api/auth/social/callback`, method: 'GET', params, signal },
+    {
+      url: `/api/auth/social/${platform}/callback`,
+      method: 'GET',
+      params,
+      signal,
+    },
     options
   );
 };
 
-export const getFacebookCallbackQueryKey = (
-  params?: FacebookCallbackParams
+export const getSocialCallbackQueryKey = (
+  platform?: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
+  params?: SocialCallbackParams
 ) => {
-  return [`/api/auth/social/callback`, ...(params ? [params] : [])] as const;
+  return [
+    `/api/auth/social/${platform}/callback`,
+    ...(params ? [params] : []),
+  ] as const;
 };
 
-export const getFacebookCallbackQueryOptions = <
-  TData = Awaited<ReturnType<typeof facebookCallback>>,
+export const getSocialCallbackQueryOptions = <
+  TData = Awaited<ReturnType<typeof socialCallback>>,
   TError = ErrorType<null>
 >(
-  params: FacebookCallbackParams,
+  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
+  params: SocialCallbackParams,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof facebookCallback>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof socialCallback>>, TError, TData>
     >;
     request?: SecondParameter<typeof axiosInstance>;
   }
@@ -491,42 +498,44 @@ export const getFacebookCallbackQueryOptions = <
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey =
-    queryOptions?.queryKey ?? getFacebookCallbackQueryKey(params);
+    queryOptions?.queryKey ?? getSocialCallbackQueryKey(platform, params);
 
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof facebookCallback>>
-  > = ({ signal }) => facebookCallback(params, requestOptions, signal);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof socialCallback>>> = ({
+    signal,
+  }) => socialCallback(platform, params, requestOptions, signal);
 
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof facebookCallback>>,
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!platform,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof socialCallback>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type FacebookCallbackQueryResult = NonNullable<
-  Awaited<ReturnType<typeof facebookCallback>>
+export type SocialCallbackQueryResult = NonNullable<
+  Awaited<ReturnType<typeof socialCallback>>
 >;
-export type FacebookCallbackQueryError = ErrorType<null>;
+export type SocialCallbackQueryError = ErrorType<null>;
 
-export function useFacebookCallback<
-  TData = Awaited<ReturnType<typeof facebookCallback>>,
+export function useSocialCallback<
+  TData = Awaited<ReturnType<typeof socialCallback>>,
   TError = ErrorType<null>
 >(
-  params: FacebookCallbackParams,
+  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
+  params: SocialCallbackParams,
   options: {
     query: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof facebookCallback>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof socialCallback>>, TError, TData>
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof facebookCallback>>,
+          Awaited<ReturnType<typeof socialCallback>>,
           TError,
-          Awaited<ReturnType<typeof facebookCallback>>
+          Awaited<ReturnType<typeof socialCallback>>
         >,
         'initialData'
       >;
@@ -536,24 +545,21 @@ export function useFacebookCallback<
 ): DefinedUseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useFacebookCallback<
-  TData = Awaited<ReturnType<typeof facebookCallback>>,
+export function useSocialCallback<
+  TData = Awaited<ReturnType<typeof socialCallback>>,
   TError = ErrorType<null>
 >(
-  params: FacebookCallbackParams,
+  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
+  params: SocialCallbackParams,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof facebookCallback>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof socialCallback>>, TError, TData>
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof facebookCallback>>,
+          Awaited<ReturnType<typeof socialCallback>>,
           TError,
-          Awaited<ReturnType<typeof facebookCallback>>
+          Awaited<ReturnType<typeof socialCallback>>
         >,
         'initialData'
       >;
@@ -563,18 +569,15 @@ export function useFacebookCallback<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useFacebookCallback<
-  TData = Awaited<ReturnType<typeof facebookCallback>>,
+export function useSocialCallback<
+  TData = Awaited<ReturnType<typeof socialCallback>>,
   TError = ErrorType<null>
 >(
-  params: FacebookCallbackParams,
+  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
+  params: SocialCallbackParams,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof facebookCallback>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof socialCallback>>, TError, TData>
     >;
     request?: SecondParameter<typeof axiosInstance>;
   },
@@ -583,21 +586,18 @@ export function useFacebookCallback<
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 /**
- * @summary Callback for Facebook OAuth flow
+ * @summary Callback for Social OAuth flows
  */
 
-export function useFacebookCallback<
-  TData = Awaited<ReturnType<typeof facebookCallback>>,
+export function useSocialCallback<
+  TData = Awaited<ReturnType<typeof socialCallback>>,
   TError = ErrorType<null>
 >(
-  params: FacebookCallbackParams,
+  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
+  params: SocialCallbackParams,
   options?: {
     query?: Partial<
-      UseQueryOptions<
-        Awaited<ReturnType<typeof facebookCallback>>,
-        TError,
-        TData
-      >
+      UseQueryOptions<Awaited<ReturnType<typeof socialCallback>>, TError, TData>
     >;
     request?: SecondParameter<typeof axiosInstance>;
   },
@@ -605,7 +605,7 @@ export function useFacebookCallback<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getFacebookCallbackQueryOptions(params, options);
+  const queryOptions = getSocialCallbackQueryOptions(platform, params, options);
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,

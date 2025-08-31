@@ -4,11 +4,10 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   Put,
   UseGuards,
-  UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -21,19 +20,20 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 
+import { ScheduleType, ScheduleTypeEnum } from '@/constants';
 import { CurrentUser } from '@/decorators/user.decorator';
 import { RoleAuthGuard, Roles } from '@/guards/role.guard';
 import { DateRange, WeekToDateRangePipe } from '@/shared/pipes';
 import { AppUser } from '@/shared/types';
 
-import { WeekMenuDayDto } from '../week-menu/dto/week-menu-response.dto';
+import { CreateScheduleDto } from './dto/create-schedule.dto';
+import { GetScheduleSettingsResponseDto } from './dto/schedule-settings.dto';
 import {
-  GetScheduleSettingsResponseDto,
-  UpdateScheduleSettingsDto,
-} from './dto/schedule-settings.dto';
+  UpdatePlatformScheduleDto,
+  UpdateScheduleDto,
+} from './dto/update-schedule.dto';
 import { ScheduleService } from './schedule.service';
 
-@ApiExtraModels(WeekMenuDayDto, GetScheduleSettingsResponseDto)
 @UseGuards(RoleAuthGuard)
 @Roles('ADMIN', 'MANAGER')
 @ApiBearerAuth()
@@ -41,36 +41,85 @@ import { ScheduleService } from './schedule.service';
 export class ScheduleController {
   constructor(private readonly scheduleService: ScheduleService) {}
 
-  @Get('settings')
+  @Get('settings/:scheduleType')
   @ApiOperation({
-    summary: 'Get schedule settings for the restaurant',
+    summary: 'Get schedule settings',
     operationId: 'getScheduleSettings',
   })
-  @ApiOkResponse({
-    description: 'Schedule settings retrieved successfully.',
-    type: GetScheduleSettingsResponseDto,
-  })
-  @ApiNotFoundResponse({ description: 'No active settings found.' })
-  getScheduleSettings(@CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>) {
-    return this.scheduleService.getScheduleSettings(user.restaurant.id);
+  @ApiParam({ name: 'scheduleType', enum: ScheduleTypeEnum.enumValues })
+  @ApiOkResponse({ type: GetScheduleSettingsResponseDto })
+  @ApiNotFoundResponse({ description: 'Settings not found.' })
+  getScheduleSettings(
+    @CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>,
+    @Param('scheduleType') scheduleType: ScheduleType
+  ) {
+    return this.scheduleService.getScheduleSettings(
+      user.restaurant.id,
+      scheduleType
+    );
   }
 
-  @Put('settings')
-  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+  @Post('settings')
   @ApiOperation({
-    summary: 'Update schedule settings for the restaurant',
-    operationId: 'updateScheduleSettings',
+    summary: 'Create new schedule settings',
+    operationId: 'createScheduleSettings',
   })
-  @ApiBody({ type: UpdateScheduleSettingsDto })
-  @ApiOkResponse({ description: 'Schedule settings updated successfully.' })
+  @ApiBody({ type: CreateScheduleDto })
+  @ApiOkResponse({ description: 'Settings created successfully.' })
   @ApiBadRequestResponse({ description: 'Invalid data provided.' })
-  updateScheduleSettings(
+  createScheduleSettings(
     @CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>,
-    @Body() updateScheduleSettingsDto: UpdateScheduleSettingsDto
+    @Body() createScheduleDto: CreateScheduleDto
   ) {
-    return this.scheduleService.updateScheduleSettings(
+    return this.scheduleService.createScheduleSettings(
       user.restaurant.id,
-      updateScheduleSettingsDto
+      createScheduleDto
+    );
+  }
+
+  @Put('settings/:scheduleType')
+  @ApiOperation({
+    summary: 'Update core schedule settings',
+    description:
+      'Updates the main settings like post time, default text, and the global active status.',
+    operationId: 'updateCoreScheduleSettings',
+  })
+  @ApiParam({ name: 'scheduleType', enum: ScheduleTypeEnum.enumValues })
+  @ApiBody({ type: UpdateScheduleDto })
+  @ApiOkResponse({ description: 'Settings updated successfully.' })
+  @ApiNotFoundResponse({ description: 'Settings not found to update.' })
+  updateCoreScheduleSettings(
+    @CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>,
+    @Param('scheduleType') scheduleType: ScheduleType,
+    @Body() updateScheduleDto: UpdateScheduleDto
+  ) {
+    return this.scheduleService.updateCoreScheduleSettings(
+      user.restaurant.id,
+      scheduleType,
+      updateScheduleDto
+    );
+  }
+
+  @Put('settings/platforms/:platformScheduleId')
+  @ApiOperation({
+    summary: "Update a single platform's settings",
+    description:
+      "Updates a specific platform's active status or custom content text.",
+    operationId: 'updatePlatformScheduleSettings',
+  })
+  @ApiParam({ name: 'platformScheduleId', type: 'number' })
+  @ApiBody({ type: UpdatePlatformScheduleDto })
+  @ApiOkResponse({ description: 'Platform settings updated successfully.' })
+  @ApiNotFoundResponse({ description: 'Platform settings not found.' })
+  updatePlatformScheduleSettings(
+    @CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>,
+    @Param('platformScheduleId', ParseIntPipe) platformScheduleId: number,
+    @Body() updatePlatformDto: UpdatePlatformScheduleDto
+  ) {
+    return this.scheduleService.updatePlatformScheduleSettings(
+      user.restaurant.id,
+      platformScheduleId,
+      updatePlatformDto
     );
   }
 

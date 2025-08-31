@@ -1,51 +1,78 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsBoolean,
-  IsIn,
-  IsNotEmpty,
-  IsString,
-  Matches,
-  MaxLength,
-} from 'class-validator';
 
-import { DayName } from '@/constants';
+import { ScheduleType, ScheduleTypeEnum } from '@/constants';
 
-// Used for the PUT request body
-export class UpdateScheduleSettingsDto {
+export class GetPlatformSettingsResponseDto {
   @ApiProperty({
-    description: 'Enable or disable the weekly scheduling.',
+    type: Number,
+    example: 1,
+    description: 'Unique identifier of the platform setting',
+  })
+  id: number;
+
+  @ApiProperty({
+    type: Number,
+    example: 1,
+    description: 'ID of the linked social media account',
+  })
+  socialMediaAccountId: number;
+
+  @ApiProperty({
+    type: String,
+    nullable: true,
+    required: false,
+    example: 'Custom text for this platform!',
+    description: 'Optional custom content text for this platform',
+  })
+  contentText: string | null;
+
+  @ApiProperty({
+    type: Boolean,
     example: true,
+    description: 'Whether the platform is active',
   })
-  @IsBoolean()
-  enabled: boolean;
+  isActive: boolean;
+}
+
+export class GetScheduleSettingsResponseDto {
+  @ApiProperty({
+    type: Number,
+    example: 1,
+    description: 'Unique identifier of the schedule setting',
+  })
+  id: number;
 
   @ApiProperty({
-    description: 'The day of the week to post the menu.',
-    enum: ['SATURDAY', 'SUNDAY', 'MONDAY'],
-    example: 'SUNDAY',
+    enum: ScheduleTypeEnum.enumValues,
+    example: 'WEEKLY',
+    description: 'Type of schedule (e.g. DAILY, WEEKLY)',
   })
-  @IsIn(['SATURDAY', 'SUNDAY', 'MONDAY'])
-  postDay: DayName;
+  scheduleType: ScheduleType;
 
   @ApiProperty({
-    description: 'The time of day to post in HH:mm format.',
-    example: '18:00',
-  })
-  @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
-    message: 'postTime must be in HH:mm format',
+    type: String,
+    example: '09:00',
+    description: 'Time of day when the post should be published (HH:mm)',
   })
   postTime: string;
 
   @ApiProperty({
-    description: 'The message content to include in the social media post.',
+    type: String,
     example: "Next week's menu is ready!",
-    maxLength: 280,
+    description: 'Default text for scheduled posts',
   })
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(280)
-  message: string;
-}
+  defaultContentText: string;
 
-// Used for the GET request response
-export class GetScheduleSettingsResponseDto extends UpdateScheduleSettingsDto {}
+  @ApiProperty({
+    type: Boolean,
+    example: true,
+    description: 'Whether the schedule is active',
+  })
+  isActive: boolean;
+
+  @ApiProperty({
+    type: () => [GetPlatformSettingsResponseDto],
+    description: 'List of platform-specific settings for this schedule',
+  })
+  platforms: GetPlatformSettingsResponseDto[];
+}

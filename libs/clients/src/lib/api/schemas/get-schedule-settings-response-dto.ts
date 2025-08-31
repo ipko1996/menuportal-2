@@ -5,18 +5,20 @@
  * The API description
  * OpenAPI spec version: 1.0
  */
-import type { GetScheduleSettingsResponseDtoPostDay } from './get-schedule-settings-response-dto-post-day';
+import type { GetPlatformSettingsResponseDto } from './get-platform-settings-response-dto';
+import type { GetScheduleSettingsResponseDtoScheduleType } from './get-schedule-settings-response-dto-schedule-type';
 
 export interface GetScheduleSettingsResponseDto {
-  /** Enable or disable the weekly scheduling. */
-  enabled: boolean;
-  /** The day of the week to post the menu. */
-  postDay: GetScheduleSettingsResponseDtoPostDay;
-  /** The time of day to post in HH:mm format. */
+  /** Unique identifier of the schedule setting */
+  id: number;
+  /** Type of schedule (e.g. DAILY, WEEKLY) */
+  scheduleType: GetScheduleSettingsResponseDtoScheduleType;
+  /** Time of day when the post should be published (HH:mm) */
   postTime: string;
-  /**
-   * The message content to include in the social media post.
-   * @maxLength 280
-   */
-  message: string;
+  /** Default text for scheduled posts */
+  defaultContentText: string;
+  /** Whether the schedule is active */
+  isActive: boolean;
+  /** List of platform-specific settings for this schedule */
+  platforms: GetPlatformSettingsResponseDto[];
 }

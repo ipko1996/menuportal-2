@@ -20,48 +20,57 @@ import { useQuery } from '@tanstack/react-query';
 
 import type { ErrorType } from '../../../utils/axios-instance';
 import { axiosInstance } from '../../../utils/axios-instance';
+import type {
+  RenderDailyTemplateParams,
+  RenderWeeklyTemplateParams,
+} from '../../schemas';
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 /**
- * @summary Get the menu for a specific restaurant, week, and platform
+ * Renders the HTML for a weekly menu. Use the optional "platform" query parameter to get a platform-specific version.
+ * @summary Render a weekly HTML template
  */
-export const getRestaurantMenuForWeekAndPlatform = (
+export const renderWeeklyTemplate = (
   restaurantId: number,
   weekNumber: unknown,
-  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
+  params?: RenderWeeklyTemplateParams,
   options?: SecondParameter<typeof axiosInstance>,
   signal?: AbortSignal
 ) => {
   return axiosInstance<null>(
     {
-      url: `/api/templates/${restaurantId}/${weekNumber}/${platform}`,
+      url: `/api/templates/weekly/${restaurantId}/${weekNumber}`,
       method: 'GET',
+      params,
       signal,
     },
     options
   );
 };
 
-export const getGetRestaurantMenuForWeekAndPlatformQueryKey = (
+export const getRenderWeeklyTemplateQueryKey = (
   restaurantId?: number,
   weekNumber?: unknown,
-  platform?: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER'
+  params?: RenderWeeklyTemplateParams
 ) => {
-  return [`/api/templates/${restaurantId}/${weekNumber}/${platform}`] as const;
+  return [
+    `/api/templates/weekly/${restaurantId}/${weekNumber}`,
+    ...(params ? [params] : []),
+  ] as const;
 };
 
-export const getGetRestaurantMenuForWeekAndPlatformQueryOptions = <
-  TData = Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>,
+export const getRenderWeeklyTemplateQueryOptions = <
+  TData = Awaited<ReturnType<typeof renderWeeklyTemplate>>,
   TError = ErrorType<unknown>
 >(
   restaurantId: number,
   weekNumber: unknown,
-  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
+  params?: RenderWeeklyTemplateParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>,
+        Awaited<ReturnType<typeof renderWeeklyTemplate>>,
         TError,
         TData
       >
@@ -73,19 +82,15 @@ export const getGetRestaurantMenuForWeekAndPlatformQueryOptions = <
 
   const queryKey =
     queryOptions?.queryKey ??
-    getGetRestaurantMenuForWeekAndPlatformQueryKey(
-      restaurantId,
-      weekNumber,
-      platform
-    );
+    getRenderWeeklyTemplateQueryKey(restaurantId, weekNumber, params);
 
   const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>
+    Awaited<ReturnType<typeof renderWeeklyTemplate>>
   > = ({ signal }) =>
-    getRestaurantMenuForWeekAndPlatform(
+    renderWeeklyTemplate(
       restaurantId,
       weekNumber,
-      platform,
+      params,
       requestOptions,
       signal
     );
@@ -93,40 +98,40 @@ export const getGetRestaurantMenuForWeekAndPlatformQueryOptions = <
   return {
     queryKey,
     queryFn,
-    enabled: !!(restaurantId && weekNumber && platform),
+    enabled: !!(restaurantId && weekNumber),
     ...queryOptions,
   } as UseQueryOptions<
-    Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>,
+    Awaited<ReturnType<typeof renderWeeklyTemplate>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type GetRestaurantMenuForWeekAndPlatformQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>
+export type RenderWeeklyTemplateQueryResult = NonNullable<
+  Awaited<ReturnType<typeof renderWeeklyTemplate>>
 >;
-export type GetRestaurantMenuForWeekAndPlatformQueryError = ErrorType<unknown>;
+export type RenderWeeklyTemplateQueryError = ErrorType<unknown>;
 
-export function useGetRestaurantMenuForWeekAndPlatform<
-  TData = Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>,
+export function useRenderWeeklyTemplate<
+  TData = Awaited<ReturnType<typeof renderWeeklyTemplate>>,
   TError = ErrorType<unknown>
 >(
   restaurantId: number,
   weekNumber: unknown,
-  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
+  params: undefined | RenderWeeklyTemplateParams,
   options: {
     query: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>,
+        Awaited<ReturnType<typeof renderWeeklyTemplate>>,
         TError,
         TData
       >
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>,
+          Awaited<ReturnType<typeof renderWeeklyTemplate>>,
           TError,
-          Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>
+          Awaited<ReturnType<typeof renderWeeklyTemplate>>
         >,
         'initialData'
       >;
@@ -136,26 +141,26 @@ export function useGetRestaurantMenuForWeekAndPlatform<
 ): DefinedUseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useGetRestaurantMenuForWeekAndPlatform<
-  TData = Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>,
+export function useRenderWeeklyTemplate<
+  TData = Awaited<ReturnType<typeof renderWeeklyTemplate>>,
   TError = ErrorType<unknown>
 >(
   restaurantId: number,
   weekNumber: unknown,
-  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
+  params?: RenderWeeklyTemplateParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>,
+        Awaited<ReturnType<typeof renderWeeklyTemplate>>,
         TError,
         TData
       >
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>,
+          Awaited<ReturnType<typeof renderWeeklyTemplate>>,
           TError,
-          Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>
+          Awaited<ReturnType<typeof renderWeeklyTemplate>>
         >,
         'initialData'
       >;
@@ -165,17 +170,17 @@ export function useGetRestaurantMenuForWeekAndPlatform<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useGetRestaurantMenuForWeekAndPlatform<
-  TData = Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>,
+export function useRenderWeeklyTemplate<
+  TData = Awaited<ReturnType<typeof renderWeeklyTemplate>>,
   TError = ErrorType<unknown>
 >(
   restaurantId: number,
   weekNumber: unknown,
-  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
+  params?: RenderWeeklyTemplateParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>,
+        Awaited<ReturnType<typeof renderWeeklyTemplate>>,
         TError,
         TData
       >
@@ -187,20 +192,20 @@ export function useGetRestaurantMenuForWeekAndPlatform<
   queryKey: DataTag<QueryKey, TData, TError>;
 };
 /**
- * @summary Get the menu for a specific restaurant, week, and platform
+ * @summary Render a weekly HTML template
  */
 
-export function useGetRestaurantMenuForWeekAndPlatform<
-  TData = Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>,
+export function useRenderWeeklyTemplate<
+  TData = Awaited<ReturnType<typeof renderWeeklyTemplate>>,
   TError = ErrorType<unknown>
 >(
   restaurantId: number,
   weekNumber: unknown,
-  platform: 'FACEBOOK' | 'INSTAGRAM' | 'TWITTER',
+  params?: RenderWeeklyTemplateParams,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof getRestaurantMenuForWeekAndPlatform>>,
+        Awaited<ReturnType<typeof renderWeeklyTemplate>>,
         TError,
         TData
       >
@@ -211,10 +216,210 @@ export function useGetRestaurantMenuForWeekAndPlatform<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions = getGetRestaurantMenuForWeekAndPlatformQueryOptions(
+  const queryOptions = getRenderWeeklyTemplateQueryOptions(
     restaurantId,
     weekNumber,
-    platform,
+    params,
+    options
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * Renders the HTML for a daily menu. Use the optional "platform" query parameter to get a platform-specific version.
+ * @summary Render a daily HTML template
+ */
+export const renderDailyTemplate = (
+  restaurantId: number,
+  date: unknown,
+  params?: RenderDailyTemplateParams,
+  options?: SecondParameter<typeof axiosInstance>,
+  signal?: AbortSignal
+) => {
+  return axiosInstance<null>(
+    {
+      url: `/api/templates/daily/${restaurantId}/${date}`,
+      method: 'GET',
+      params,
+      signal,
+    },
+    options
+  );
+};
+
+export const getRenderDailyTemplateQueryKey = (
+  restaurantId?: number,
+  date?: unknown,
+  params?: RenderDailyTemplateParams
+) => {
+  return [
+    `/api/templates/daily/${restaurantId}/${date}`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getRenderDailyTemplateQueryOptions = <
+  TData = Awaited<ReturnType<typeof renderDailyTemplate>>,
+  TError = ErrorType<unknown>
+>(
+  restaurantId: number,
+  date: unknown,
+  params?: RenderDailyTemplateParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof renderDailyTemplate>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof axiosInstance>;
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getRenderDailyTemplateQueryKey(restaurantId, date, params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof renderDailyTemplate>>
+  > = ({ signal }) =>
+    renderDailyTemplate(restaurantId, date, params, requestOptions, signal);
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!(restaurantId && date),
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof renderDailyTemplate>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type RenderDailyTemplateQueryResult = NonNullable<
+  Awaited<ReturnType<typeof renderDailyTemplate>>
+>;
+export type RenderDailyTemplateQueryError = ErrorType<unknown>;
+
+export function useRenderDailyTemplate<
+  TData = Awaited<ReturnType<typeof renderDailyTemplate>>,
+  TError = ErrorType<unknown>
+>(
+  restaurantId: number,
+  date: unknown,
+  params: undefined | RenderDailyTemplateParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof renderDailyTemplate>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof renderDailyTemplate>>,
+          TError,
+          Awaited<ReturnType<typeof renderDailyTemplate>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useRenderDailyTemplate<
+  TData = Awaited<ReturnType<typeof renderDailyTemplate>>,
+  TError = ErrorType<unknown>
+>(
+  restaurantId: number,
+  date: unknown,
+  params?: RenderDailyTemplateParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof renderDailyTemplate>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof renderDailyTemplate>>,
+          TError,
+          Awaited<ReturnType<typeof renderDailyTemplate>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useRenderDailyTemplate<
+  TData = Awaited<ReturnType<typeof renderDailyTemplate>>,
+  TError = ErrorType<unknown>
+>(
+  restaurantId: number,
+  date: unknown,
+  params?: RenderDailyTemplateParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof renderDailyTemplate>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Render a daily HTML template
+ */
+
+export function useRenderDailyTemplate<
+  TData = Awaited<ReturnType<typeof renderDailyTemplate>>,
+  TError = ErrorType<unknown>
+>(
+  restaurantId: number,
+  date: unknown,
+  params?: RenderDailyTemplateParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof renderDailyTemplate>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getRenderDailyTemplateQueryOptions(
+    restaurantId,
+    date,
+    params,
     options
   );
 

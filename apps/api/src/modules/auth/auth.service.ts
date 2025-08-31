@@ -1,8 +1,10 @@
 import { HttpService } from '@nestjs/axios';
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotImplementedException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -109,7 +111,7 @@ export class AuthService {
 
   async handleFacebookCallback(
     code: string,
-    state: SocialMediaPlatform
+    state: string
   ): Promise<SocialMediaPlatform> {
     const clerkToken = state;
     const { id, restaurant } = await this.getUserFromClerkToken(clerkToken);
@@ -172,6 +174,26 @@ export class AuthService {
       throw new InternalServerErrorException(
         'Could not save Facebook account information.'
       );
+    }
+  }
+
+  async handleCallback(
+    platform: SocialMediaPlatform,
+    code: string,
+    state: string
+  ) {
+    // First, validate the 'state' parameter for security (CSRF protection)
+    // this.validateState(state);
+
+    switch (platform) {
+      case 'FACEBOOK':
+        return this.handleFacebookCallback(code, state); // Logic specific to Facebook
+      case 'INSTAGRAM':
+        throw new NotImplementedException(
+          'Instagram integration not yet implemented'
+        );
+      default:
+        throw new BadRequestException('Unsupported social platform');
     }
   }
 

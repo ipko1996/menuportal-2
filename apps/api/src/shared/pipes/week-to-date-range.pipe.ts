@@ -6,12 +6,7 @@ import {
 } from '@nestjs/common';
 import { endOfISOWeek, format, isValid, parse, startOfISOWeek } from 'date-fns';
 
-export interface DateRange {
-  year: number;
-  weekNumber: number;
-  start: string;
-  end: string;
-}
+import { DateRange } from './date-range.interface';
 
 @Injectable()
 export class WeekToDateRangePipe implements PipeTransform<string, DateRange> {

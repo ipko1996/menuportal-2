@@ -1,15 +1,24 @@
-import { Controller, Get, Query, Res, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  ParseEnumPipe,
+  Query,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { FastifyReply } from 'fastify';
 
-import { SocialMediaPlatform } from '@/constants';
+import { SocialMediaPlatform, socialMediaPlatformValues } from '@/constants';
 import { CurrentUser } from '@/decorators/user.decorator';
 import { RoleAuthGuard, Roles } from '@/guards/role.guard';
 import type { AppUser } from '@/shared/types';
@@ -72,31 +81,34 @@ export class AuthController {
     return this.authService.getSocialAccounts(user);
   }
 
-  @UseGuards(RoleAuthGuard)
-  @Roles('MANAGER', 'ADMIN')
   @ApiOperation({
-    summary: 'Callback for Facebook OAuth flow',
-    operationId: 'facebookCallback',
+    summary: 'Callback for Social OAuth flows',
+    operationId: 'socialCallback',
   })
-  @ApiOkResponse({ description: 'Successfully connected Facebook account' })
+  @ApiOkResponse({ description: 'Successfully connected social account' })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized: Invalid token in state',
   })
-  @Get('social/callback')
-  async facebookCallback(
+  @ApiParam({
+    name: 'platform',
+    enum: socialMediaPlatformValues,
+    description: 'The social media platform used for OAuth',
+  })
+  @Get('social/:platform/callback')
+  async socialCallback(
+    @Param('platform', new ParseEnumPipe(socialMediaPlatformValues))
+    platform: SocialMediaPlatform,
     @Query('code') code: string,
-    @Query('state') state: SocialMediaPlatform,
+    @Query('state') state: string,
     @Res() reply: FastifyReply
   ) {
     try {
-      const platform = await this.authService.handleFacebookCallback(
-        code,
-        state
-      );
+      await this.authService.handleCallback(platform, code, state);
       const successHtml = this.createResponseHtml(true, platform);
       reply.type('text/html').send(successHtml);
-    } catch {
-      const errorHtml = this.createResponseHtml(false, 'FACEBOOK');
+    } catch (error) {
+      console.error(`Error during ${platform} OAuth callback:`, error);
+      const errorHtml = this.createResponseHtml(false, platform);
       reply.type('text/html').send(errorHtml);
     }
   }

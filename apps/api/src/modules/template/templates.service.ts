@@ -1,11 +1,13 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { and, eq, sql } from 'drizzle-orm';
 
 import {
-  scheduleSettings,
+  platformSchedules,
+  schedules,
+  ScheduleType,
   socialMediaAccount,
   SocialMediaPlatform,
 } from '@/schema';
@@ -17,50 +19,111 @@ import Handlebars from './helpers/helper';
 
 @Injectable()
 export class TemplatesService {
+  private readonly logger = new Logger(TemplatesService.name);
+
   constructor(
     private readonly weekMenuService: WeekMenuService,
     private readonly databaseService: DatabaseService
   ) {}
 
-  async renderMenuForWeek(
+  public async renderWeeklyMenuHtml(
     restaurantId: number,
     dateRange: DateRange,
-    platform: SocialMediaPlatform
-  ) {
-    const weekMenu = await this.weekMenuService.getMenusForWeek(
+    platform?: SocialMediaPlatform
+  ): Promise<string> {
+    const menuData = await this.weekMenuService.getMenusForWeek(
       dateRange,
       restaurantId
     );
-    console.log(`Rendering menu for week and platform: ${platform}`, weekMenu);
+    const templateId = platform
+      ? await this._getPlatformTemplateId(restaurantId, 'WEEKLY', platform)
+      : await this._getDefaultTemplateId(restaurantId, 'WEEKLY');
 
-    const settings = await this.databaseService.db
+    return this._compileTemplate(templateId, menuData);
+  }
+
+  public async renderDailyMenuHtml(
+    restaurantId: number,
+    dateRange: DateRange,
+    platform?: SocialMediaPlatform
+  ): Promise<string> {
+    const menuData = await this.weekMenuService.getMenusForWeek(
+      dateRange,
+      restaurantId
+    );
+    const templateId = platform
+      ? await this._getPlatformTemplateId(restaurantId, 'DAILY', platform)
+      : await this._getDefaultTemplateId(restaurantId, 'DAILY');
+
+    return this._compileTemplate(templateId, menuData);
+  }
+
+  private async _getDefaultTemplateId(
+    restaurantId: number,
+    scheduleType: ScheduleType
+  ): Promise<string> {
+    const result = await this.databaseService.db
+      .select({ templateId: schedules.defaultTemplateId })
+      .from(schedules)
+      .where(
+        and(
+          eq(schedules.restaurantId, restaurantId),
+          eq(schedules.scheduleType, scheduleType),
+          eq(schedules.isActive, true)
+        )
+      )
+      .limit(1);
+
+    if (!result[0]?.templateId) {
+      throw new NotFoundException(
+        `No active default '${scheduleType}' schedule found for restaurant ${restaurantId}.`
+      );
+    }
+    return result[0].templateId;
+  }
+
+  private async _getPlatformTemplateId(
+    restaurantId: number,
+    scheduleType: ScheduleType,
+    platform: SocialMediaPlatform
+  ): Promise<string> {
+    const result = await this.databaseService.db
       .select({
-        scheduleSettings: scheduleSettings,
-        socialAccount: socialMediaAccount,
+        templateId:
+          sql<string>`COALESCE(${platformSchedules.templateId}, ${schedules.defaultTemplateId})`.as(
+            'templateId'
+          ),
       })
-      .from(scheduleSettings)
+      .from(schedules)
+      .innerJoin(
+        platformSchedules,
+        eq(schedules.id, platformSchedules.scheduleId)
+      )
       .innerJoin(
         socialMediaAccount,
-        eq(scheduleSettings.socialMediaAccountId, socialMediaAccount.id)
+        eq(platformSchedules.socialMediaAccountId, socialMediaAccount.id)
       )
       .where(
         and(
-          eq(scheduleSettings.restaurantId, restaurantId),
+          eq(schedules.restaurantId, restaurantId),
+          eq(schedules.scheduleType, scheduleType),
           eq(socialMediaAccount.platform, platform),
-          eq(scheduleSettings.isActive, true),
+          eq(schedules.isActive, true),
+          eq(platformSchedules.isActive, true),
           eq(socialMediaAccount.isActive, true)
         )
-      );
+      )
+      .limit(1);
 
-    if (settings.length === 0) {
+    if (!result[0]?.templateId) {
       throw new NotFoundException(
-        `No active schedule settings found for restaurant ${restaurantId} and platform ${platform}.`
+        `No active '${scheduleType}' schedule for platform ${platform} found for restaurant ${restaurantId}.`
       );
     }
+    return result[0].templateId;
+  }
 
-    const templateId = settings[0].scheduleSettings.templateId;
-
-    let templateSource: string;
+  private _compileTemplate(templateId: string, data: unknown): string {
     try {
       const templatePath = path.join(
         // eslint-disable-next-line unicorn/prefer-module
@@ -68,13 +131,22 @@ export class TemplatesService {
         'modules/template/templates',
         `${templateId}.hbs`
       );
-      templateSource = fs.readFileSync(templatePath, 'utf8');
-    } catch (error) {
-      console.error(`Template with ID ${templateId} not found.`, error);
-      throw new NotFoundException(`Template with ID ${templateId} not found.`);
-    }
+      this.logger.debug({
+        message: `Compiling template with ID '${templateId}'`,
+        templatePath,
+      });
+      const templateSource = fs.readFileSync(templatePath, 'utf8');
 
-    const compiled = Handlebars.compile(templateSource);
-    return compiled(weekMenu);
+      const compiled = Handlebars.compile(templateSource);
+      return compiled(data);
+    } catch (error) {
+      this.logger.error(
+        `Template with ID '${templateId}' not found or failed to compile.`,
+        error.stack
+      );
+      throw new NotFoundException(
+        `Template with ID '${templateId}' not found.`
+      );
+    }
   }
 }

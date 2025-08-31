@@ -25,8 +25,7 @@ import {
   type DayMenuDto,
   type UpdateOfferDto,
   type UpdateMenuDto,
-  downloadRestaurantMenuForWeek,
-  downloadRestaurantMenuForWeekAsImage,
+  getWeeklyMenu,
   useGetCurrentUserWithRestaurant,
 } from '@mono-repo/api-client';
 import { stateComponentMap } from './components/menu-status-indicator';
@@ -160,19 +159,15 @@ export default function Dashboard() {
       }
 
       if (format === 'pdf') {
-        response = await downloadRestaurantMenuForWeek(
-          restaurantId,
-          currentWeekString,
-          'FACEBOOK'
-        );
+        response = await getWeeklyMenu(restaurantId, currentWeekString, {
+          format: 'pdf',
+        });
         mimeType = 'application/pdf';
         fileExtension = 'pdf';
       } else {
-        response = await downloadRestaurantMenuForWeekAsImage(
-          restaurantId,
-          currentWeekString,
-          'FACEBOOK'
-        );
+        response = await getWeeklyMenu(restaurantId, currentWeekString, {
+          format: 'png',
+        });
         mimeType = 'image/png';
         fileExtension = 'png';
       }
