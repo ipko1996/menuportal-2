@@ -35,11 +35,12 @@ export const getWeeklyMenu = (
   options?: SecondParameter<typeof axiosInstance>,
   signal?: AbortSignal
 ) => {
-  return axiosInstance<null>(
+  return axiosInstance<Blob>(
     {
       url: `/api/pdf/weekly/${restaurantId}/${weekNumber}`,
       method: 'GET',
       params,
+      responseType: 'blob',
       signal,
     },
     options

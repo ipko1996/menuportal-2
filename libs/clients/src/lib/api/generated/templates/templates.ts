@@ -38,7 +38,7 @@ export const renderWeeklyTemplate = (
   options?: SecondParameter<typeof axiosInstance>,
   signal?: AbortSignal
 ) => {
-  return axiosInstance<null>(
+  return axiosInstance<string>(
     {
       url: `/api/templates/weekly/${restaurantId}/${weekNumber}`,
       method: 'GET',
@@ -244,7 +244,7 @@ export const renderDailyTemplate = (
   options?: SecondParameter<typeof axiosInstance>,
   signal?: AbortSignal
 ) => {
-  return axiosInstance<null>(
+  return axiosInstance<string>(
     {
       url: `/api/templates/daily/${restaurantId}/${date}`,
       method: 'GET',

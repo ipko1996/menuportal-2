@@ -6,7 +6,13 @@ import {
   Query,
   Res,
 } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiParam,
+  ApiProduces,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { FastifyReply } from 'fastify';
 
 import {
@@ -32,6 +38,19 @@ export class TemplatesController {
   })
   @ApiParam({ name: 'restaurantId', example: 1 })
   @ApiParam({ name: 'weekNumber', example: '2025-W32' })
+  @ApiProduces('text/html')
+  @ApiResponse({
+    status: 200,
+    description: 'The rendered HTML content of the menu.',
+    content: {
+      'text/html': {
+        schema: {
+          type: 'string',
+          example: '<!DOCTYPE html><html><body>...</body></html>',
+        },
+      },
+    },
+  })
   async renderWeeklyTemplate(
     @Param('restaurantId', ParseIntPipe) restaurantId: number,
     @Param('weekNumber', WeekToDateRangePipe) dateRange: DateRange,
@@ -56,6 +75,19 @@ export class TemplatesController {
   })
   @ApiParam({ name: 'restaurantId', example: 1 })
   @ApiParam({ name: 'date', example: '2025-08-31' })
+  @ApiProduces('text/html')
+  @ApiResponse({
+    status: 200,
+    description: 'The rendered HTML content of the menu.',
+    content: {
+      'text/html': {
+        schema: {
+          type: 'string',
+          example: '<!DOCTYPE html><html><body>...</body></html>',
+        },
+      },
+    },
+  })
   async renderDailyTemplate(
     @Param('restaurantId', ParseIntPipe) restaurantId: number,
     @Param('date', DateToDateRangePipe) dateRange: DateRange,

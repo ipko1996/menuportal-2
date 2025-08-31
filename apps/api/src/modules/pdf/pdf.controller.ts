@@ -7,7 +7,13 @@ import {
   Query,
   Res,
 } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiProduces, ApiTags } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiParam,
+  ApiProduces,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { FastifyReply } from 'fastify';
 
 import {
@@ -39,6 +45,18 @@ export class PdfController {
   @ApiParam({ name: 'restaurantId', example: 1 })
   @ApiParam({ name: 'weekNumber', example: '2025-W32' })
   @ApiProduces(APPLICATION_PDF, IMAGE_PNG)
+  @ApiResponse({
+    status: 200,
+    description: 'The generated file (PDF or PNG)',
+    content: {
+      'application/pdf': {
+        schema: { type: 'string', format: 'binary' },
+      },
+      'image/png': {
+        schema: { type: 'string', format: 'binary' },
+      },
+    },
+  })
   async getWeeklyMenu(
     @Param('restaurantId', ParseIntPipe) restaurantId: number,
     @Param('weekNumber', WeekToDateRangePipe) dateRange: DateRange,

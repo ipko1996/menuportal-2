@@ -26,6 +26,7 @@ import {
   type UpdateOfferDto,
   type UpdateMenuDto,
   getWeeklyMenu,
+  renderWeeklyTemplate,
   useGetCurrentUserWithRestaurant,
 } from '@mono-repo/api-client';
 import { stateComponentMap } from './components/menu-status-indicator';
@@ -196,11 +197,7 @@ export default function Dashboard() {
       throw new Error('Restaurant ID is not available.');
     }
     try {
-      const response = await downloadRestaurantMenuForWeek(
-        restaurantId,
-        currentWeekString,
-        'FACEBOOK'
-      );
+      const response = await getWeeklyMenu(restaurantId, currentWeekString);
 
       // Create blob and object URL
       const blob = new Blob([response], { type: 'application/pdf' });
@@ -229,8 +226,8 @@ export default function Dashboard() {
     } catch (error) {
       console.error('Failed to print menu:', error);
       // Fallback to opening in new window
-      const printUrl = `http://localhost:3000/api/templates/${restaurantId}/${currentWeekString}`;
-      window.open(printUrl, '_blank');
+      // const printUrl = `http://localhost:3000/api/templates/${restaurantId}/${currentWeekString}`;
+      // window.open(printUrl, '_blank');
     }
   };
 
