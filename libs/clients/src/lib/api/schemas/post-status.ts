@@ -18,4 +18,5 @@ export const PostStatus = {
   SCHEDULED: 'SCHEDULED',
   PUBLISHED: 'PUBLISHED',
   FAILED: 'FAILED',
+  PUBLISHING: 'PUBLISHING',
 } as const;

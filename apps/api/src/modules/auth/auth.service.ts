@@ -37,9 +37,27 @@ interface FacebookUserResponse {
   name: string;
 }
 
+interface FacebookPageResponse {
+  id: string;
+  name: string;
+  access_token: string;
+  category: string;
+}
+
+interface FacebookPagesResponse {
+  data: FacebookPageResponse[];
+  paging?: {
+    cursors: {
+      before: string;
+      after: string;
+    };
+  };
+}
+
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
+  private readonly FACEBOOK_API_VERSION = 'v23.0';
 
   constructor(
     private readonly databaseService: DatabaseService,
@@ -127,20 +145,43 @@ export class AuthService {
       `Handling Facebook callback for user ${id} at restaurant ID: ${restaurant.id}`
     );
 
-    const { accessToken, expiresIn } = await this.exchangeCodeForToken(code);
-    const facebookUser = await this.getFacebookUserDetails(accessToken);
+    // Step 1: Exchange code for user access token
+    const { accessToken: userAccessToken, expiresIn } =
+      await this.exchangeCodeForToken(code);
+
+    // // Step 2: Get user details
+    // const facebookUser = await this.getFacebookUserDetails(userAccessToken);
+
+    // Step 3: Get page access tokens
+    const pages = await this.getFacebookPages(userAccessToken);
+
+    if (pages.length === 0) {
+      throw new BadRequestException(
+        'No Facebook pages found for this account. You need to manage at least one Facebook page to connect.'
+      );
+    }
+
+    // For now, we'll use the first page. You might want to let users choose which page to connect
+    const selectedPage = pages[0];
+
+    this.logger.log(
+      `Selected Facebook page: ${selectedPage.name} (ID: ${selectedPage.id})`
+    );
+
+    // Use the page access token instead of user access token
+    const pageAccessToken = selectedPage.access_token;
+    const encryptedAccessToken =
+      this.encryptionService.encrypt(pageAccessToken);
 
     const tokenExpiresAt = new Date();
     tokenExpiresAt.setSeconds(tokenExpiresAt.getSeconds() + expiresIn);
-
-    const encryptedAccessToken = this.encryptionService.encrypt(accessToken);
 
     const platform = 'FACEBOOK' as const;
 
     const valuesToInsert = {
       restaurantId: restaurant.id,
       platform,
-      platformAccountId: facebookUser.id,
+      platformAccountId: selectedPage.id, // Use page ID, not user ID
       accessToken: encryptedAccessToken,
       tokenExpiresAt: tokenExpiresAt.toISOString(),
       isActive: true,
@@ -165,9 +206,8 @@ export class AuthService {
         });
 
       this.logger.log(
-        `Successfully saved Facebook account for restaurant ${restaurant.id}`
+        `Successfully saved Facebook page account ${selectedPage.name} for restaurant ${restaurant.id}`
       );
-      // Return the platform name on success for the controller to use
       return platform;
     } catch (error) {
       this.logger.error('Failed to save social media account', error.stack);
@@ -182,12 +222,9 @@ export class AuthService {
     code: string,
     state: string
   ) {
-    // First, validate the 'state' parameter for security (CSRF protection)
-    // this.validateState(state);
-
     switch (platform) {
       case 'FACEBOOK':
-        return this.handleFacebookCallback(code, state); // Logic specific to Facebook
+        return this.handleFacebookCallback(code, state);
       case 'INSTAGRAM':
         throw new NotImplementedException(
           'Instagram integration not yet implemented'
@@ -243,7 +280,7 @@ export class AuthService {
   }
 
   /**
-   * Exchanges the authorization code for a short-lived access token.
+   * Exchanges the authorization code for a short-lived user access token.
    */
   private async exchangeCodeForToken(
     code: string
@@ -252,7 +289,7 @@ export class AuthService {
     const appSecret = this.configService.get<string>('FB_APP_SECRET');
     const redirectUri = this.configService.get<string>('FB_CALLBACK_URL');
 
-    const url = 'https://graph.facebook.com/v18.0/oauth/access_token';
+    const url = `https://graph.facebook.com/${this.FACEBOOK_API_VERSION}/oauth/access_token`;
 
     try {
       const response = await firstValueFrom(
@@ -284,28 +321,56 @@ export class AuthService {
   /**
    * Fetches the user's basic profile information (ID and name) from Facebook.
    */
-  private async getFacebookUserDetails(
-    accessToken: string
-  ): Promise<FacebookUserResponse> {
-    const url = 'https://graph.facebook.com/me';
+  // private async getFacebookUserDetails(
+  //   accessToken: string
+  // ): Promise<FacebookUserResponse> {
+  //   const url = `https://graph.facebook.com/${this.FACEBOOK_API_VERSION}/me`;
+  //   try {
+  //     const response = await firstValueFrom(
+  //       this.httpService.get<FacebookUserResponse>(url, {
+  //         params: {
+  //           fields: 'id,name',
+  //           access_token: accessToken,
+  //         },
+  //       })
+  //     );
+  //     return response.data;
+  //   } catch (error) {
+  //     this.logger.error(
+  //       'Failed to get user details from Facebook',
+  //       error.response?.data
+  //     );
+  //     throw new InternalServerErrorException(
+  //       'Could not fetch user details from Facebook.'
+  //     );
+  //   }
+  // }
+
+  /**
+   * Fetches the Facebook pages that the user manages, along with their page access tokens.
+   */
+  private async getFacebookPages(
+    userAccessToken: string
+  ): Promise<FacebookPageResponse[]> {
+    const url = `https://graph.facebook.com/${this.FACEBOOK_API_VERSION}/me/accounts`;
+
     try {
       const response = await firstValueFrom(
-        this.httpService.get<FacebookUserResponse>(url, {
+        this.httpService.get<FacebookPagesResponse>(url, {
           params: {
-            fields: 'id,name',
-            access_token: accessToken,
+            access_token: userAccessToken,
+            fields: 'id,name,access_token,category',
           },
         })
       );
-      return response.data;
+
+      this.logger.log(
+        `Found ${response.data.data.length} Facebook pages for user`
+      );
+      return response.data.data;
     } catch (error) {
-      this.logger.error(
-        'Failed to get user details from Facebook',
-        error.response?.data
-      );
-      throw new InternalServerErrorException(
-        'Could not fetch user details from Facebook.'
-      );
+      this.logger.error('Failed to get Facebook pages', error.response?.data);
+      throw new InternalServerErrorException('Could not fetch Facebook pages.');
     }
   }
 }

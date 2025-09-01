@@ -1,6 +1,11 @@
 import { pgEnum } from 'drizzle-orm/pg-core';
 
-export const MenuStatusValues = ['SCHEDULED', 'PUBLISHED', 'FAILED'] as const;
+export const MenuStatusValues = [
+  'SCHEDULED',
+  'PUBLISHED',
+  'FAILED',
+  'PUBLISHING',
+] as const;
 
 export const MenuStatusApiValues = [
   'DRAFT',

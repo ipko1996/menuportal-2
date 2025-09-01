@@ -51,6 +51,15 @@ async function bootstrap() {
       name: 'JWT',
       in: 'header',
     })
+    .addApiKey(
+      {
+        type: 'apiKey',
+        in: 'header',
+        name: 'x-api-key',
+        description: 'Enter API Key for Cron Jobs',
+      },
+      'ApiKeyAuth'
+    )
     .build();
 
   const documentFactory = () => SwaggerModule.createDocument(app, config);

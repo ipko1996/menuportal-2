@@ -25,7 +25,6 @@
     "@swc/core": "~1.5.7",
     "@swc/helpers": "~0.5.11",
     "@tanstack/router-plugin": "^1.128.6",
-    "@trigger.dev/build": "4.0.1",
     "@types/js-cookie": "^3.0.6",
     "@types/node": "^20.0.0",
     "@types/pg": "^8.15.4",
@@ -59,6 +58,7 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.879.0",
     "@clerk/clerk-react": "^5.40.0",
     "@clerk/fastify": "^2.4.13",
     "@fastify/static": "^8.2.0",
@@ -106,7 +106,6 @@
     "@tanstack/react-router": "^1.128.6",
     "@tanstack/react-router-devtools": "^1.128.6",
     "@tanstack/react-table": "^8.21.3",
-    "@trigger.dev/sdk": "4.0.1",
     "axios": "^1.11.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",

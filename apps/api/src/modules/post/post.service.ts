@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { and, eq, inArray, notExists } from 'drizzle-orm';
+import { format } from 'date-fns';
+import { and, eq, gte, inArray, lte, notExists } from 'drizzle-orm';
 
 import {
   MenuStatus,
@@ -12,15 +13,11 @@ import {
   DatabaseService,
   Transaction,
 } from '@/shared/database/database.service';
-import { CronHelperService } from '@/shared/services/cron.helper.service';
 
 @Injectable()
 export class PostService {
   private readonly logger = new Logger(PostService.name);
-  constructor(
-    private readonly databaseService: DatabaseService,
-    private readonly cronHelperService: CronHelperService
-  ) {}
+  constructor(private readonly databaseService: DatabaseService) {}
 
   async getPostsByIds(ids: number[]) {
     const posts = await this.databaseService.db
@@ -47,6 +44,39 @@ export class PostService {
         platform: SocialMediaPlatform;
       } => p.platform !== null && p.status !== null
     );
+  }
+
+  async findDuePostsWithAccounts() {
+    const now = new Date();
+
+    const formattedNow = format(now, 'yyyy-MM-dd HH:mm:ss.SSSxxx');
+    return await this.databaseService.db
+      .select()
+      .from(post)
+      .leftJoin(
+        socialMediaAccount,
+        eq(socialMediaAccount.id, post.socialMediaAccountId)
+      )
+      .where(
+        and(
+          eq(post.status, 'SCHEDULED'),
+          eq(socialMediaAccount.isActive, true),
+          lte(post.scheduledAt, formattedNow)
+        )
+      )
+      .orderBy(post.scheduledAt);
+  }
+
+  async updateStatusByIds(
+    postIds: number[],
+    status: MenuStatus,
+    tx?: Transaction
+  ) {
+    const db = tx ?? this.databaseService.db;
+    return await db
+      .update(post)
+      .set({ status })
+      .where(inArray(post.id, postIds));
   }
 
   async createPostsAndLinkSnapshots(
