@@ -50,4 +50,5 @@ vitest.config.*.timestamp*
 .env*
 
 # Trigger files
-.trigger
+.dev.vars*
+.env*
