@@ -77,11 +77,11 @@ export const Route = createRootRouteWithContext<{
         <NavigationProgress />
         <ClerkProvider
           publishableKey={PUBLISHABLE_KEY}
-          afterSignOutUrl="/clerk/sign-in"
+          afterSignOutUrl="/"
           signInUrl="/clerk/sign-in"
           signUpUrl="/clerk/sign-up"
-          signInFallbackRedirectUrl="/"
-          signUpFallbackRedirectUrl="/"
+          signInFallbackRedirectUrl="/dashboard"
+          signUpFallbackRedirectUrl="/dashboard"
         >
           <TokenProvider />
           <Outlet />

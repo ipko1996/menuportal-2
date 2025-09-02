@@ -12,7 +12,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as errors503RouteImport } from './routes/(errors)/503'
 import { Route as errors500RouteImport } from './routes/(errors)/500'
 import { Route as errors404RouteImport } from './routes/(errors)/404'
@@ -32,6 +32,7 @@ import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedSchedulerIndexRouteImport } from './routes/_authenticated/scheduler/index'
 import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_authenticated/help-center/index'
 import { Route as AuthenticatedDishManagerIndexRouteImport } from './routes/_authenticated/dish-manager/index'
+import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
 import { Route as AuthenticatedAppsIndexRouteImport } from './routes/_authenticated/apps/index'
 import { Route as ClerkauthSignUpRouteImport } from './routes/clerk/(auth)/sign-up'
 import { Route as ClerkauthSignInRouteImport } from './routes/clerk/(auth)/sign-in'
@@ -56,10 +57,10 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
 const errors503Route = errors503RouteImport.update({
   id: '/(errors)/503',
@@ -161,6 +162,12 @@ const AuthenticatedDishManagerIndexRoute =
     path: '/dish-manager/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedDashboardIndexRoute =
+  AuthenticatedDashboardIndexRouteImport.update({
+    id: '/dashboard/',
+    path: '/dashboard/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAppsIndexRoute = AuthenticatedAppsIndexRouteImport.update({
   id: '/apps/',
   path: '/apps/',
@@ -232,6 +239,7 @@ const AuthenticatedSchedulerHistoryRoute =
   } as any)
 
 export interface FileRoutesByFullPath {
+  '/': typeof IndexRoute
   '/scheduler': typeof AuthenticatedSchedulerRouteRouteWithChildren
   '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/clerk': typeof ClerkAuthenticatedRouteRoute
@@ -245,7 +253,6 @@ export interface FileRoutesByFullPath {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
-  '/': typeof AuthenticatedIndexRoute
   '/scheduler/history': typeof AuthenticatedSchedulerHistoryRoute
   '/scheduler/pending-posts': typeof AuthenticatedSchedulerPendingPostsRoute
   '/scheduler/scheduled-posts': typeof AuthenticatedSchedulerScheduledPostsRoute
@@ -258,6 +265,7 @@ export interface FileRoutesByFullPath {
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
   '/apps': typeof AuthenticatedAppsIndexRoute
+  '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/dish-manager': typeof AuthenticatedDishManagerIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/scheduler/': typeof AuthenticatedSchedulerIndexRoute
@@ -265,6 +273,7 @@ export interface FileRoutesByFullPath {
   '/tasks': typeof AuthenticatedTasksIndexRoute
 }
 export interface FileRoutesByTo {
+  '/': typeof IndexRoute
   '/clerk': typeof ClerkAuthenticatedRouteRoute
   '/forgot-password': typeof authForgotPasswordRoute
   '/otp': typeof authOtpRoute
@@ -276,7 +285,6 @@ export interface FileRoutesByTo {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
-  '/': typeof AuthenticatedIndexRoute
   '/scheduler/history': typeof AuthenticatedSchedulerHistoryRoute
   '/scheduler/pending-posts': typeof AuthenticatedSchedulerPendingPostsRoute
   '/scheduler/scheduled-posts': typeof AuthenticatedSchedulerScheduledPostsRoute
@@ -289,6 +297,7 @@ export interface FileRoutesByTo {
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
   '/apps': typeof AuthenticatedAppsIndexRoute
+  '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/dish-manager': typeof AuthenticatedDishManagerIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
   '/scheduler': typeof AuthenticatedSchedulerIndexRoute
@@ -297,6 +306,7 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_authenticated/scheduler': typeof AuthenticatedSchedulerRouteRouteWithChildren
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
@@ -313,7 +323,6 @@ export interface FileRoutesById {
   '/(errors)/404': typeof errors404Route
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
-  '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/scheduler/history': typeof AuthenticatedSchedulerHistoryRoute
   '/_authenticated/scheduler/pending-posts': typeof AuthenticatedSchedulerPendingPostsRoute
   '/_authenticated/scheduler/scheduled-posts': typeof AuthenticatedSchedulerScheduledPostsRoute
@@ -326,6 +335,7 @@ export interface FileRoutesById {
   '/clerk/(auth)/sign-in': typeof ClerkauthSignInRoute
   '/clerk/(auth)/sign-up': typeof ClerkauthSignUpRoute
   '/_authenticated/apps/': typeof AuthenticatedAppsIndexRoute
+  '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/dish-manager/': typeof AuthenticatedDishManagerIndexRoute
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
   '/_authenticated/scheduler/': typeof AuthenticatedSchedulerIndexRoute
@@ -335,6 +345,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/'
     | '/scheduler'
     | '/settings'
     | '/clerk'
@@ -348,7 +359,6 @@ export interface FileRouteTypes {
     | '/404'
     | '/500'
     | '/503'
-    | '/'
     | '/scheduler/history'
     | '/scheduler/pending-posts'
     | '/scheduler/scheduled-posts'
@@ -361,6 +371,7 @@ export interface FileRouteTypes {
     | '/clerk/sign-in'
     | '/clerk/sign-up'
     | '/apps'
+    | '/dashboard'
     | '/dish-manager'
     | '/help-center'
     | '/scheduler/'
@@ -368,6 +379,7 @@ export interface FileRouteTypes {
     | '/tasks'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/'
     | '/clerk'
     | '/forgot-password'
     | '/otp'
@@ -379,7 +391,6 @@ export interface FileRouteTypes {
     | '/404'
     | '/500'
     | '/503'
-    | '/'
     | '/scheduler/history'
     | '/scheduler/pending-posts'
     | '/scheduler/scheduled-posts'
@@ -392,6 +403,7 @@ export interface FileRouteTypes {
     | '/clerk/sign-in'
     | '/clerk/sign-up'
     | '/apps'
+    | '/dashboard'
     | '/dish-manager'
     | '/help-center'
     | '/scheduler'
@@ -399,6 +411,7 @@ export interface FileRouteTypes {
     | '/tasks'
   id:
     | '__root__'
+    | '/'
     | '/_authenticated'
     | '/_authenticated/scheduler'
     | '/_authenticated/settings'
@@ -415,7 +428,6 @@ export interface FileRouteTypes {
     | '/(errors)/404'
     | '/(errors)/500'
     | '/(errors)/503'
-    | '/_authenticated/'
     | '/_authenticated/scheduler/history'
     | '/_authenticated/scheduler/pending-posts'
     | '/_authenticated/scheduler/scheduled-posts'
@@ -428,6 +440,7 @@ export interface FileRouteTypes {
     | '/clerk/(auth)/sign-in'
     | '/clerk/(auth)/sign-up'
     | '/_authenticated/apps/'
+    | '/_authenticated/dashboard/'
     | '/_authenticated/dish-manager/'
     | '/_authenticated/help-center/'
     | '/_authenticated/scheduler/'
@@ -436,6 +449,7 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   ClerkauthRouteRoute: typeof ClerkauthRouteRouteWithChildren
   ClerkRoute: typeof ClerkRouteWithChildren
@@ -467,12 +481,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/': {
-      id: '/_authenticated/'
+    '/': {
+      id: '/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/(errors)/503': {
       id: '/(errors)/503'
@@ -605,6 +619,13 @@ declare module '@tanstack/react-router' {
       path: '/dish-manager'
       fullPath: '/dish-manager'
       preLoaderRoute: typeof AuthenticatedDishManagerIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard/': {
+      id: '/_authenticated/dashboard/'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/apps/': {
@@ -747,8 +768,8 @@ const AuthenticatedSettingsRouteRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedSchedulerRouteRoute: typeof AuthenticatedSchedulerRouteRouteWithChildren
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
-  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedAppsIndexRoute: typeof AuthenticatedAppsIndexRoute
+  AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
   AuthenticatedDishManagerIndexRoute: typeof AuthenticatedDishManagerIndexRoute
   AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute
   AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
@@ -758,8 +779,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSchedulerRouteRoute:
     AuthenticatedSchedulerRouteRouteWithChildren,
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
-  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedAppsIndexRoute: AuthenticatedAppsIndexRoute,
+  AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
   AuthenticatedDishManagerIndexRoute: AuthenticatedDishManagerIndexRoute,
   AuthenticatedHelpCenterIndexRoute: AuthenticatedHelpCenterIndexRoute,
   AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,
@@ -793,6 +814,7 @@ const ClerkRouteChildren: ClerkRouteChildren = {
 const ClerkRouteWithChildren = ClerkRoute._addFileChildren(ClerkRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   ClerkauthRouteRoute: ClerkauthRouteRouteWithChildren,
   ClerkRoute: ClerkRouteWithChildren,
