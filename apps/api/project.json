@@ -64,6 +64,18 @@
         "cwd": "apps/api"
       },
       "outputs": ["{projectRoot}/libs/api-client"]
+    },
+    "docker-build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docker build -f apps/api/Dockerfile -t api:latest ."
+      }
+    },
+    "docker-run": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docker run --env-file ./.env --network=mono-repo_services-network -p 3000:3000 api:latest"
+      }
     }
   }
 }

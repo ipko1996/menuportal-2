@@ -1,6 +1,19 @@
 version: '3.8'
 
 services:
+  api:
+    image: api:latest # Make sure you have built this image
+    container_name: menuportal-api
+    restart: always
+    env_file:
+      - ./.env # Docker Compose will load the .env file
+    ports:
+      - "3005:3005"
+    networks:
+      - services-network
+    depends_on: # This makes the api wait for postgres to be healthy
+      - postgres
+
   postgres:
     image: postgres:17.5
     container_name: menuportal-db
@@ -14,6 +27,8 @@ services:
       - "5555:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - services-network
     # Add the command to pass PostgreSQL configuration parameters
     command: >
       postgres
@@ -32,6 +47,13 @@ services:
     restart: always
     ports:
       - "3001:3000"
+    networks:
+      - services-network
+
 
 volumes:
   postgres_data:
+
+networks:
+  services-network:
+    driver: bridge

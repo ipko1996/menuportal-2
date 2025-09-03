@@ -1,0 +1,30 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Build outputs
+dist
+.out
+.next
+
+# Nx cache
+.nx
+
+# Git / CI
+.git
+.github
+.gitignore
+
+# IDE / editor
+.vscode
+.idea
+
+# Env / secrets
+.env
+*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
