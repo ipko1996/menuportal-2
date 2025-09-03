@@ -24,7 +24,7 @@ import { useEffect } from 'react';
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 const BACKEND_URL =
-  import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+  import.meta.env.VITE_API_BASE_URL || 'http://localhost:3005';
 
 setupAxiosInstance(BACKEND_URL);
 function TokenProvider() {
