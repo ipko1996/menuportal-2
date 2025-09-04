@@ -96,52 +96,56 @@ export function ItemDialog({
 
   const handleOfferSubmit = (data: CreateOfferDto | UpdateOfferDto) => {
     if (editingItem) {
-      console.log('Updating offer:', data);
-      updateOffer({
-        id: editingItem.id,
-        data: {
-          availability: data.availability,
-          dishId: data.dishId,
-          price: data.price,
-        } as UpdateOfferDto,
-      });
+      updateOffer(
+        {
+          id: editingItem.id,
+          data: data as UpdateOfferDto,
+        },
+        {
+          onSuccess: () => {
+            handleOpenChange(false);
+          },
+        }
+      );
     } else {
-      console.log('Creating offer:', data);
-      createOffer({
-        data: {
-          availability: data.availability,
-          dishId: data.dishId,
-          price: data.price,
-        } as CreateOfferDto,
-      });
+      createOffer(
+        {
+          data: data as CreateOfferDto,
+        },
+        {
+          onSuccess: () => {
+            handleOpenChange(false);
+          },
+        }
+      );
     }
-    handleOpenChange(false);
   };
 
-  const handleMenuSubmit = (data: CreateMenuDto) => {
+  const handleMenuSubmit = (data: CreateMenuDto | UpdateMenuDto) => {
     if (editingItem) {
-      console.log('Updating menu:', data);
-      updateMenu({
-        id: editingItem.id,
-        data: {
-          dishes: data.dishes,
-          availability: data.availability,
-          menuName: data.menuName,
-          price: data.price,
-        } as UpdateMenuDto,
-      });
+      updateMenu(
+        {
+          id: editingItem.id,
+          data: data as UpdateMenuDto,
+        },
+        {
+          onSuccess: () => {
+            handleOpenChange(false);
+          },
+        }
+      );
     } else {
-      console.log('Creating menu:', data);
-      createMenu({
-        data: {
-          dishes: data.dishes,
-          availability: data.availability,
-          menuName: data.menuName,
-          price: data.price,
-        } as CreateMenuDto,
-      });
+      createMenu(
+        {
+          data: data as CreateMenuDto,
+        },
+        {
+          onSuccess: () => {
+            handleOpenChange(false);
+          },
+        }
+      );
     }
-    handleOpenChange(false);
   };
 
   const handleDelete = () => {

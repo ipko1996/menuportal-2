@@ -1,11 +1,9 @@
-import type React from 'react';
 import { useState, useEffect } from 'react';
 
 import { DishAutocomplete } from '@/components/dish-autocomplete';
 import {
   Input,
   Button,
-  Label,
   Form,
   FormControl,
   FormField,
@@ -52,42 +50,26 @@ export function OfferForm({
         availability: format(selectedDate, 'yyyy-MM-dd') || '',
       });
     } else if (selectedDate) {
-      const dateString = format(selectedDate, 'yyyy-MM-dd');
       form.reset({
         dishId: 0,
         price: 0,
-        availability: dateString,
+        availability: format(selectedDate, 'yyyy-MM-dd'),
       });
     }
   }, [selectedDate, editingItem, form]);
 
   const handleSubmit = (data: OfferFormData) => {
-    onSubmit(data);
+    onSubmit({
+      ...data,
+      price: Number(data.price),
+    });
   };
 
   const resetForm = () => {
-    if (editingItem) {
-      // Reset to original values when editing
-      form.reset({
-        dishId: editingItem.dish?.dishId || 0,
-        price: editingItem.price || 0,
-        availability: format(selectedDate, 'yyyy-MM-dd') || '',
-      });
-    } else {
-      // Reset to empty when creating
-      const currentAvailability = form.getValues('availability');
-      form.reset({
-        dishId: 0,
-        price: 0,
-        availability: currentAvailability,
-      });
-    }
+    form.reset();
   };
 
-  const handleDeleteClick = () => {
-    setShowDeleteConfirm(true);
-  };
-
+  const handleDeleteClick = () => setShowDeleteConfirm(true);
   const handleConfirmDelete = () => {
     setShowDeleteConfirm(false);
     onDelete?.();
@@ -110,6 +92,7 @@ export function OfferForm({
                   <DishAutocomplete
                     value={field.value}
                     onChange={field.onChange}
+                    autoFocus={!isEditing}
                   />
                 </FormControl>
                 <FormMessage />
@@ -127,13 +110,12 @@ export function OfferForm({
                   <Input
                     type="number"
                     min="0"
+                    {...field}
                     value={field.value || ''}
                     onChange={e =>
-                      field.onChange(Number.parseInt(e.target.value) || 0)
+                      field.onChange(parseInt(e.target.value) || 0)
                     }
                     placeholder="Enter price in cents"
-                    autoFocus={false}
-                    tabIndex={isEditing ? -1 : undefined}
                   />
                 </FormControl>
                 <FormMessage />
@@ -148,11 +130,7 @@ export function OfferForm({
               <FormItem>
                 <FormLabel>Availability Date</FormLabel>
                 <FormControl>
-                  <Input
-                    type="date"
-                    value={field.value}
-                    onChange={field.onChange}
-                  />
+                  <Input type="date" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

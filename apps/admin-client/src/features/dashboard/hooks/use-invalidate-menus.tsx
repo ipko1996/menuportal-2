@@ -2,6 +2,7 @@
 
 import { getGetMenusForWeekQueryKey } from '@mono-repo/api-client';
 import { useQueryClient, UseMutationOptions } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
 import { toast } from 'sonner';
 
 /**
@@ -34,7 +35,13 @@ export const useInvalidateMenusOnSuccess = (
       console.log(message);
     },
     onError: (error: Error) => {
-      toast.error(`Error: ${error.message}`);
+      if (error instanceof AxiosError) {
+        if (error.response?.status === 400) {
+          toast.error(`Error: ${error.response.data.message}`);
+        }
+      } else {
+        toast.error('An error occurred. Please check logs.');
+      }
       console.error('Mutation error:', error);
     },
   };

@@ -28,7 +28,7 @@ interface DishAutocompleteProps {
   placeholder?: string;
   openOnFocus?: boolean;
   defaultDishTypeId?: number;
-  autoFocus?: boolean; // Add this prop
+  autoFocus?: boolean;
 }
 
 export const getDishIcon = (
@@ -61,21 +61,22 @@ export function DishAutocomplete({
   placeholder = 'Search dishes...',
   openOnFocus = false,
   defaultDishTypeId,
-  autoFocus = true, // Add default value
+  autoFocus = false,
 }: DishAutocompleteProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearchTerm] = useDebounceValue(searchTerm, 100);
+  const [debouncedSearchTerm] = useDebounceValue(searchTerm, 300);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const [noResultsSearchTerm, setNoResultsSearchTerm] = useState<string | null>(
+    null
+  );
 
-  const { data: dishTypes = [], isLoading: dishTypesLoading } =
-    useGetAvailableDishtypes();
+  const { data: dishTypes = [] } = useGetAvailableDishtypes();
 
   const { data: dish, isLoading: dishLoading } = useGetDishById(value, {
-    query: {
-      enabled: value > 0,
-    },
+    query: { enabled: value > 0 },
   });
 
   const { mutate: createDish, isPending: isCreating } = useCreateDish({
@@ -85,36 +86,61 @@ export function DishAutocomplete({
         setSearchTerm(newDish.dishName);
         setIsOpen(false);
       },
-      onError: error => {
-        console.error('Failed to create dish:', error);
-      },
+      onError: error => console.error('Failed to create dish:', error),
     },
   });
+
+  const canSearch =
+    isOpen &&
+    debouncedSearchTerm.length > 0 &&
+    !(
+      noResultsSearchTerm && debouncedSearchTerm.startsWith(noResultsSearchTerm)
+    );
 
   const { data: dishes = [], isLoading: dishesLoading } = useSearchDishesByName(
     { name: debouncedSearchTerm },
     {
       query: {
-        enabled: isOpen && debouncedSearchTerm.length > 0,
+        enabled: canSearch,
       },
     }
   );
 
-  const filteredDishes = dishes.filter(dish =>
-    dish.dishName.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
-  );
-
-  const selectedDish = dishes.find(dish => dish.id === value);
-
-  // Add useEffect for autoFocus
   useEffect(() => {
-    if (autoFocus && inputRef.current && !dishLoading && !dishTypesLoading) {
-      inputRef.current.focus();
-      if (openOnFocus) {
-        setIsOpen(true);
-      }
+    if (
+      noResultsSearchTerm &&
+      !debouncedSearchTerm.startsWith(noResultsSearchTerm)
+    ) {
+      setNoResultsSearchTerm(null);
     }
-  }, [autoFocus, dishLoading, dishTypesLoading, openOnFocus]);
+
+    if (!dishesLoading && canSearch && dishes.length === 0) {
+      setNoResultsSearchTerm(debouncedSearchTerm);
+    }
+  }, [
+    debouncedSearchTerm,
+    dishes,
+    dishesLoading,
+    noResultsSearchTerm,
+    canSearch,
+  ]);
+
+  useEffect(() => {
+    if (dish && !isOpen) {
+      setSearchTerm(dish.dishName);
+    }
+  }, [dish, isOpen]);
+
+  useEffect(() => {
+    setActiveIndex(-1);
+  }, [dishes]);
+
+  useEffect(() => {
+    if (autoFocus && inputRef.current && !dishLoading) {
+      inputRef.current.focus();
+      if (openOnFocus) setIsOpen(true);
+    }
+  }, [autoFocus, dishLoading, openOnFocus]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -125,15 +151,15 @@ export function DishAutocomplete({
         setIsOpen(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSelect = (dish: DishResponseDto) => {
-    onChange(dish.id);
-    setSearchTerm(dish.dishName);
+  const handleSelect = (selectedDish: DishResponseDto) => {
+    onChange(selectedDish.id);
+    setSearchTerm(selectedDish.dishName);
     setIsOpen(false);
+    inputRef.current?.focus();
   };
 
   const handleAddNewDish = () => {
@@ -158,23 +184,53 @@ export function DishAutocomplete({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
-    setIsOpen(true);
+    if (!isOpen) {
+      setIsOpen(true);
+    }
   };
 
   const handleInputFocus = () => {
     if (openOnFocus) {
       setIsOpen(true);
     }
+    inputRef.current?.select();
   };
 
-  const hasExactMatch = filteredDishes.some(
-    dish => dish.dishName.toLowerCase() === debouncedSearchTerm.toLowerCase()
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!isOpen) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setActiveIndex(prev => (prev < dishes.length - 1 ? prev + 1 : prev));
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setActiveIndex(prev => (prev > 0 ? prev - 1 : 0));
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (activeIndex >= 0 && dishes[activeIndex]) {
+          handleSelect(dishes[activeIndex]);
+        } else if (showAddButton) {
+          handleAddNewDish();
+        }
+        break;
+      case 'Tab':
+        setIsOpen(false);
+        break;
+      case 'Escape':
+        setIsOpen(false);
+        break;
+    }
+  };
+
+  const hasExactMatch = dishes.some(
+    d => d.dishName.toLowerCase() === searchTerm.trim().toLowerCase()
   );
 
-  const showAddButton = searchTerm.trim() && !hasExactMatch && !isCreating;
-
-  const isSearching =
-    searchTerm !== debouncedSearchTerm && searchTerm.length > 0;
+  const showAddButton =
+    searchTerm.trim().length > 0 && !hasExactMatch && !isCreating;
 
   const iconDishTypeId = dish ? dish.dishTypeId : defaultDishTypeId ?? 0;
 
@@ -182,7 +238,7 @@ export function DishAutocomplete({
     <div ref={containerRef} className="relative">
       <div className="relative">
         <div className="absolute left-3 top-1/2 transform -translate-y-1/2 z-10">
-          {dishLoading || isSearching ? (
+          {dishLoading ? (
             <div className="animate-spin rounded-full h-4 w-4 border-2 border-muted-foreground border-t-transparent" />
           ) : (
             getDishIcon(iconDishTypeId, dishTypes)
@@ -191,22 +247,13 @@ export function DishAutocomplete({
         <Input
           ref={inputRef}
           type="text"
-          value={
-            (isOpen
-              ? searchTerm
-              : selectedDish?.dishName || searchTerm || dish?.dishName) ?? ''
-          }
+          value={searchTerm}
           onChange={handleInputChange}
           onFocus={handleInputFocus}
-          placeholder={
-            dishLoading
-              ? 'Loading dish...'
-              : isSearching
-              ? 'Searching...'
-              : placeholder
-          }
+          onKeyDown={handleKeyDown}
+          placeholder={dishLoading ? 'Loading dish...' : placeholder}
           className="pl-10 pr-8"
-          disabled={dishTypesLoading || dishLoading}
+          disabled={dishLoading}
         />
         <Button
           type="button"
@@ -214,7 +261,8 @@ export function DishAutocomplete({
           size="sm"
           className="absolute right-0 top-0 h-full px-2"
           onClick={() => setIsOpen(!isOpen)}
-          disabled={dishTypesLoading || dishLoading}
+          disabled={dishLoading}
+          tabIndex={-1}
         >
           <ChevronDown
             className={cn(
@@ -224,32 +272,30 @@ export function DishAutocomplete({
           />
         </Button>
       </div>
-      {isOpen && !dishLoading && (
+      {isOpen && (
         <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-md max-h-60 overflow-auto">
-          {dishTypesLoading ? (
-            <div className="p-2 text-sm text-muted-foreground">
-              Loading dish types...
-            </div>
-          ) : dishesLoading || isSearching ? (
+          {dishesLoading ? (
             <div className="p-2 text-sm text-muted-foreground flex items-center gap-2">
               <div className="animate-spin rounded-full h-4 w-4 border-2 border-muted-foreground border-t-transparent" />
               Searching dishes...
             </div>
-          ) : filteredDishes.length === 0 && !showAddButton ? (
+          ) : dishes.length === 0 && !showAddButton ? (
             <div className="p-2 text-sm text-muted-foreground">
-              No dishes found
+              No dishes found. Type to add a new one.
             </div>
           ) : (
             <>
-              {filteredDishes.map(dish => (
+              {dishes.map((dish, index) => (
                 <button
                   key={dish.id}
                   type="button"
                   className={cn(
                     'w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center justify-between',
-                    value === dish.id && 'bg-accent text-accent-foreground'
+                    value === dish.id && 'font-semibold',
+                    activeIndex === index && 'bg-accent text-accent-foreground'
                   )}
                   onClick={() => handleSelect(dish)}
+                  onMouseEnter={() => setActiveIndex(index)}
                 >
                   <div className="flex items-center gap-2">
                     {getDishIcon(dish.dishTypeId, dishTypes)}

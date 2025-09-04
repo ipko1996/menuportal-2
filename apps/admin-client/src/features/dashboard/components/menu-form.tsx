@@ -1,6 +1,3 @@
-// menu-form.tsx
-
-import type React from 'react';
 import { useState, useEffect } from 'react';
 import { Plus, X, ChevronDown } from 'lucide-react';
 import { DishAutocomplete, getDishIcon } from '@/components/dish-autocomplete';
@@ -18,6 +15,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  Badge,
 } from '@mono-repo/ui';
 import { ConfirmationDialog } from './confirmation-dialog';
 import { format } from 'date-fns';
@@ -50,6 +48,8 @@ const createDefaultDish = (dishTypeId: number): FormDish => ({
   dishTypeId,
 });
 
+const nameSuggestions = ['Menü', 'Menü A', 'Menü B', 'Menü 1', 'Menü 2'];
+
 export function MenuForm({
   selectedDate,
   onSubmit,
@@ -63,12 +63,16 @@ export function MenuForm({
   const form = useForm<MenuFormData>({
     resolver: zodResolver(menuFormSchema),
     defaultValues: {
-      menuName: '',
+      menuName: 'Menü',
       dishes: [],
       price: 0,
       availability: '',
     },
   });
+
+  const {
+    formState: { isSubmitted },
+  } = form;
 
   useEffect(() => {
     if (editingItem) {
@@ -76,33 +80,28 @@ export function MenuForm({
         dt => dt.dishTypeValue === 'MAIN_DISH'
       );
       const defaultDishTypeId = mainDishType?.id || 0;
-
       const editingDishes =
         editingItem.dishes?.map((d: Dish) => ({
           key: d.dishId || Math.random(),
           dishId: d.dishId || 0,
           dishTypeId: d.dishTypeId || defaultDishTypeId,
         })) || [];
-
       setDishes(editingDishes);
-
       form.reset({
-        menuName: editingItem.menuName || '',
+        menuName: editingItem.menuName || 'Menü',
         price: editingItem.price || 0,
         availability: format(selectedDate, 'yyyy-MM-dd'),
         dishes: editingDishes.map(d => d.dishId).filter(id => id > 0),
       });
-    } else {
+    } else if (availableDishTypes.length > 0) {
       const soupType = availableDishTypes.find(
         dt => dt.dishTypeValue === 'SOUP' || dt.dishTypeValue === 'MEAT_SOUP'
       );
       const mainDishType = availableDishTypes.find(
         dt => dt.dishTypeValue === 'MAIN_DISH'
       );
-
       const soupTypeId = soupType?.id || mainDishType?.id || 0;
       const mainDishTypeId = mainDishType?.id || 0;
-
       if (soupTypeId && mainDishTypeId) {
         const defaultDishes = [
           createDefaultDish(soupTypeId),
@@ -110,7 +109,7 @@ export function MenuForm({
         ];
         setDishes(defaultDishes);
         form.reset({
-          menuName: '',
+          menuName: 'Menü',
           price: 0,
           availability: format(selectedDate, 'yyyy-MM-dd'),
           dishes: [],
@@ -119,106 +118,35 @@ export function MenuForm({
     }
   }, [selectedDate, editingItem, availableDishTypes, form]);
 
-  // Removed the useEffect that wasn't being triggered correctly
-  // Instead, the form state will be updated directly in the functions below.
+  useEffect(() => {
+    const dishIds = dishes.map(d => d.dishId).filter(id => id > 0);
+    form.setValue('dishes', dishIds, { shouldValidate: isSubmitted });
+  }, [dishes, form, isSubmitted]);
 
   const handleSubmit = (data: MenuFormData) => {
     onSubmit({
-      menuName: data.menuName,
-      price: data.price,
-      availability: data.availability,
-      dishes: data.dishes,
+      ...data,
+      price: Number(data.price),
     });
-  };
-
-  const resetForm = () => {
-    if (editingItem) {
-      const mainDishType = availableDishTypes.find(
-        dt => dt.dishTypeValue === 'MAIN_DISH'
-      );
-      const defaultDishTypeId = mainDishType?.id || 0;
-
-      const editingDishes =
-        editingItem.dishes?.map((d: Dish) => ({
-          key: d.dishId || Math.random(),
-          dishId: d.dishId || 0,
-          dishTypeId: d.dishTypeId || defaultDishTypeId,
-        })) || [];
-
-      setDishes(editingDishes);
-      form.reset({
-        menuName: editingItem.menuName || '',
-        price: editingItem.price || 0,
-        availability: format(selectedDate, 'yyyy-MM-dd'),
-        dishes: editingDishes.map(d => d.dishId).filter(id => id > 0),
-      });
-    } else {
-      const soupType = availableDishTypes.find(
-        dt => dt.dishTypeValue === 'SOUP' || dt.dishTypeValue === 'MEAT_SOUP'
-      );
-      const mainDishType = availableDishTypes.find(
-        dt => dt.dishTypeValue === 'MAIN_DISH'
-      );
-      const soupTypeId = soupType?.id || mainDishType?.id || 0;
-      const mainDishTypeId = mainDishType?.id || 0;
-
-      if (soupTypeId && mainDishTypeId) {
-        const defaultDishes = [
-          createDefaultDish(soupTypeId),
-          createDefaultDish(mainDishTypeId),
-        ];
-        setDishes(defaultDishes);
-        form.reset({
-          menuName: '',
-          price: 0,
-          availability: format(selectedDate, 'yyyy-MM-dd'),
-          dishes: [],
-        });
-      }
-    }
   };
 
   const addDish = (dishTypeId: number) => {
-    setDishes(prev => {
-      const newDishes = [...prev, createDefaultDish(dishTypeId)];
-      form.setValue(
-        'dishes',
-        newDishes.map(d => d.dishId).filter(id => id > 0)
-      );
-      return newDishes;
-    });
+    setDishes(prev => [...prev, createDefaultDish(dishTypeId)]);
   };
 
   const removeDish = (key: number) => {
     if (dishes.length > 2) {
-      setDishes(prev => {
-        const newDishes = prev.filter(dish => dish.key !== key);
-        form.setValue(
-          'dishes',
-          newDishes.map(d => d.dishId).filter(id => id > 0)
-        );
-        return newDishes;
-      });
+      setDishes(prev => prev.filter(dish => dish.key !== key));
     }
   };
 
   const updateDish = (key: number, dishId: number) => {
-    setDishes(prev => {
-      const updatedDishes = prev.map(dish =>
-        dish.key === key ? { ...dish, dishId } : dish
-      );
-      form.setValue(
-        'dishes',
-        updatedDishes.map(d => d.dishId).filter(id => id > 0)
-      );
-      return updatedDishes;
-    });
+    setDishes(prev =>
+      prev.map(dish => (dish.key === key ? { ...dish, dishId } : dish))
+    );
   };
 
-  const handleDeleteClick = () => {
-    setShowDeleteConfirm(true);
-  };
-
+  const handleDeleteClick = () => setShowDeleteConfirm(true);
   const handleConfirmDelete = () => {
     setShowDeleteConfirm(false);
     onDelete?.();
@@ -239,13 +167,32 @@ export function MenuForm({
                 <FormLabel>Menu Name</FormLabel>
                 <FormControl>
                   <Input
-                    value={field.value}
-                    onChange={field.onChange}
+                    {...field}
                     placeholder="Enter menu name"
                     maxLength={255}
-                    autoFocus={!isEditing}
                   />
                 </FormControl>
+
+                {!isEditing && (
+                  <div className="pt">
+                    <div className="flex flex-wrap gap-2 pt-1.5">
+                      {nameSuggestions.map(name => (
+                        <Badge
+                          key={name}
+                          variant="outline"
+                          className="cursor-pointer font-normal"
+                          onClick={() =>
+                            form.setValue('menuName', name, {
+                              shouldValidate: true,
+                            })
+                          }
+                        >
+                          {name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <FormMessage />
               </FormItem>
             )}
@@ -284,13 +231,14 @@ export function MenuForm({
             </div>
 
             <div className="space-y-2">
-              {dishes.map(dish => (
+              {dishes.map((dish, index) => (
                 <div key={dish.key} className="flex items-center gap-2">
                   <div className="flex-1">
                     <DishAutocomplete
                       value={dish.dishId}
                       onChange={newDishId => updateDish(dish.key, newDishId)}
                       defaultDishTypeId={dish.dishTypeId}
+                      autoFocus={index === 0 && !isEditing}
                     />
                   </div>
                   {dishes.length > 2 && (
@@ -306,14 +254,12 @@ export function MenuForm({
                 </div>
               ))}
             </div>
-
             {form.formState.errors.dishes && (
               <p className="text-sm font-medium text-destructive">
                 {form.formState.errors.dishes.message}
               </p>
             )}
           </div>
-
           <FormField
             control={form.control}
             name="price"
@@ -324,9 +270,10 @@ export function MenuForm({
                   <Input
                     type="number"
                     min="0"
+                    {...field}
                     value={field.value || ''}
                     onChange={e =>
-                      field.onChange(Number.parseInt(e.target.value, 10) || 0)
+                      field.onChange(parseInt(e.target.value, 10) || 0)
                     }
                     placeholder="Enter price in cents"
                   />
@@ -335,7 +282,6 @@ export function MenuForm({
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="availability"
@@ -343,17 +289,12 @@ export function MenuForm({
               <FormItem>
                 <FormLabel>Availability Date</FormLabel>
                 <FormControl>
-                  <Input
-                    type="date"
-                    value={field.value}
-                    onChange={field.onChange}
-                  />
+                  <Input type="date" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-
           <div className="flex justify-between pt-4">
             {isEditing ? (
               <Button
@@ -364,7 +305,11 @@ export function MenuForm({
                 Delete
               </Button>
             ) : (
-              <Button type="button" variant="outline" onClick={resetForm}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => form.reset()}
+              >
                 Reset
               </Button>
             )}
