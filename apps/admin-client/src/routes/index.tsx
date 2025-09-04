@@ -614,8 +614,7 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* REFACTORED: CTA Section changed from free trial to a contact/demo request */}
-      <section className="py-20 bg-primary text-primary-foreground">
+      <section className="py-20 bg-accent text-accent-foreground">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl lg:text-4xl font-bold mb-4">
             Ready to Simplify Your Menu Management?
@@ -624,21 +623,19 @@ function LandingPage() {
             Have questions or want a personalized demo? Enter your email and
             we'll get in touch with you.
           </p>
-
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
             <Input
               type="email"
               placeholder="Enter your email address"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className="max-w-sm bg-primary-foreground text-foreground"
+              className="max-w-sm bg-background text-foreground border-card-foreground"
             />
-            <Button size="lg" variant="secondary" className="px-8">
+            <Button size="lg" variant="default" className="px-8">
               Request a Demo
               <IconArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </div>
-
           <div className="flex items-center justify-center gap-8 text-sm opacity-75">
             <div className="flex items-center gap-2">
               <IconCheck className="h-4 w-4" />
@@ -655,7 +652,6 @@ function LandingPage() {
           </div>
         </div>
       </section>
-
       {/* Footer */}
       <footer className="py-12 border-t bg-muted/50">
         <div className="container mx-auto px-4">
