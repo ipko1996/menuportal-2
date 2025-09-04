@@ -203,6 +203,15 @@ const stateUIConfig = {
       'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900 dark:text-amber-100 dark:border-amber-600',
     textColor: 'text-amber-800 dark:text-amber-100',
   },
+  [PostState.NoScheduling_SetUp]: {
+    label: 'No Scheduling',
+    icon: Settings,
+    bgColor: 'bg-gray-100 dark:bg-gray-800',
+    borderColor: 'border-gray-300 dark:border-gray-600',
+    iconContainerClasses:
+      'bg-gray-200 text-gray-700 border-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600',
+    textColor: 'text-gray-600 dark:text-gray-300',
+  },
 };
 
 interface StateComponentProps {
@@ -485,4 +494,15 @@ export const stateComponentMap: Record<
       </MenuStatusCard>
     );
   },
+  [PostState.NoScheduling_SetUp]: ({ weekNumber }) => (
+    <MenuStatusCard
+      statusConfig={stateUIConfig.NoScheduling_SetUp}
+      weekNumber={weekNumber}
+      statusText="Connect platforms to enable scheduling"
+    >
+      <Button className="bg-gray-900 hover:bg-gray-800 text-white dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200">
+        <Settings className="h-3 w-3 mr-1" /> Set Up
+      </Button>
+    </MenuStatusCard>
+  ),
 };

@@ -17,7 +17,7 @@ import {
   ChevronDown,
   Printer,
   ChevronLeft,
-} from 'lucide-react'; // Added Download, ChevronDown, and Printer icons
+} from 'lucide-react';
 import { ItemDialog } from './components/item-dialog';
 import {
   useGetMenusForWeek,
@@ -51,7 +51,7 @@ export default function Dashboard() {
     type: 'offer' | 'menu';
     data: UpdateOfferDto | UpdateMenuDto;
   } | null>(null);
-  const [isDownloading, setIsDownloading] = useState(false); // Added download loading state
+  const [isDownloading, setIsDownloading] = useState(false);
   const { data: currenttUser } = useGetCurrentUserWithRestaurant();
 
   const currentWeekString = useMemo(() => {
@@ -71,25 +71,21 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
-    // ⬇️ Prioritize the fetching state ⬇️
-    // If a refetch is happening, force the UI into a loading state.
     if (isFetching) {
       dispatch({ type: ActionType.SET_LOADING });
       return;
     }
 
-    // If there's no data yet (initial load), also show loading.
     if (!menus) {
       dispatch({ type: ActionType.SET_LOADING });
       return;
     }
 
-    // Only when not fetching and data is present, calculate the final state.
     dispatch({
       type: ActionType.SET_STATE,
       payload: menus,
     });
-  }, [menus, isFetching]); // ⬅️ Add isFetching to the dependency array
+  }, [menus, isFetching]);
 
   const goToPreviousWeek = () => {
     setCurrentDate(prevDate => subWeeks(prevDate, 1));
