@@ -8,7 +8,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@mono-repo/ui';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   useDeleteOffer,
   useDeleteMenu,
@@ -87,6 +87,8 @@ export function ItemDialog({
     ),
   });
 
+  const memoizedEditingData = useMemo(() => editingItem?.data, [editingItem]);
+
   const handleOpenChange = (newOpen: boolean) => {
     if (newOpen && !editingItem) {
       setActiveTab('offer');
@@ -97,26 +99,13 @@ export function ItemDialog({
   const handleOfferSubmit = (data: CreateOfferDto | UpdateOfferDto) => {
     if (editingItem) {
       updateOffer(
-        {
-          id: editingItem.id,
-          data: data as UpdateOfferDto,
-        },
-        {
-          onSuccess: () => {
-            handleOpenChange(false);
-          },
-        }
+        { id: editingItem.id, data: data as UpdateOfferDto },
+        { onSuccess: () => handleOpenChange(false) }
       );
     } else {
       createOffer(
-        {
-          data: data as CreateOfferDto,
-        },
-        {
-          onSuccess: () => {
-            handleOpenChange(false);
-          },
-        }
+        { data: data as CreateOfferDto },
+        { onSuccess: () => handleOpenChange(false) }
       );
     }
   };
@@ -124,33 +113,19 @@ export function ItemDialog({
   const handleMenuSubmit = (data: CreateMenuDto | UpdateMenuDto) => {
     if (editingItem) {
       updateMenu(
-        {
-          id: editingItem.id,
-          data: data as UpdateMenuDto,
-        },
-        {
-          onSuccess: () => {
-            handleOpenChange(false);
-          },
-        }
+        { id: editingItem.id, data: data as UpdateMenuDto },
+        { onSuccess: () => handleOpenChange(false) }
       );
     } else {
       createMenu(
-        {
-          data: data as CreateMenuDto,
-        },
-        {
-          onSuccess: () => {
-            handleOpenChange(false);
-          },
-        }
+        { data: data as CreateMenuDto },
+        { onSuccess: () => handleOpenChange(false) }
       );
     }
   };
 
   const handleDelete = () => {
     if (editingItem) {
-      console.log('Deleting item:', editingItem);
       if (editingItem.type === 'offer') {
         deleteOffer({ id: editingItem.id });
       } else {
@@ -178,14 +153,14 @@ export function ItemDialog({
               <OfferForm
                 selectedDate={selectedDate}
                 onSubmit={handleOfferSubmit}
-                editingItem={editingItem.data as DayOffersDto}
+                editingItem={memoizedEditingData as DayOffersDto}
                 onDelete={handleDelete}
               />
             ) : (
               <MenuForm
                 selectedDate={selectedDate}
                 onSubmit={handleMenuSubmit}
-                editingItem={editingItem.data as DayMenuDto}
+                editingItem={memoizedEditingData as DayMenuDto}
                 onDelete={handleDelete}
               />
             )}
@@ -200,14 +175,12 @@ export function ItemDialog({
               <TabsTrigger value="offer">Offer</TabsTrigger>
               <TabsTrigger value="menu">Menu</TabsTrigger>
             </TabsList>
-
             <TabsContent value="offer" className="space-y-4">
               <OfferForm
                 selectedDate={selectedDate}
                 onSubmit={handleOfferSubmit}
               />
             </TabsContent>
-
             <TabsContent value="menu" className="space-y-4">
               <MenuForm
                 selectedDate={selectedDate}

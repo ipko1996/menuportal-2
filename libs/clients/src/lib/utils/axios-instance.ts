@@ -16,7 +16,7 @@ export const setupAxiosInstance = (baseURL: string) => {
       if (tokenProvider) {
         const token = await tokenProvider();
         if (token) {
-          console.log('Adding token to request:', `${token.slice(0, 10)}...`);
+          // console.log('Adding token to request:', `${token.slice(0, 10)}...`);
           // @ts-expect-error any
           config.headers = {
             ...config.headers,

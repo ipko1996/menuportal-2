@@ -58,7 +58,7 @@ function TokenProvider() {
     setTokenProvider(tokenProvider);
 
     if (import.meta.env.DEV) {
-      console.log('Token provider configured successfully');
+      // console.log('Token provider configured successfully');
     }
   }, [authLoaded, userLoaded, isSignedIn, getToken]);
 
