@@ -297,7 +297,7 @@ function LandingPage() {
 
           <div className="relative max-w-4xl mx-auto">
             <img
-              src="/public/images/dashboard.png"
+              src="/images/dashboard.png"
               alt="Menuportal Dashboard"
               className="rounded-lg shadow-2xl border"
             />
@@ -433,7 +433,7 @@ function LandingPage() {
             </div>
             <div>
               <img
-                src="/public/images/menu-editor.png"
+                src="/images/menu-editor.png"
                 alt="Menu Creation Interface"
                 className="rounded-lg shadow-lg border"
               />
@@ -463,7 +463,7 @@ function LandingPage() {
             </div>
             <div className="lg:order-1">
               <img
-                src="/public/images/scheduling.png"
+                src="/images/scheduling.png"
                 alt="Social Media Integration"
                 className="rounded-lg shadow-lg border"
               />
