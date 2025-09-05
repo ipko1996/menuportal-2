@@ -88,7 +88,12 @@ export function determinePostState({
     isPlanningWeek,
     isEmpty,
     weekEnd,
+    isAccountSetup,
   } = weekData;
+
+  if (!isAccountSetup) {
+    return PostState.NoScheduling_SetUp;
+  }
 
   // 3. Evaluate state based on the weekStatus from the backend.
   switch (weekStatus) {

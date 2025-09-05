@@ -1,8 +1,9 @@
-'use client';
-
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import type { FC, ReactNode } from 'react';
 import { Eye, Facebook, Instagram, Save } from 'lucide-react';
+import { useForm, Controller, useFieldArray } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import {
   Card,
   CardHeader,
@@ -15,7 +16,6 @@ import {
   Button,
 } from '@mono-repo/ui';
 
-// --- API HOOKS ---
 import {
   useGetScheduleSettings,
   useCreateScheduleSettings,
@@ -24,14 +24,28 @@ import {
   useGetAllSocialAccountsForRestaurant,
 } from '@mono-repo/api-client';
 
-// 1. --- TYPE DEFINITIONS & HELPERS ---
+const platformSettingsSchema = z.object({
+  id: z.number().nullable(),
+  socialMediaAccountId: z.number(),
+  enabled: z.boolean(),
+  message: z.string().max(280, 'Message must be 280 characters or less'),
+  platformName: z.string(),
+});
 
-interface PlatformSettings {
-  id: number | null;
-  socialMediaAccountId: number;
-  enabled: boolean;
-  message: string;
-}
+const formSchema = z.object({
+  globalEnabled: z.boolean(),
+  globalPostTime: z
+    .string()
+    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format'),
+  globalMessage: z
+    .string()
+    .min(1, 'Default message is required')
+    .max(280, 'Message must be 280 characters or less'),
+  platforms: z.array(platformSettingsSchema),
+});
+
+type FormData = z.infer<typeof formSchema>;
+type PlatformSettings = z.infer<typeof platformSettingsSchema>;
 
 const getPlatformIcon = (platformName: string): ReactNode => {
   const lowerCaseName = platformName.toLowerCase();
@@ -44,15 +58,22 @@ const getPlatformIcon = (platformName: string): ReactNode => {
   return null;
 };
 
-// 2. --- REUSABLE SUB-COMPONENTS ---
+const normalizePlatformName = (platform: string): string =>
+  platform.charAt(0).toUpperCase() + platform.slice(1).toLowerCase();
 
-// Component for global scheduling settings
-const SchedulingSettings: FC<{
+interface SchedulingSettingsProps {
+  control: any;
   isEnabled: boolean;
+  errors: any;
   onEnabledChange: (checked: boolean) => void;
-  postTime: string;
-  onPostTimeChange: (time: string) => void;
-}> = ({ isEnabled, onEnabledChange, postTime, onPostTimeChange }) => (
+}
+
+const SchedulingSettings: FC<SchedulingSettingsProps> = ({
+  control,
+  isEnabled,
+  errors,
+  onEnabledChange,
+}) => (
   <>
     <div className="space-y-4">
       <Label className="text-base">Scheduling Type</Label>
@@ -65,10 +86,19 @@ const SchedulingSettings: FC<{
             Automatically post your weekly menu across all connected platforms
           </p>
         </div>
-        <Switch
-          id="enable-scheduling-switch"
-          checked={isEnabled}
-          onCheckedChange={onEnabledChange}
+        <Controller
+          name="globalEnabled"
+          control={control}
+          render={({ field }) => (
+            <Switch
+              id="enable-scheduling-switch"
+              checked={field.value}
+              onCheckedChange={checked => {
+                field.onChange(checked);
+                onEnabledChange(checked);
+              }}
+            />
+          )}
         />
       </div>
     </div>
@@ -78,12 +108,18 @@ const SchedulingSettings: FC<{
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="global-post-time">Post Time</Label>
-            <Input
-              id="global-post-time"
-              type="time"
-              value={postTime}
-              onChange={e => onPostTimeChange(e.target.value)}
+            <Controller
+              name="globalPostTime"
+              control={control}
+              render={({ field }) => (
+                <Input id="global-post-time" type="time" {...field} />
+              )}
             />
+            {errors.globalPostTime && (
+              <p className="text-sm text-red-500">
+                {errors.globalPostTime.message}
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             <Label>Post Day</Label>
@@ -100,103 +136,151 @@ const SchedulingSettings: FC<{
   </>
 );
 
-// Component for the default message input
-const DefaultMessageSettings: FC<{
-  message: string;
-  onMessageChange: (message: string) => void;
-}> = ({ message, onMessageChange }) => (
-  <div className="space-y-4">
-    <Label className="text-base">Default Message Configuration</Label>
-    <p className="text-sm text-muted-foreground">
-      Write the standard message that will be used for all platforms unless you
-      specify a custom message below.
-    </p>
-    <div className="space-y-2">
-      <Label htmlFor="global-message">Default Message</Label>
-      <textarea
-        id="global-message"
-        className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        placeholder="Write your weekly menu post message..."
-        value={message}
-        onChange={e => onMessageChange(e.target.value)}
-        rows={4}
-      />
+interface DefaultMessageSettingsProps {
+  control: any;
+  watch: any;
+  errors: any;
+}
+
+const DefaultMessageSettings: FC<DefaultMessageSettingsProps> = ({
+  control,
+  watch,
+  errors,
+}) => {
+  const globalMessage = watch('globalMessage');
+
+  return (
+    <div className="space-y-4">
+      <Label className="text-base">Default Message Configuration</Label>
       <p className="text-sm text-muted-foreground">
-        ({message.length}/280 characters)
+        Write the standard message that will be used for all platforms unless
+        you specify a custom message below.
       </p>
-    </div>
-  </div>
-);
-
-// Reusable card for platform-specific settings
-const PlatformSettingsCard: FC<{
-  platformName: string;
-  icon: ReactNode;
-  settings: PlatformSettings;
-  onUpdate: (updates: Partial<PlatformSettings>) => void;
-  globalMessage: string;
-}> = ({ platformName, icon, settings, onUpdate, globalMessage }) => (
-  <Card>
-    <CardHeader className="pb-4">
-      <CardTitle className="flex items-center gap-2">
-        {icon}
-        {platformName} Settings
-      </CardTitle>
-    </CardHeader>
-    <CardContent className="space-y-4">
-      <div className="flex flex-row items-center justify-between rounded-lg border p-3">
-        <div className="space-y-0.5">
-          <Label
-            htmlFor={`${platformName}-enabled`}
-            className="text-sm font-medium"
-          >
-            Enable {platformName} Posts
-          </Label>
-          <p className="text-xs text-muted-foreground">
-            Post weekly menu to {platformName}
-          </p>
-        </div>
-        <Switch
-          id={`${platformName}-enabled`}
-          checked={settings.enabled}
-          onCheckedChange={checked => onUpdate({ enabled: checked })}
+      <div className="space-y-2">
+        <Label htmlFor="global-message">Default Message</Label>
+        <Controller
+          name="globalMessage"
+          control={control}
+          render={({ field }) => (
+            <textarea
+              id="global-message"
+              className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder="Write your weekly menu post message..."
+              rows={4}
+              {...field}
+            />
+          )}
         />
+        {errors.globalMessage && (
+          <p className="text-sm text-red-500">{errors.globalMessage.message}</p>
+        )}
+        <p className="text-sm text-muted-foreground">
+          ({globalMessage?.length || 0}/280 characters)
+        </p>
       </div>
-      {settings.enabled && (
-        <div className="space-y-2">
-          <Label htmlFor={`${platformName}-message`}>
-            {platformName} Message
-          </Label>
-          <textarea
-            id={`${platformName}-message`}
-            className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            placeholder={globalMessage}
-            value={settings.message}
-            onChange={e => onUpdate({ message: e.target.value })}
-            rows={3}
-          />
-          <p className="text-xs text-muted-foreground">
-            Leave blank to use the default message. ({settings.message.length}
-            /280 characters)
-          </p>
-        </div>
-      )}
-    </CardContent>
-  </Card>
-);
+    </div>
+  );
+};
 
-// Component for the preview sidebar
-const PostPreview: FC<{
+interface PlatformSettingsCardProps {
+  index: number;
+  platform: PlatformSettings;
+  control: any;
+  globalMessage: string;
+  errors: any;
+}
+
+const PlatformSettingsCard: FC<PlatformSettingsCardProps> = ({
+  index,
+  platform,
+  control,
+  globalMessage,
+  errors,
+}) => {
+  const fieldErrors = errors.platforms?.[index];
+
+  return (
+    <Card>
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-2">
+          {getPlatformIcon(platform.platformName)}
+          {platform.platformName} Settings
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex flex-row items-center justify-between rounded-lg border p-3">
+          <div className="space-y-0.5">
+            <Label
+              htmlFor={`${platform.platformName}-enabled`}
+              className="text-sm font-medium"
+            >
+              Enable {platform.platformName} Posts
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Post weekly menu to {platform.platformName}
+            </p>
+          </div>
+          <Controller
+            name={`platforms.${index}.enabled`}
+            control={control}
+            render={({ field }) => (
+              <Switch
+                id={`${platform.platformName}-enabled`}
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+            )}
+          />
+        </div>
+        {platform.enabled && (
+          <div className="space-y-2">
+            <Label htmlFor={`${platform.platformName}-message`}>
+              {platform.platformName} Message
+            </Label>
+            <Controller
+              name={`platforms.${index}.message`}
+              control={control}
+              render={({ field }) => (
+                <textarea
+                  id={`${platform.platformName}-message`}
+                  className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  placeholder={globalMessage}
+                  rows={3}
+                  {...field}
+                />
+              )}
+            />
+            {fieldErrors?.message && (
+              <p className="text-sm text-red-500">
+                {fieldErrors.message.message}
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Leave blank to use the default message. (
+              {platform.message?.length || 0}/280 characters)
+            </p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+interface PostPreviewProps {
   globalPostTime: string;
   globalMessage: string;
-  platforms: Record<string, PlatformSettings>;
-}> = ({ globalPostTime, globalMessage, platforms }) => {
+  platforms: PlatformSettings[];
+}
+
+const PostPreview: FC<PostPreviewProps> = ({
+  globalPostTime,
+  globalMessage,
+  platforms,
+}) => {
+  const enabledPlatforms = platforms.filter(platform => platform.enabled);
+
   const getEffectiveMessage = (platformMessage: string) =>
     platformMessage || globalMessage;
-
-  const enabledPlatforms = Object.entries(platforms).filter(
-    ([, settings]) => settings.enabled
-  );
 
   return (
     <Card className="sticky top-4">
@@ -207,19 +291,24 @@ const PostPreview: FC<{
       </CardHeader>
       <CardContent className="space-y-4">
         {enabledPlatforms.length > 0 ? (
-          enabledPlatforms.map(([name, settings]) => (
-            <div key={name} className="p-3 border rounded-lg bg-muted/50">
+          enabledPlatforms.map(platform => (
+            <div
+              key={platform.socialMediaAccountId}
+              className="p-3 border rounded-lg bg-muted/50"
+            >
               <div className="flex items-center gap-2 mb-2">
-                {getPlatformIcon(name)}
+                {getPlatformIcon(platform.platformName)}
                 <div>
-                  <div className="text-sm font-semibold">{name}</div>
+                  <div className="text-sm font-semibold">
+                    {platform.platformName}
+                  </div>
                   <div className="text-xs text-muted-foreground">
                     Monday at {globalPostTime}
                   </div>
                 </div>
               </div>
               <p className="text-xs mb-2 break-words">
-                {getEffectiveMessage(settings.message)}
+                {getEffectiveMessage(platform.message)}
               </p>
               <div className="w-full h-16 bg-gradient-to-r from-orange-200 to-red-200 rounded text-xs text-center flex items-center justify-center text-muted-foreground">
                 Menu Image
@@ -236,17 +325,7 @@ const PostPreview: FC<{
   );
 };
 
-// 3. --- MAIN EXPORTED COMPONENT ---
 export function SettingsTab() {
-  // --- STATE MANAGEMENT ---
-  const [globalEnabled, setGlobalEnabled] = useState<boolean>(false);
-  const [globalPostTime, setGlobalPostTime] = useState<string>('09:00');
-  const [globalMessage, setGlobalMessage] = useState<string>('');
-  const [platforms, setPlatforms] = useState<Record<string, PlatformSettings>>(
-    {}
-  );
-
-  // --- DATA FETCHING ---
   const { data: socialAccounts, isLoading: isLoadingAccounts } =
     useGetAllSocialAccountsForRestaurant();
   const {
@@ -255,53 +334,90 @@ export function SettingsTab() {
     isError,
   } = useGetScheduleSettings('WEEKLY');
 
-  // --- MUTATIONS ---
   const createSettingsMutation = useCreateScheduleSettings();
   const updateCoreMutation = useUpdateCoreScheduleSettings();
   const updatePlatformMutation = useUpdatePlatformScheduleSettings();
 
-  // Effect to initialize and sync state from fetched data
-  useEffect(() => {
-    if (isLoadingAccounts || isLoadingSchedule) return;
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      globalEnabled: false,
+      globalPostTime: '09:00',
+      globalMessage: '',
+      platforms: [],
+    },
+  });
 
-    const connectedPlatforms: Record<string, PlatformSettings> = {};
-    if (socialAccounts) {
-      socialAccounts.forEach(account => {
-        const platformName =
-          account.platform.charAt(0) + account.platform.slice(1).toLowerCase();
-        connectedPlatforms[platformName] = {
-          id: null,
-          socialMediaAccountId: account.id,
-          enabled: false,
-          message: '',
-        };
-      });
-    }
+  const {
+    control,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+  } = form;
+  const { fields } = useFieldArray({ control, name: 'platforms' });
+
+  const watchedValues = watch();
+  const { globalEnabled, globalPostTime, globalMessage, platforms } =
+    watchedValues;
+
+  const connectedPlatforms = useMemo(() => {
+    if (!socialAccounts) return [];
+
+    return socialAccounts.map(account => ({
+      id: null,
+      socialMediaAccountId: account.id,
+      enabled: false,
+      message: '',
+      platformName: normalizePlatformName(account.platform),
+    }));
+  }, [socialAccounts]);
+
+  useEffect(() => {
+    if (isLoadingAccounts || isLoadingSchedule || !socialAccounts) return;
+
+    const platformsWithDefaults = connectedPlatforms.map(platform => ({
+      ...platform,
+      enabled: false,
+      message: '',
+    }));
 
     if (scheduleData) {
-      setGlobalEnabled(scheduleData.isActive);
-      setGlobalPostTime(scheduleData.postTime);
-      setGlobalMessage(scheduleData.defaultContentText);
+      setValue('globalEnabled', scheduleData.isActive);
+      setValue('globalPostTime', scheduleData.postTime);
+      setValue('globalMessage', scheduleData.defaultContentText);
+
       const savedPlatformsMap = new Map(
         scheduleData.platforms.map(p => [p.socialMediaAccountId, p])
       );
 
-      Object.values(connectedPlatforms).forEach(platform => {
+      const updatedPlatforms = platformsWithDefaults.map(platform => {
         const savedData = savedPlatformsMap.get(platform.socialMediaAccountId);
         if (savedData) {
-          platform.id = savedData.id;
-          platform.enabled = savedData.isActive;
-          platform.message = savedData.contentText ?? '';
+          return {
+            ...platform,
+            id: savedData.id,
+            enabled: savedData.isActive,
+            message: savedData.contentText ?? '',
+          };
         }
+        return platform;
       });
+
+      setValue('platforms', updatedPlatforms);
+    } else {
+      setValue('platforms', platformsWithDefaults);
     }
+  }, [
+    socialAccounts,
+    scheduleData,
+    isLoadingAccounts,
+    isLoadingSchedule,
+    connectedPlatforms,
+    setValue,
+  ]);
 
-    setPlatforms(connectedPlatforms);
-  }, [socialAccounts, scheduleData, isLoadingAccounts, isLoadingSchedule]);
-
-  // Dedicated handler for the master toggle switch
   const handleGlobalEnableToggle = (checked: boolean) => {
-    setGlobalEnabled(checked);
     if (scheduleData) {
       updateCoreMutation.mutate({
         scheduleType: 'WEEKLY',
@@ -314,29 +430,19 @@ export function SettingsTab() {
     }
   };
 
-  const updatePlatformSettings = (
-    platformName: string,
-    updates: Partial<PlatformSettings>
-  ) => {
-    setPlatforms(prev => ({
-      ...prev,
-      [platformName]: { ...prev[platformName], ...updates },
-    }));
-  };
-
   const isPending =
     createSettingsMutation.isPending ||
     updateCoreMutation.isPending ||
     updatePlatformMutation.isPending;
 
-  const handleSave = async () => {
+  const onSubmit = async (data: FormData) => {
     if (isError) {
       createSettingsMutation.mutate({
         data: {
           scheduleType: 'WEEKLY',
-          postTime: globalPostTime,
-          defaultContentText: globalMessage,
-          platforms: Object.values(platforms).map(p => ({
+          postTime: data.globalPostTime,
+          defaultContentText: data.globalMessage,
+          platforms: data.platforms.map(p => ({
             socialMediaAccountId: p.socialMediaAccountId,
             isActive: p.enabled,
             contentText: p.message || undefined,
@@ -350,12 +456,13 @@ export function SettingsTab() {
       await updateCoreMutation.mutateAsync({
         scheduleType: 'WEEKLY',
         data: {
-          isActive: globalEnabled,
-          postTime: globalPostTime,
-          defaultContentText: globalMessage,
+          isActive: data.globalEnabled,
+          postTime: data.globalPostTime,
+          defaultContentText: data.globalMessage,
         },
       });
-      for (const platform of Object.values(platforms)) {
+
+      for (const platform of data.platforms) {
         if (platform.id) {
           await updatePlatformMutation.mutateAsync({
             platformScheduleId: platform.id,
@@ -377,81 +484,82 @@ export function SettingsTab() {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <div className="lg:col-span-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Menu Scheduling</CardTitle>
-            <CardDescription>
-              {isError
-                ? 'Setup your new weekly schedule.'
-                : 'Configure when and how your menu gets posted automatically.'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <SchedulingSettings
-              isEnabled={globalEnabled}
-              onEnabledChange={handleGlobalEnableToggle}
-              postTime={globalPostTime}
-              onPostTimeChange={setGlobalPostTime}
-            />
-            {globalEnabled && (
-              <>
-                <DefaultMessageSettings
-                  message={globalMessage}
-                  onMessageChange={setGlobalMessage}
-                />
-                <div className="space-y-4">
-                  <Label className="text-base">
-                    Platform Specific Settings
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    Customize settings for each connected platform.
-                  </p>
-                  {Object.keys(platforms).length > 0 ? (
-                    Object.entries(platforms).map(([name, settings]) => (
-                      <PlatformSettingsCard
-                        key={name}
-                        platformName={name}
-                        icon={getPlatformIcon(name)}
-                        settings={settings}
-                        onUpdate={updates =>
-                          updatePlatformSettings(name, updates)
-                        }
-                        globalMessage={globalMessage}
-                      />
-                    ))
-                  ) : (
-                    <p className="text-sm text-muted-foreground text-center py-4">
-                      No social media accounts connected.
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Menu Scheduling</CardTitle>
+              <CardDescription>
+                {isError
+                  ? 'Setup your new weekly schedule.'
+                  : 'Configure when and how your menu gets posted automatically.'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <SchedulingSettings
+                control={control}
+                isEnabled={globalEnabled}
+                errors={errors}
+                onEnabledChange={handleGlobalEnableToggle}
+              />
+              {globalEnabled && (
+                <>
+                  <DefaultMessageSettings
+                    control={control}
+                    watch={watch}
+                    errors={errors}
+                  />
+                  <div className="space-y-4">
+                    <Label className="text-base">
+                      Platform Specific Settings
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Customize settings for each connected platform.
                     </p>
-                  )}
-                </div>
-                <div className="flex justify-end pt-4 border-t">
-                  <Button onClick={handleSave} disabled={isPending}>
-                    {isPending ? (
-                      'Saving...'
+                    {fields.length > 0 ? (
+                      fields.map((field, index) => (
+                        <PlatformSettingsCard
+                          key={field.id}
+                          index={index}
+                          platform={platforms[index]}
+                          control={control}
+                          globalMessage={globalMessage}
+                          errors={errors}
+                        />
+                      ))
                     ) : (
-                      <>
-                        <Save className="h-4 w-4 mr-2" /> Save Changes
-                      </>
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        No social media accounts connected.
+                      </p>
                     )}
-                  </Button>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+                  </div>
+                  <div className="flex justify-end pt-4 border-t">
+                    <Button type="submit" disabled={isPending}>
+                      {isPending ? (
+                        'Saving...'
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4 mr-2" /> Save Changes
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+        <div className="lg:col-span-1">
+          {globalEnabled && (
+            <PostPreview
+              globalPostTime={globalPostTime}
+              globalMessage={globalMessage}
+              platforms={platforms}
+            />
+          )}
+        </div>
       </div>
-      <div className="lg:col-span-1">
-        {globalEnabled && (
-          <PostPreview
-            globalPostTime={globalPostTime}
-            globalMessage={globalMessage}
-            platforms={platforms}
-          />
-        )}
-      </div>
-    </div>
+    </form>
   );
 }

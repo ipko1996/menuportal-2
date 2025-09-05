@@ -76,7 +76,7 @@ export class TemplatesService {
 
     if (!result[0]?.templateId) {
       throw new NotFoundException(
-        `No active default '${scheduleType}' schedule found for restaurant ${restaurantId}.`
+        `Default template for active '${scheduleType}' schedule not found for restaurant ${restaurantId}.`
       );
     }
     return result[0].templateId;

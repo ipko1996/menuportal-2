@@ -30,6 +30,7 @@ import {
   NewState,
   PostState,
 } from './status-indicator/types';
+import { Link } from '@tanstack/react-router';
 
 const mockViewPublished = (weekNumber: number) => {
   console.log(`ACTION: Viewing published menu for week ${weekNumber}`);
@@ -500,9 +501,11 @@ export const stateComponentMap: Record<
       weekNumber={weekNumber}
       statusText="Connect platforms to enable scheduling"
     >
-      <Button className="bg-gray-900 hover:bg-gray-800 text-white dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200">
-        <Settings className="h-3 w-3 mr-1" /> Set Up
-      </Button>
+      <Link to="/settings/integrations">
+        <Button className="bg-gray-900 hover:bg-gray-800 text-white dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200">
+          <Settings className="h-3 w-3 mr-1" /> Set Up
+        </Button>
+      </Link>
     </MenuStatusCard>
   ),
 };

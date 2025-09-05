@@ -255,6 +255,13 @@ export class WeekMenuResponseDto {
   failureReason?: string;
 
   @ApiProperty({
+    description: 'Indicates if at least one social media account is set up',
+    example: true,
+    type: Boolean,
+  })
+  isAccountSetup: boolean;
+
+  @ApiProperty({
     description: 'Daily menu data indexed by date (YYYY-MM-DD format)',
     type: 'object',
     additionalProperties: { $ref: getSchemaPath(WeekMenuDayDto) },

@@ -29,7 +29,6 @@ import { UserDto, UserDtoWithRestaurant } from './dto/user.dto';
 interface FacebookTokenResponse {
   access_token: string;
   token_type: string;
-  expires_in: number;
 }
 
 interface FacebookUserResponse {
@@ -146,8 +145,9 @@ export class AuthService {
     );
 
     // Step 1: Exchange code for user access token
-    const { accessToken: userAccessToken, expiresIn } =
-      await this.exchangeCodeForToken(code);
+    const { accessToken: userAccessToken } = await this.exchangeCodeForToken(
+      code
+    );
 
     // // Step 2: Get user details
     // const facebookUser = await this.getFacebookUserDetails(userAccessToken);
@@ -173,9 +173,6 @@ export class AuthService {
     const encryptedAccessToken =
       this.encryptionService.encrypt(pageAccessToken);
 
-    const tokenExpiresAt = new Date();
-    tokenExpiresAt.setSeconds(tokenExpiresAt.getSeconds() + expiresIn);
-
     const platform = 'FACEBOOK' as const;
 
     const valuesToInsert = {
@@ -183,7 +180,7 @@ export class AuthService {
       platform,
       platformAccountId: selectedPage.id, // Use page ID, not user ID
       accessToken: encryptedAccessToken,
-      tokenExpiresAt: tokenExpiresAt.toISOString(),
+      tokenExpiresAt: undefined,
       isActive: true,
     };
 
@@ -284,7 +281,7 @@ export class AuthService {
    */
   private async exchangeCodeForToken(
     code: string
-  ): Promise<{ accessToken: string; expiresIn: number }> {
+  ): Promise<{ accessToken: string }> {
     const appId = this.configService.get<string>('FB_APP_ID');
     const appSecret = this.configService.get<string>('FB_APP_SECRET');
     const redirectUri = this.configService.get<string>('FB_CALLBACK_URL');
@@ -305,7 +302,6 @@ export class AuthService {
 
       return {
         accessToken: response.data.access_token,
-        expiresIn: response.data.expires_in,
       };
     } catch (error) {
       this.logger.error(

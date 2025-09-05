@@ -23,6 +23,8 @@ export interface WeekMenuResponseDto {
    * @nullable
    */
   failureReason: string | null;
+  /** Indicates if at least one social media account is set up */
+  isAccountSetup: boolean;
   /** Daily menu data indexed by date (YYYY-MM-DD format) */
   days: WeekMenuResponseDtoDays;
   /** Indicates if the week menu is empty (no offers or menus) */

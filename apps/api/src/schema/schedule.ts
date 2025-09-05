@@ -81,7 +81,7 @@ export const platformSchedules = pgTable(
     // Foreign key linking to the specific social media account
     socialMediaAccountId: integer('social_media_account_id')
       .notNull()
-      .references(() => socialMediaAccount.id, { onDelete: 'cascade' }),
+      .references(() => socialMediaAccount.id, { onDelete: 'no action' }),
 
     // Platform-specific override for the image. If NULL, use the default.
     templateId: text('template_id'),

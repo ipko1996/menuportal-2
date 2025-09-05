@@ -56,7 +56,7 @@ export const post = pgTable(
     id: serial('id').primaryKey(),
     socialMediaAccountId: integer('social_media_account_id')
       .notNull()
-      .references(() => socialMediaAccount.id, { onDelete: 'cascade' }),
+      .references(() => socialMediaAccount.id, { onDelete: 'no action' }),
 
     // UPDATED: Renamed and now references the new `platformSchedules` table.
     // A post is generated from a specific platform's schedule settings.

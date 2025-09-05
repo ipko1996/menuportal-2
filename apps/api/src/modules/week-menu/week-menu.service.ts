@@ -13,6 +13,7 @@ import { WeeklyOfferQueryService } from '@/shared/services/weekly-offer-query.se
 
 import { PostService } from '../post/post.service';
 import { SnapshotService } from '../snapshot/snapshot.service';
+import { SocialService } from '../social/social.service';
 import { WeekMenuResponseDto } from './dto/week-menu-response.dto';
 
 @Injectable()
@@ -22,7 +23,8 @@ export class WeekMenuService {
   constructor(
     private readonly weeklyOfferQueryService: WeeklyOfferQueryService,
     private readonly snapshotService: SnapshotService,
-    private readonly postService: PostService
+    private readonly postService: PostService,
+    private readonly social: SocialService
   ) {}
 
   /**
@@ -43,6 +45,14 @@ export class WeekMenuService {
       dateRange,
       restaurantId
     );
+    const socials = await this.social.findAllSocaialsForRestaurant(
+      restaurantId
+    );
+    let isAccountSetup = socials.length > 0;
+    if (!isAccountSetup) {
+      isAccountSetup = socials.some(s => s.isActive);
+    }
+
     const posts = await this.postService.getPostsByIds(existingSchedules.snaps);
 
     const now = new Date();
@@ -100,6 +110,7 @@ export class WeekMenuService {
       weekStart: start,
       weekEnd: end,
       days,
+      isAccountSetup,
       isEmpty: this.isWeekEmpty(days),
       isPast,
       isCurrentWeek,
