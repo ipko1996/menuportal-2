@@ -8,18 +8,13 @@
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
-      background-color:
-        #f5f5f5;
-      position: relative;
-      min-height: 100vh;
+      background-color: #f5f5f5;
     }
 
     .menu-container {
-      position: relative;
       background-color: white;
       padding: 20px;
-      max-width:
-        800px;
+      max-width: 800px;
       margin: 0 auto;
       min-height: calc(100vh - 40px);
     }
@@ -30,8 +25,7 @@
     }
 
     .restaurant-name {
-      font-size:
-        18px;
+      font-size: 18px;
       font-weight: bold;
       text-decoration: underline;
       margin-bottom: 5px;
@@ -46,8 +40,7 @@
       font-size: 16px;
       font-weight: bold;
       letter-spacing: 2px;
-      margin-bottom:
-        10px;
+      margin-bottom: 10px;
     }
 
     .week-dates {
@@ -66,8 +59,7 @@
 
     .fixed-items td {
       padding: 2px 0;
-      font-size:
-        14px;
+      font-size: 14px;
     }
 
     .fixed-items .item-name {
@@ -76,96 +68,110 @@
 
     .fixed-items .item-price {
       width: 30%;
-      text-align: left;
     }
 
+    /* --- Main Menu Table --- */
     .menu-table {
       width: 100%;
       border-collapse: collapse;
       border: 3px solid black;
     }
 
-    .menu-table th,
-    .menu-table td {
+    /* Direct child cells of the main table */
+    .menu-table>tbody>tr>td {
       border: 1px solid black;
-      padding: 6px;
-      text-align: left;
-      vertical-align: top;
+      vertical-align: middle;
       font-size: 12px;
     }
 
     .day-cell {
       font-weight: bold;
       width: 12%;
+      padding: 6px;
       background-color: #f0f0f0;
-      border-right: 2px solid black !important;
-      border-left: 2px solid black !important;
+      border-left: 2px solid black;
+      border-right: 2px solid black;
     }
 
     .food-cell {
-      width:
-        68%;
-      border-right: 2px solid black !important;
-      padding: 4px 6px;
-    }
-
-    .price-cell {
-      width: 10%;
-      text-align: right;
-      font-weight: bold;
-      border-left: 2px solid black !important;
+      width: 88%;
+      border-right: 2px solid black;
+      /* Padding is 0 to allow the nested table to fill the space */
+      padding: 0;
     }
 
     .menu-label {
-      font-weight:
-        bold;
+      font-weight: bold;
       display: inline-block;
       padding: 2px 4px;
       margin-bottom: 2px;
     }
 
-    .dish-item {
-      margin: 2px 0;
-      padding: 1px 0;
-      border-bottom: 1px solid #ddd;
-    }
-
-    .dish-item:last-child {
-      border-bottom: none;
-    }
-
     .empty-day {
       color: #666;
       font-style: italic;
+      padding-left: 6px;
+      /* Re-adds padding that was on the parent cell */
+    }
+
+    /* --- Nested Dish Table (inside .food-cell) --- */
+    .dish-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .dish-table td {
+      padding: 2px 6px;
+      vertical-align: top;
+      border: none;
+      border: 1px solid black;
+    }
+
+    /* Remove outer borders */
+    .dish-table tr:first-child td {
+      border-top: none;
+    }
+
+    .dish-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .dish-table tr td:first-child {
+      border-left: none;
+    }
+
+    .dish-table tr td:last-child {
+      border-right: none;
+    }
+
+
+    .dish-name-cell {
+      width: 88%;
+    }
+
+    .dish-price-cell {
+      width: 12%;
+      text-align: center;
+      font-weight: bold;
+      border-left: 1px solid black;
+      background-color: #fafafa;
+    }
+
+    .dish-row {}
+
+    /* Adds a separator line BETWEEN items, but not after the last one */
+    .dish-row:not(:last-child)>td {
+      border-bottom: 1px solid #ddd;
     }
 
     .footer {
       margin-top: 20px;
       font-size: 12px;
       text-align: center;
-      margin-bottom: 50px;
-      /* Add space for watermark */
     }
 
     .footer p {
       margin: 5px 0;
-    }
-
-    .menu-row {
-      background-color: #f8f8f8;
-    }
-
-    .menu-table td {
-      border: 1px solid black !important;
-    }
-
-    .menu-table tr {
-      border: 1px solid black !important;
-    }
-
-    .menu-table {
-      border-top: 3px solid black !important;
-      border-bottom: 3px solid black !important;
     }
 
     .watermark {
@@ -173,20 +179,12 @@
       bottom: 20px;
       right: 20px;
       font-size: 12px;
-      font-style:
-        italic;
+      font-style: italic;
       color: rgba(0, 0, 0, 0.4);
       pointer-events: none;
-      user-select:
-        none;
-      z-index: 1000;
-      background-color: rgba(255, 255, 255, 0.8);
-      padding:
-        2px 4px;
-      border-radius: 2px;
     }
 
-    /* Print-specific styles */
+    /* --- Print Styles --- */
     @media print {
       body {
         margin: 0;
@@ -194,21 +192,19 @@
       }
 
       .menu-container {
-        padding:
-          15px;
+        padding: 15px;
         min-height: auto;
+        box-shadow: none;
       }
 
       .watermark {
         position: absolute;
         bottom: 10px;
         right: 15px;
-        background-color: transparent;
       }
 
       .footer {
-        margin-bottom:
-          30px;
+        margin-bottom: 30px;
       }
     }
   </style>
@@ -250,52 +246,45 @@
     </div>
 
     <table class='menu-table'>
-      {{#each (getDaysInOrder days weekStart)}}
-      <tr>
-        <td class='day-cell'>{{this.dayName}}</td>
-        <td class='food-cell'>
-          {{#if this.dayData.offers}}
-          {{#each this.dayData.offers}}
-          <div class='dish-item'>{{this.dish.dishName}}</div>
-          {{/each}}
-          {{/if}}
+      <tbody>
+        {{#each (getDaysInOrder days weekStart)}}
+        <tr>
+          <td class='day-cell'>{{this.dayName}}</td>
+          <td class='food-cell'>
+            <table class='dish-table'>
+              <tbody>
+                {{#if (or this.dayData.offers this.dayData.menus)}}
+                {{! Loop through daily offers if they exist }}
+                {{#each this.dayData.offers}}
+                <tr class="dish-row">
+                  <td class='dish-name-cell'>{{this.dish.dishName}}</td>
+                  <td class='dish-price-cell'>{{#if this.price}}{{formatPrice this.price}}{{/if}}</td>
+                </tr>
+                {{/each}}
 
-          {{#if this.dayData.menus}}
-          {{#each this.dayData.menus}}
-          <div class='dish-item'>
-            <div class='menu-label'>{{this.menuName}}</div>
-            {{#each this.dishes}}
-            {{this.dishName}}{{#unless @last}}, {{/unless}}
-            {{/each}}
-          </div>
-          {{/each}}
-          {{/if}}
-
-          {{#unless (or this.dayData.offers this.dayData.menus)}}
-          <span class='empty-day'>-</span>
-          {{/unless}}
-        </td>
-        <td class='price-cell'>
-          {{#if this.dayData.offers}}
-          {{#each this.dayData.offers}}
-          <div class='dish-item'>
-            {{#if this.price}}{{formatPrice this.price}}{{/if}}
-          </div>
-          {{/each}}
-          {{/if}}
-
-          {{#if this.dayData.menus}}
-          {{#each this.dayData.menus}}
-          <div class='dish-item'>{{formatPrice this.price}}</div>
-          {{/each}}
-          {{/if}}
-
-          {{#unless (or this.dayData.offers this.dayData.menus)}}
-          <span class='empty-day'>-</span>
-          {{/unless}}
-        </td>
-      </tr>
-      {{/each}}
+                {{! Loop through menus if they exist }}
+                {{#each this.dayData.menus}}
+                <tr class="dish-row">
+                  <td class='dish-name-cell'>
+                    <div class='menu-label'>{{this.menuName}}</div>
+                    {{#each this.dishes}}{{this.dishName}}{{#unless @last}}, {{/unless}}{{/each}}
+                  </td>
+                  <td class='dish-price-cell'>{{formatPrice this.price}}</td>
+                </tr>
+                {{/each}}
+                {{else}}
+                {{! This displays if a day has no offers and no menus }}
+                <tr class="dish-row">
+                  <td class='dish-name-cell empty-day'>-</td>
+                  <td class="dish-price-cell"></td>
+                </tr>
+                {{/if}}
+              </tbody>
+            </table>
+          </td>
+        </tr>
+        {{/each}}
+      </tbody>
     </table>
 
     <div class='footer'>
