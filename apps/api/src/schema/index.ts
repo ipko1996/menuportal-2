@@ -4,6 +4,7 @@ export * from './availability';
 export * from './dish';
 export * from './dish-menu';
 export * from './dish-type';
+export * from './holiday';
 export * from './menu';
 export * from './offer';
 export * from './offer-add-on';

@@ -10,6 +10,7 @@ import { ClerkMiddleware } from '@/middleware/auth.middleware';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { DishModule } from '@/modules/dish/dish.module';
 import { DishtypeModule } from '@/modules/dishtype/dishtype.module';
+import { HolidayModule } from '@/modules/holiday/holiday.module';
 import { PublishModule } from '@/modules/jobs/publish.module';
 import { MenuModule } from '@/modules/menu/menu.module';
 import { OfferModule } from '@/modules/offer/offer.module';
@@ -30,6 +31,7 @@ import { DrizzleModule } from '../shared/database/database.module';
     AuthModule,
     DishModule,
     DishtypeModule,
+    HolidayModule,
     MenuModule,
     OfferModule,
     PdfModule,

@@ -10,6 +10,7 @@ import {
 
 import { addOn } from './add-on';
 import { dish } from './dish';
+import { holiday } from './holiday';
 import { menu } from './menu';
 import { offer } from './offer';
 import { restaurantDishType } from './restaurant-dish-type';
@@ -47,6 +48,7 @@ export const restaurantRelations = relations(restaurant, ({ many, one }) => ({
   users: one(userRestaurant),
   offers: many(offer),
   menus: many(menu),
+  holidays: many(holiday),
   addOns: many(addOn),
   settings: one(restaurantSetting),
   schedules: many(schedules),
