@@ -5,6 +5,7 @@
  * The API description
  * OpenAPI spec version: 1.0
  */
+import type { DayHolidayDto } from './day-holiday-dto';
 import type { DayMenuDto } from './day-menu-dto';
 import type { DayOffersDto } from './day-offers-dto';
 
@@ -13,4 +14,6 @@ export interface WeekMenuDayDto {
   offers: DayOffersDto[];
   /** List of complete menus available for the day */
   menus: DayMenuDto[];
+  /** Holiday information for the day, if applicable */
+  holiday: DayHolidayDto;
 }

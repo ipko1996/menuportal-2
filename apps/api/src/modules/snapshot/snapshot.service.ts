@@ -7,7 +7,13 @@ import {
 } from '@nestjs/common';
 import { and, between, eq, inArray } from 'drizzle-orm';
 
-import { snapshot, snapshotItem, snapshotMenu, snapshotOffer } from '@/schema';
+import {
+  snapshot,
+  snapshotHoliday,
+  snapshotItem,
+  snapshotMenu,
+  snapshotOffer,
+} from '@/schema';
 import {
   DatabaseService,
   Transaction,
@@ -95,6 +101,36 @@ export class SnapshotService {
     const snapshotIds: number[] = [];
 
     await tx.transaction(async tx => {
+      // --- Holidays ---
+      if (weeklyData.weeklyHolidays.length === 0) {
+        // Skip holidays processing
+      } else {
+        const holidaySnapshots = await tx
+          .insert(snapshot)
+          .values(
+            weeklyData.weeklyHolidays.map(h => ({
+              restaurantId,
+              entityType: 'HOLIDAY' as const,
+              originalId: h.holidayId,
+              date: h.availabilityDate,
+            }))
+          )
+          .returning({ id: snapshot.id, originalId: snapshot.originalId });
+
+        const holidaySnapshotMap = new Map(
+          holidaySnapshots.map(s => [s.originalId, s.id])
+        );
+        snapshotIds.push(...holidaySnapshots.map(s => s.id));
+
+        await tx.insert(snapshotHoliday).values(
+          weeklyData.weeklyHolidays.map(h => ({
+            snapshotId: holidaySnapshotMap.get(h.holidayId)!,
+            originalHolidayId: h.holidayId,
+            holidayName: h.holidayName,
+          }))
+        );
+      }
+
       // --- Offers ---
       if (weeklyData.weeklyOffers.length === 0) {
         // Skip offers processing
@@ -211,6 +247,7 @@ export class SnapshotService {
         offers: true,
         menus: true,
         items: true,
+        holidays: true,
       },
     });
   }
@@ -239,6 +276,10 @@ export class SnapshotService {
     const snapshotIds = snapshots.map(s => s.id);
 
     await tx
+      .delete(snapshotHoliday)
+      .where(inArray(snapshotHoliday.snapshotId, snapshotIds));
+
+    await tx
       .delete(snapshotItem)
       .where(inArray(snapshotItem.snapshotId, snapshotIds));
     await tx
@@ -253,6 +294,7 @@ export class SnapshotService {
     return snapshotIds;
   }
 
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   public async getSnapshotsForWeek(
     dateRange: DateRange,
     restaurantId: number
@@ -268,7 +310,7 @@ export class SnapshotService {
       d.setDate(d.getDate() + 1)
     ) {
       const key = d.toISOString().slice(0, 10);
-      days[key] = { offers: [], menus: [] };
+      days[key] = { offers: [], menus: [], holiday: undefined };
     }
 
     for (const schedule of schedules) {
@@ -283,45 +325,69 @@ export class SnapshotService {
       const dayKey = schedule.date;
       if (!days[dayKey]) continue;
 
-      if (schedule.entityType === 'OFFER') {
-        const offerData = schedule.offers[0];
-        const dishData = schedule.items[0];
+      switch (schedule.entityType) {
+        case 'OFFER': {
+          const offerData = schedule.offers[0];
+          const dishData = schedule.items[0];
 
-        if (!offerData || !dishData) {
-          this.logger.warn(
-            `Incomplete snapshot data for offer with original ID ${schedule.originalId}`
-          );
-          continue;
+          if (!offerData || !dishData) {
+            this.logger.warn(
+              `Incomplete snapshot data for offer with original ID ${schedule.originalId}`
+            );
+            continue;
+          }
+
+          days[dayKey].offers.push({
+            offerId: schedule.originalId,
+            price: offerData.price,
+            dish: {
+              dishId: dishData.originalDishId,
+              dishName: dishData.dishName,
+              dishTypeId: dishData.dishTypeId,
+            },
+          });
+
+          break;
         }
+        case 'MENU': {
+          const menuData = schedule.menus[0];
+          if (!menuData) {
+            this.logger.warn(
+              `Incomplete snapshot data for menu with original ID ${schedule.originalId}`
+            );
+            continue;
+          }
 
-        days[dayKey].offers.push({
-          offerId: schedule.originalId,
-          price: offerData.price,
-          dish: {
-            dishId: dishData.originalDishId,
-            dishName: dishData.dishName,
-            dishTypeId: dishData.dishTypeId,
-          },
-        });
-      } else if (schedule.entityType === 'MENU') {
-        const menuData = schedule.menus[0];
-        if (!menuData) {
-          this.logger.warn(
-            `Incomplete snapshot data for menu with original ID ${schedule.originalId}`
-          );
-          continue;
+          days[dayKey].menus.push({
+            menuId: schedule.originalId,
+            menuName: menuData.menuName,
+            price: menuData.price,
+            dishes: schedule.items.map(item => ({
+              dishId: item.originalDishId,
+              dishName: item.dishName,
+              dishTypeId: item.dishTypeId,
+            })),
+          });
+
+          break;
         }
+        case 'HOLIDAY': {
+          const holidayData = schedule.holidays[0];
+          if (!holidayData) {
+            this.logger.warn(
+              `Incomplete snapshot data for holiday with original ID ${schedule.originalId}`
+            );
+            continue;
+          }
 
-        days[dayKey].menus.push({
-          menuId: schedule.originalId,
-          menuName: menuData.menuName,
-          price: menuData.price,
-          dishes: schedule.items.map(item => ({
-            dishId: item.originalDishId,
-            dishName: item.dishName,
-            dishTypeId: item.dishTypeId,
-          })),
-        });
+          days[dayKey].holiday = {
+            holidayId: schedule.originalId,
+            name: holidayData.holidayName,
+          };
+
+          break;
+        }
+        // No default
       }
     }
 

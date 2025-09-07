@@ -1,4 +1,4 @@
-import { addDays, format, isSameDay, startOfWeek } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
 import React from 'react';
 import type { Locale } from 'date-fns';
 import { cn } from '@mono-repo/ui';
@@ -10,17 +10,26 @@ import {
   WeekMenuDayDto,
   WeekMenuResponseDto,
   WeekMenuResponseDtoWeekStatus,
+  DayHolidayDto,
 } from '@mono-repo/api-client';
+import { MoreVertical, PlusCircle, Trash2 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@mono-repo/ui/dropdown-menu';
+import { Button } from '@mono-repo/ui/button';
 
 interface WeeklyCalendarProps {
-  currentDate: Date;
+  daysToDisplay: Date[];
   onDayClick?: (date: Date) => void;
   onOfferClick?: (offer: DayOffersDto) => void;
   onMenuClick?: (menu: DayMenuDto) => void;
+  onAddHolidayClick?: (date: Date) => void;
+  onDeleteHolidayClick?: (holiday: DayHolidayDto) => void;
   locale?: Locale;
-  weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   className?: string;
-  children?: (date: Date) => React.ReactNode;
   menuData?: WeekMenuResponseDto;
   weekStatus?: WeekMenuResponseDtoWeekStatus;
 }
@@ -28,109 +37,138 @@ interface WeeklyCalendarProps {
 interface DayHeaderProps {
   day: Date;
   locale?: Locale;
+  onAddHolidayClick?: (date: Date) => void;
+  onDeleteHolidayClick?: (holiday: DayHolidayDto) => void;
+  holiday?: DayHolidayDto;
 }
 
 interface DayCellProps {
   day: Date;
+  dayData?: WeekMenuDayDto;
   onDayClick?: (date: Date) => void;
   onOfferClick?: (offer: DayOffersDto) => void;
   onMenuClick?: (menu: DayMenuDto) => void;
-  children?: React.ReactNode;
-  dayData?: WeekMenuDayDto;
+  onAddHolidayClick?: (date: Date) => void;
+  onDeleteHolidayClick?: (holiday: DayHolidayDto) => void;
   weekStatus?: WeekMenuResponseDtoWeekStatus;
 }
 
-const DayHeader = React.memo(({ day, locale }: DayHeaderProps) => {
-  const isToday = isSameDay(day, new Date());
+const DayHeader = React.memo(
+  ({
+    day,
+    locale,
+    onAddHolidayClick,
+    onDeleteHolidayClick,
+    holiday,
+  }: DayHeaderProps) => {
+    const isToday = isSameDay(day, new Date());
 
-  return (
-    <div
-      className={cn(
-        'p-3 text-center border-b sticky top-0 bg-background z-10',
-        isToday && 'bg-muted font-medium'
-      )}
-    >
-      <div className="text-sm font-medium">
-        {format(day, 'EEEE', { locale })}
+    return (
+      <div
+        className={cn(
+          'p-3 text-center border-b sticky top-0 bg-background z-10 flex items-center justify-between',
+          isToday && 'bg-muted font-medium'
+        )}
+      >
+        <div className="flex flex-col items-start">
+          <div className="text-sm font-medium">
+            {format(day, 'EEEE', { locale })}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {format(day, 'MMM d', { locale })}
+          </div>
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={e => e.stopPropagation()}
+            >
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" onClick={e => e.stopPropagation()}>
+            {!holiday && (
+              <DropdownMenuItem onClick={() => onAddHolidayClick?.(day)}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                <span>Add Holiday</span>
+              </DropdownMenuItem>
+            )}
+            {holiday && (
+              <DropdownMenuItem
+                className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                onClick={() => onDeleteHolidayClick?.(holiday)}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                <span>Remove Holiday</span>
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-      <div className="text-xs text-muted-foreground">
-        {format(day, 'MMM d', { locale })}
-      </div>
-    </div>
-  );
-});
+    );
+  }
+);
 DayHeader.displayName = 'DayHeader';
 
 const DayCell = React.memo(
   ({
     day,
+    dayData,
     onDayClick,
     onOfferClick,
     onMenuClick,
-    children,
-    dayData,
+    onAddHolidayClick,
+    onDeleteHolidayClick,
     weekStatus,
   }: DayCellProps) => {
     const isToday = isSameDay(day, new Date());
-    const isDisabled = weekStatus !== 'DRAFT';
-
-    const handleDayClick = (e: React.MouseEvent) => {
-      if (isDisabled) return;
-
-      if (
-        e.target === e.currentTarget ||
-        (e.target as HTMLElement).closest('.day-content')
-      ) {
-        onDayClick?.(day);
-      }
-    };
-
-    const handleOfferClick = (offer: DayOffersDto) => {
-      if (isDisabled) return;
-      onOfferClick?.(offer);
-    };
-
-    const handleMenuClick = (menu: DayMenuDto) => {
-      if (isDisabled) return;
-      onMenuClick?.(menu);
-    };
+    const holiday = dayData?.holiday;
+    const isDisabled = weekStatus !== 'DRAFT' || !!holiday;
 
     return (
       <div
         className={cn(
           'border-r last:border-r-0 flex flex-col transition-colors relative',
           isToday && 'bg-muted/30',
-          isDisabled ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-muted/50'
+          !isDisabled && 'cursor-pointer hover:bg-muted/50',
+          isDisabled && 'bg-gray-50 dark:bg-gray-900'
         )}
-        onClick={handleDayClick}
+        onClick={() => !isDisabled && onDayClick?.(day)}
       >
-        {isDisabled && (
-          <div className="absolute inset-0 bg-gray-500/20 z-20 flex items-center justify-center">
-            {/* <div className="bg-white/90 px-3 py-1 rounded-md text-xs font-medium text-gray-600 shadow-sm">
-              {weekStatus === 'SCHEDULED' && 'Scheduled - No Edits'}
-              {weekStatus === 'PUBLISHED' && 'Published - Read Only'}
-              {weekStatus === 'FAILED' && 'Failed - No Edits'}
-            </div> */}
-          </div>
-        )}
-
-        <DayHeader day={day} />
-        <div className="flex-1 p-3 overflow-y-auto day-content">
-          {dayData?.offers.map(offer => (
-            <OfferCard
-              key={offer.offerId}
-              offer={offer}
-              onClick={() => handleOfferClick(offer)}
-            />
-          ))}
-          {dayData?.menus.map(menu => (
-            <MenuCard
-              key={menu.menuId}
-              menu={menu}
-              onClick={() => handleMenuClick(menu)}
-            />
-          ))}
-          {children}
+        <DayHeader
+          day={day}
+          holiday={holiday}
+          onAddHolidayClick={onAddHolidayClick}
+          onDeleteHolidayClick={onDeleteHolidayClick}
+        />
+        <div className="flex-1 p-3 overflow-y-auto">
+          {holiday ? (
+            <div className="flex items-center justify-center h-full">
+              <span className="font-semibold text-gray-600 dark:text-gray-300">
+                {holiday.name}
+              </span>
+            </div>
+          ) : (
+            <>
+              {dayData?.offers.map(offer => (
+                <OfferCard
+                  key={offer.offerId}
+                  offer={offer}
+                  onClick={() => !isDisabled && onOfferClick?.(offer)}
+                />
+              ))}
+              {dayData?.menus.map(menu => (
+                <MenuCard
+                  key={menu.menuId}
+                  menu={menu}
+                  onClick={() => !isDisabled && onMenuClick?.(menu)}
+                />
+              ))}
+            </>
+          )}
         </div>
       </div>
     );
@@ -139,52 +177,53 @@ const DayCell = React.memo(
 DayCell.displayName = 'DayCell';
 
 export default function WeeklyCalendar({
-  currentDate = new Date(),
+  daysToDisplay = [],
   onDayClick,
   onOfferClick,
   onMenuClick,
-  locale,
-  weekStartsOn = 1,
+  onAddHolidayClick,
+  onDeleteHolidayClick,
   className,
-  children,
   menuData,
   weekStatus = 'DRAFT',
 }: WeeklyCalendarProps): React.ReactElement {
-  const validCurrentDate =
-    currentDate instanceof Date && !isNaN(currentDate.getTime())
-      ? currentDate
-      : new Date();
-
-  const startDate = startOfWeek(validCurrentDate, { weekStartsOn, locale });
-  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(startDate, i));
-
+  if (daysToDisplay.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-240px)] min-h-[500px] border rounded-lg bg-card">
+        <p className="text-muted-foreground">
+          No business days configured for this week.
+        </p>
+      </div>
+    );
+  }
   return (
     <div
       className={cn(
-        'grid grid-cols-7 h-[calc(100vh-240px)] min-h-[500px] border rounded-lg overflow-hidden bg-card',
+        'grid h-[calc(100vh-240px)] min-h-[500px] border rounded-lg overflow-hidden bg-card',
         className
       )}
+      style={{
+        gridTemplateColumns: `repeat(${daysToDisplay.length}, minmax(0, 1fr))`,
+      }}
     >
-      {weekDays.map((day, index) => {
+      {daysToDisplay.map(day => {
         const dayKey = format(day, 'yyyy-MM-dd');
         const dayData = menuData?.days[dayKey];
 
         return (
           <DayCell
-            key={`${day.getFullYear()}-${day.getMonth()}-${day.getDate()}`}
+            key={day.toISOString()}
             day={day}
+            dayData={dayData}
+            weekStatus={weekStatus}
             onDayClick={onDayClick}
             onOfferClick={onOfferClick}
             onMenuClick={onMenuClick}
-            dayData={dayData}
-            weekStatus={weekStatus}
-          >
-            {children?.(day)}
-          </DayCell>
+            onAddHolidayClick={onAddHolidayClick}
+            onDeleteHolidayClick={onDeleteHolidayClick}
+          />
         );
       })}
     </div>
   );
 }
-
-export type { WeeklyCalendarProps };

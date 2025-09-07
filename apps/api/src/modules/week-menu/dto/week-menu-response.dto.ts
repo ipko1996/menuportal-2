@@ -128,6 +128,24 @@ export class DayMenuDto {
   price: number;
 }
 
+export class DayHolidayDto {
+  @ApiProperty({
+    description: 'Unique identifier for the holiday',
+    example: 1,
+    type: Number,
+  })
+  @IsNumber()
+  holidayId: number;
+
+  @ApiProperty({
+    description: 'Name of the holiday',
+    example: "St. Stephen's Day",
+    type: String,
+  })
+  @IsString()
+  name: string;
+}
+
 export class WeekMenuDayDto {
   @ApiProperty({
     description: 'List of individual dish offers for the day',
@@ -185,6 +203,18 @@ export class WeekMenuDayDto {
   @ValidateNested({ each: true })
   @Type(() => DayMenuDto)
   menus: DayMenuDto[];
+
+  @ApiProperty({
+    description: 'Holiday information for the day, if applicable',
+    type: DayHolidayDto,
+    example: {
+      holidayId: 1,
+      name: "St. Stephen's Day",
+    },
+  })
+  @IsOptional()
+  @Type(() => DayHolidayDto)
+  holiday?: DayHolidayDto;
 }
 
 export class Post {
@@ -269,6 +299,10 @@ export class WeekMenuResponseDto {
       '2025-08-04': {
         offers: [],
         menus: [],
+        holiday: {
+          holidayId: 1,
+          name: "St. Stephen's Day",
+        },
       },
       '2025-08-05': {
         offers: [],

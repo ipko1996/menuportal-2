@@ -10,6 +10,9 @@ import {
   subWeeks,
   parseISO,
   isSameWeek,
+  startOfWeek,
+  addDays,
+  format,
 } from 'date-fns';
 import {
   ChevronRight,
@@ -19,15 +22,22 @@ import {
   ChevronLeft,
 } from 'lucide-react';
 import { ItemDialog } from './components/item-dialog';
+import { AddHolidayDialog } from './components/add-holiday-dialog';
 import {
   useGetMenusForWeek,
+  getGetMenusForWeekQueryKey,
   type DayOffersDto,
   type DayMenuDto,
+  type DayHolidayDto, // Import the correct DTO
   type UpdateOfferDto,
   type UpdateMenuDto,
   getWeeklyMenu,
   renderWeeklyTemplate,
   useGetCurrentUserWithRestaurant,
+  useFindAllBusinessHours,
+  useCreateHoliday,
+  useDeleteHoliday,
+  type BusinessHourResponseDtoDayOfWeek,
 } from '@mono-repo/api-client';
 import { stateComponentMap } from './components/menu-status-indicator';
 import { Button } from '@mono-repo/ui';
@@ -40,9 +50,10 @@ import {
 import { postStateMachine } from './components/status-indicator/state-machine';
 import { ActionType, PostState } from './components/status-indicator/types';
 import { useWeekActions } from './components/status-indicator/use-actions';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 export default function Dashboard() {
-  // Initialize with next week instead of current week
   const [currentDate, setCurrentDate] = useState(() => addWeeks(new Date(), 1));
   const [showDialog, setShowDialog] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -53,6 +64,15 @@ export default function Dashboard() {
   } | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const { data: currenttUser } = useGetCurrentUserWithRestaurant();
+
+  const [isHolidayDialogOpen, setIsHolidayDialogOpen] = useState(false);
+  const [dateForHoliday, setDateForHoliday] = useState<Date>(new Date());
+
+  const queryClient = useQueryClient();
+  const { data: businessHours = [] } = useFindAllBusinessHours();
+  const { mutateAsync: createHoliday, isPending: isCreatingHoliday } =
+    useCreateHoliday();
+  const { mutateAsync: deleteHoliday } = useDeleteHoliday();
 
   const currentWeekString = useMemo(() => {
     const year = getYear(currentDate);
@@ -65,6 +85,34 @@ export default function Dashboard() {
     isLoading,
     isFetching,
   } = useGetMenusForWeek(currentWeekString);
+
+  const activeBusinessDays = useMemo(() => {
+    const dayOrder: { [key in BusinessHourResponseDtoDayOfWeek]: number } = {
+      MONDAY: 1,
+      TUESDAY: 2,
+      WEDNESDAY: 3,
+      THURSDAY: 4,
+      FRIDAY: 5,
+      SATURDAY: 6,
+      SUNDAY: 7,
+    };
+    return new Set(
+      [...businessHours]
+        .sort((a, b) => dayOrder[a.dayOfWeek] - dayOrder[b.dayOfWeek])
+        .map(bh => bh.dayOfWeek)
+    );
+  }, [businessHours]);
+
+  const weekDaysToDisplay = useMemo(() => {
+    const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+    const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+    if (activeBusinessDays.size === 0) return days;
+    return days.filter(day =>
+      activeBusinessDays.has(
+        format(day, 'EEEE').toUpperCase() as BusinessHourResponseDtoDayOfWeek
+      )
+    );
+  }, [currentDate, activeBusinessDays]);
 
   const [state, dispatch] = useReducer(postStateMachine, {
     status: PostState.Loading,
@@ -135,6 +183,38 @@ export default function Dashboard() {
     setShowDialog(true);
   };
 
+  const handleAddHolidayClick = (date: Date) => {
+    setDateForHoliday(date);
+    setIsHolidayDialogOpen(true);
+  };
+
+  const handleSaveHoliday = async (name: string) => {
+    try {
+      await createHoliday({
+        data: { name, date: format(dateForHoliday, 'yyyy-MM-dd') },
+      });
+      toast.success(`Holiday "${name}" added successfully!`);
+      await queryClient.invalidateQueries({
+        queryKey: getGetMenusForWeekQueryKey(currentWeekString),
+      });
+      setIsHolidayDialogOpen(false);
+    } catch (error) {
+      toast.error('Failed to add holiday. Please try again.');
+    }
+  };
+
+  const handleDeleteHoliday = async (holiday: DayHolidayDto) => {
+    try {
+      await deleteHoliday({ id: holiday.holidayId });
+      toast.success(`Holiday "${holiday.name}" removed successfully!`);
+      await queryClient.invalidateQueries({
+        queryKey: getGetMenusForWeekQueryKey(currentWeekString),
+      });
+    } catch (error) {
+      toast.error('Failed to remove holiday.');
+    }
+  };
+
   const handleDialogClose = (open: boolean) => {
     setShowDialog(open);
     if (!open) {
@@ -169,7 +249,6 @@ export default function Dashboard() {
         fileExtension = 'png';
       }
 
-      // Create blob and download
       const blob = new Blob([response], { type: mimeType });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -181,7 +260,6 @@ export default function Dashboard() {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Failed to download menu:', error);
-      // You might want to show a toast notification here
     } finally {
       setIsDownloading(false);
     }
@@ -195,21 +273,17 @@ export default function Dashboard() {
     try {
       const response = await getWeeklyMenu(restaurantId, currentWeekString);
 
-      // Create blob and object URL
       const blob = new Blob([response], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
 
-      // Create iframe for printing
       const iframe = document.createElement('iframe');
       iframe.style.display = 'none';
       iframe.src = url;
 
       document.body.appendChild(iframe);
 
-      // Wait for PDF to load, then print
       iframe.onload = () => {
         iframe.contentWindow?.print();
-        // Clean up only when window focus returns (user finished with print dialog)
         window.addEventListener(
           'focus',
           () => {
@@ -221,17 +295,12 @@ export default function Dashboard() {
       };
     } catch (error) {
       console.error('Failed to print menu:', error);
-      // Fallback to opening in new window
-      // const printUrl = `http://localhost:3000/api/templates/${restaurantId}/${currentWeekString}`;
-      // window.open(printUrl, '_blank');
     }
   };
 
   const weekNumber = useMemo(() => getISOWeek(currentDate), [currentDate]);
-
   const CurrentStateComponent = stateComponentMap[state.status];
   const actions = useWeekActions(currentWeekString);
-
   const isPlanningWeek = isSameWeek(currentDate, addWeeks(new Date(), 1), {
     weekStartsOn: 1,
   });
@@ -345,12 +414,14 @@ export default function Dashboard() {
       </div>
 
       <WeeklyCalendar
-        currentDate={currentDate}
+        daysToDisplay={weekDaysToDisplay}
         onDayClick={handleDayClick}
         menuData={menus}
         onOfferClick={handleOfferClick}
         onMenuClick={handleMenuClick}
         weekStatus={menus?.weekStatus}
+        onAddHolidayClick={handleAddHolidayClick}
+        onDeleteHolidayClick={handleDeleteHoliday}
       />
 
       <ItemDialog
@@ -359,6 +430,13 @@ export default function Dashboard() {
         selectedDate={selectedDate}
         editingItem={editingItem}
         currentWeekString={currentWeekString}
+      />
+      <AddHolidayDialog
+        open={isHolidayDialogOpen}
+        onOpenChange={setIsHolidayDialogOpen}
+        date={dateForHoliday}
+        onSave={handleSaveHoliday}
+        isSaving={isCreatingHoliday}
       />
     </Main>
   );

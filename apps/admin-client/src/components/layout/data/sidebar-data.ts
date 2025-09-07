@@ -18,6 +18,7 @@ import {
   IconUserCog,
   IconUserOff,
   IconUsers,
+  IconCalendarClock,
   IconShare2,
   IconCalendarEvent,
 } from '@tabler/icons-react';
@@ -186,6 +187,11 @@ export const sidebarData: SidebarData = {
               title: 'Display',
               url: '/settings/display',
               icon: IconBrowserCheck,
+            },
+            {
+              title: 'Business hours',
+              url: '/settings/business-hours',
+              icon: IconCalendarClock,
             },
             {
               title: 'Integration',

@@ -9,7 +9,7 @@ export const restaurantSetting = pgTable(
     id: serial('id').primaryKey(),
     restaurantId: integer('restaurant_id')
       .notNull()
-      .references(() => restaurant.id),
+      .references(() => restaurant.id, { onDelete: 'cascade' }),
   },
   table => [
     index('restaurant_setting_restaurant_id_idx').on(table.restaurantId),

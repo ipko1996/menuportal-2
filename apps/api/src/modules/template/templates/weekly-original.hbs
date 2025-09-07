@@ -144,7 +144,6 @@
       border-right: none;
     }
 
-
     .dish-name-cell {
       width: 88%;
     }
@@ -253,7 +252,14 @@
           <td class='food-cell'>
             <table class='dish-table'>
               <tbody>
-                {{#if (or this.dayData.offers this.dayData.menus)}}
+                {{#if (hasContent this.dayData)}}
+                {{#if (isHoliday this.dayData)}}
+                {{! Display holiday }}
+                <tr class="dish-row">
+                  <td class='dish-name-cell empty-day'>{{this.dayData.holiday.name}}</td>
+                  <td class="dish-price-cell"></td>
+                </tr>
+                {{else}}
                 {{! Loop through daily offers if they exist }}
                 {{#each this.dayData.offers}}
                 <tr class="dish-row">
@@ -272,8 +278,9 @@
                   <td class='dish-price-cell'>{{formatPrice this.price}}</td>
                 </tr>
                 {{/each}}
+                {{/if}}
                 {{else}}
-                {{! This displays if a day has no offers and no menus }}
+                {{! This displays if a day has no offers, no menus, and no holiday }}
                 <tr class="dish-row">
                   <td class='dish-name-cell empty-day'>-</td>
                   <td class="dish-price-cell"></td>

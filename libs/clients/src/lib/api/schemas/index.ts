@@ -6,11 +6,18 @@
  * OpenAPI spec version: 1.0
  */
 
+export * from './business-hour-response-dto';
+export * from './business-hour-response-dto-day-of-week';
+export * from './create-bulk-business-hour-dto';
+export * from './create-business-hour-dto';
+export * from './create-business-hour-dto-day-of-week';
 export * from './create-dish-dto';
+export * from './create-holiday-dto';
 export * from './create-menu-dto';
 export * from './create-offer-dto';
 export * from './create-schedule-dto';
 export * from './create-schedule-dto-schedule-type';
+export * from './day-holiday-dto';
 export * from './day-menu-dto';
 export * from './day-offers-dto';
 export * from './dish';
@@ -28,6 +35,7 @@ export * from './get-schedule-settings-response-dto-schedule-type';
 export * from './get-weekly-menu-format';
 export * from './get-weekly-menu-params';
 export * from './get-weekly-menu-platform';
+export * from './holiday-response-dto';
 export * from './menu-response-dto';
 export * from './offer-response-dto';
 export * from './page-meta-dto';
@@ -47,7 +55,10 @@ export * from './social-callback-params';
 export * from './social-dto';
 export * from './social-dto-platform';
 export * from './social-dto-token-expires-at';
+export * from './update-business-hour-dto';
+export * from './update-business-hour-dto-day-of-week';
 export * from './update-dish-dto';
+export * from './update-holiday-dto';
 export * from './update-menu-dto';
 export * from './update-offer-dto';
 export * from './update-platform-schedule-dto';

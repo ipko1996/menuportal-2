@@ -30,7 +30,7 @@ Handlebars.registerHelper(
   (price: number): string => `${price}.-`
 );
 
-// Register helper to get days in correct order with Hungarian names
+// Updated helper to get only business days (days that exist in the filtered data)
 Handlebars.registerHelper(
   'getDaysInOrder',
   (days: Record<string, WeekMenuDayDto>, weekStart: string): DayWithName[] => {
@@ -47,7 +47,7 @@ Handlebars.registerHelper(
     const startDate = parseISO(weekStart);
     const result: DayWithName[] = [];
 
-    // Generate 7 days starting from weekStart
+    // Generate 7 days starting from weekStart, but only include days that exist in the filtered data
     for (let i = 0; i < 7; i++) {
       const currentDate = new Date(startDate);
       currentDate.setDate(startDate.getDate() + i);
@@ -55,10 +55,13 @@ Handlebars.registerHelper(
       const dateString = format(currentDate, 'yyyy-MM-dd');
       const dayOfWeek = currentDate.getDay();
 
-      result.push({
-        dayName: dayNames[dayOfWeek],
-        dayData: days[dateString],
-      });
+      // Only add days that exist in the filtered days data (business days)
+      if (days[dateString]) {
+        result.push({
+          dayName: dayNames[dayOfWeek],
+          dayData: days[dateString],
+        });
+      }
     }
 
     return result;
@@ -67,5 +70,16 @@ Handlebars.registerHelper(
 
 // Register helper for logical OR operation
 Handlebars.registerHelper('or', (a: boolean, b: boolean): boolean => a || b);
+
+// Register helper to check if a day has content (offers, menus, or holiday)
+Handlebars.registerHelper('hasContent', (dayData: WeekMenuDayDto): boolean => {
+  if (!dayData) return false;
+  return !!(dayData.offers?.length || dayData.menus?.length || dayData.holiday);
+});
+
+// Register helper to check if a day is a holiday
+Handlebars.registerHelper('isHoliday', (dayData: WeekMenuDayDto): boolean => {
+  return !!dayData?.holiday;
+});
 
 export default Handlebars;

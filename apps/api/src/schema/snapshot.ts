@@ -13,6 +13,7 @@ import {
 import { entityTypeEnum } from '../constants';
 import { dish } from './dish';
 import { dishType } from './dish-type';
+import { holiday } from './holiday';
 import { restaurant } from './restaurant';
 import { postSnapshot } from './social';
 
@@ -84,10 +85,25 @@ export const snapshotItem = pgTable(
   t => [index('snapshot_item_snapshot_idx').on(t.snapshotId)]
 );
 
+export const snapshotHoliday = pgTable('snapshot_holiday', {
+  snapshotId: integer('snapshot_id')
+    .notNull()
+    .references(() => snapshot.id)
+    .primaryKey(),
+  originalHolidayId: integer('original_holiday_id').references(
+    () => holiday.id
+  ),
+  holidayName: varchar('holiday_name').notNull(),
+  createdAt: timestamp('created_at', { mode: 'string', withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
 export const snapshotRelations = relations(snapshot, ({ many }) => ({
   menus: many(snapshotMenu),
   offers: many(snapshotOffer),
   items: many(snapshotItem),
+  holidays: many(snapshotHoliday),
   postSnapshots: many(postSnapshot),
 }));
 
@@ -104,6 +120,16 @@ export const snapshotOfferRelations = relations(snapshotOffer, ({ one }) => ({
     references: [snapshot.id],
   }),
 }));
+
+export const snapshotHolidayRelations = relations(
+  snapshotHoliday,
+  ({ one }) => ({
+    snapshot: one(snapshot, {
+      fields: [snapshotHoliday.snapshotId],
+      references: [snapshot.id],
+    }),
+  })
+);
 
 export const snapshotItemRelations = relations(snapshotItem, ({ one }) => ({
   snapshot: one(snapshot, {

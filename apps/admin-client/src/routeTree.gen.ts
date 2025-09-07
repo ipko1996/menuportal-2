@@ -39,6 +39,7 @@ import { Route as ClerkauthSignInRouteImport } from './routes/clerk/(auth)/sign-
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings/notifications'
 import { Route as AuthenticatedSettingsIntegrationsRouteImport } from './routes/_authenticated/settings/integrations'
 import { Route as AuthenticatedSettingsDisplayRouteImport } from './routes/_authenticated/settings/display'
+import { Route as AuthenticatedSettingsBusinessHoursRouteImport } from './routes/_authenticated/settings/business-hours'
 import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
 import { Route as AuthenticatedSettingsAccountRouteImport } from './routes/_authenticated/settings/account'
 import { Route as AuthenticatedSchedulerTemplatesRouteImport } from './routes/_authenticated/scheduler/templates'
@@ -201,6 +202,12 @@ const AuthenticatedSettingsDisplayRoute =
     path: '/display',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
   } as any)
+const AuthenticatedSettingsBusinessHoursRoute =
+  AuthenticatedSettingsBusinessHoursRouteImport.update({
+    id: '/business-hours',
+    path: '/business-hours',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any)
 const AuthenticatedSettingsAppearanceRoute =
   AuthenticatedSettingsAppearanceRouteImport.update({
     id: '/appearance',
@@ -259,6 +266,7 @@ export interface FileRoutesByFullPath {
   '/scheduler/templates': typeof AuthenticatedSchedulerTemplatesRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
+  '/settings/business-hours': typeof AuthenticatedSettingsBusinessHoursRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
@@ -291,6 +299,7 @@ export interface FileRoutesByTo {
   '/scheduler/templates': typeof AuthenticatedSchedulerTemplatesRoute
   '/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
+  '/settings/business-hours': typeof AuthenticatedSettingsBusinessHoursRoute
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
@@ -329,6 +338,7 @@ export interface FileRoutesById {
   '/_authenticated/scheduler/templates': typeof AuthenticatedSchedulerTemplatesRoute
   '/_authenticated/settings/account': typeof AuthenticatedSettingsAccountRoute
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
+  '/_authenticated/settings/business-hours': typeof AuthenticatedSettingsBusinessHoursRoute
   '/_authenticated/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/_authenticated/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
   '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
@@ -365,6 +375,7 @@ export interface FileRouteTypes {
     | '/scheduler/templates'
     | '/settings/account'
     | '/settings/appearance'
+    | '/settings/business-hours'
     | '/settings/display'
     | '/settings/integrations'
     | '/settings/notifications'
@@ -397,6 +408,7 @@ export interface FileRouteTypes {
     | '/scheduler/templates'
     | '/settings/account'
     | '/settings/appearance'
+    | '/settings/business-hours'
     | '/settings/display'
     | '/settings/integrations'
     | '/settings/notifications'
@@ -434,6 +446,7 @@ export interface FileRouteTypes {
     | '/_authenticated/scheduler/templates'
     | '/_authenticated/settings/account'
     | '/_authenticated/settings/appearance'
+    | '/_authenticated/settings/business-hours'
     | '/_authenticated/settings/display'
     | '/_authenticated/settings/integrations'
     | '/_authenticated/settings/notifications'
@@ -670,6 +683,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsDisplayRouteImport
       parentRoute: typeof AuthenticatedSettingsRouteRoute
     }
+    '/_authenticated/settings/business-hours': {
+      id: '/_authenticated/settings/business-hours'
+      path: '/business-hours'
+      fullPath: '/settings/business-hours'
+      preLoaderRoute: typeof AuthenticatedSettingsBusinessHoursRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteRoute
+    }
     '/_authenticated/settings/appearance': {
       id: '/_authenticated/settings/appearance'
       path: '/appearance'
@@ -742,6 +762,7 @@ const AuthenticatedSchedulerRouteRouteWithChildren =
 interface AuthenticatedSettingsRouteRouteChildren {
   AuthenticatedSettingsAccountRoute: typeof AuthenticatedSettingsAccountRoute
   AuthenticatedSettingsAppearanceRoute: typeof AuthenticatedSettingsAppearanceRoute
+  AuthenticatedSettingsBusinessHoursRoute: typeof AuthenticatedSettingsBusinessHoursRoute
   AuthenticatedSettingsDisplayRoute: typeof AuthenticatedSettingsDisplayRoute
   AuthenticatedSettingsIntegrationsRoute: typeof AuthenticatedSettingsIntegrationsRoute
   AuthenticatedSettingsNotificationsRoute: typeof AuthenticatedSettingsNotificationsRoute
@@ -752,6 +773,8 @@ const AuthenticatedSettingsRouteRouteChildren: AuthenticatedSettingsRouteRouteCh
   {
     AuthenticatedSettingsAccountRoute: AuthenticatedSettingsAccountRoute,
     AuthenticatedSettingsAppearanceRoute: AuthenticatedSettingsAppearanceRoute,
+    AuthenticatedSettingsBusinessHoursRoute:
+      AuthenticatedSettingsBusinessHoursRoute,
     AuthenticatedSettingsDisplayRoute: AuthenticatedSettingsDisplayRoute,
     AuthenticatedSettingsIntegrationsRoute:
       AuthenticatedSettingsIntegrationsRoute,

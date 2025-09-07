@@ -2,7 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { and, between, eq } from 'drizzle-orm';
 
 import { WeekMenuResponseDto } from '@/modules/week-menu/dto/week-menu-response.dto';
-import { availability, dish, dishMenu, dishType, menu, offer } from '@/schema';
+import {
+  availability,
+  dish,
+  dishMenu,
+  dishType,
+  holiday,
+  menu,
+  offer,
+} from '@/schema';
 
 import { DatabaseService } from '../database/database.service';
 import { DateRange } from '../pipes';
@@ -17,7 +25,7 @@ export class WeeklyOfferQueryService {
   ) {
     const { start: startOfWeek, end: endOfWeek } = dateRange;
 
-    const [weeklyOffers, weeklyMenus] = await Promise.all([
+    const [weeklyOffers, weeklyMenus, weeklyHolidays] = await Promise.all([
       this.databaseService.db
         .select({
           offerId: offer.id,
@@ -74,9 +82,31 @@ export class WeeklyOfferQueryService {
             between(availability.date, startOfWeek, endOfWeek)
           )
         ),
+
+      this.databaseService.db
+        .select({
+          holidayId: holiday.id,
+          holidayName: holiday.name,
+          availabilityDate: availability.date,
+          availabilityEntityType: availability.entityType,
+        })
+        .from(holiday)
+        .innerJoin(
+          availability,
+          and(
+            eq(availability.entityId, holiday.id),
+            eq(availability.entityType, 'HOLIDAY')
+          )
+        )
+        .where(
+          and(
+            eq(holiday.restaurantId, restaurantId),
+            between(availability.date, startOfWeek, endOfWeek)
+          )
+        ),
     ]);
 
-    return { weeklyOffers, weeklyMenus };
+    return { weeklyOffers, weeklyMenus, weeklyHolidays };
   }
 
   // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -86,10 +116,11 @@ export class WeeklyOfferQueryService {
   ): Promise<WeekMenuResponseDto['days']> {
     const { start: startOfWeek, end: endOfWeek } = dateRange;
 
-    const { weeklyOffers, weeklyMenus } = await this.getWeeklyData(
-      { start: startOfWeek, end: endOfWeek },
-      restaurantId
-    );
+    const { weeklyOffers, weeklyMenus, weeklyHolidays } =
+      await this.getWeeklyData(
+        { start: startOfWeek, end: endOfWeek },
+        restaurantId
+      );
 
     const days: WeekMenuResponseDto['days'] = {};
     for (
@@ -142,6 +173,19 @@ export class WeeklyOfferQueryService {
             dishTypeId: m.dishTypeId,
           });
         }
+      }
+    }
+
+    for (const h of weeklyHolidays) {
+      if (!h.availabilityDate) {
+        continue;
+      }
+      const key = h.availabilityDate.slice(0, 10);
+      if (days[key]) {
+        days[key].holiday = {
+          holidayId: h.holidayId,
+          name: h.holidayName,
+        };
       }
     }
 

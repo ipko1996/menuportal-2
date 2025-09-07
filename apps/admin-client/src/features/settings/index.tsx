@@ -1,6 +1,7 @@
 import { Outlet } from '@tanstack/react-router';
 import {
   IconBrowserCheck,
+  IconCalendarClock,
   IconNotification,
   IconPalette,
   IconShare2,
@@ -75,6 +76,11 @@ const sidebarNavItems = [
     title: 'Display',
     icon: <IconBrowserCheck size={18} />,
     href: '/settings/display',
+  },
+  {
+    title: 'Business hours',
+    icon: <IconCalendarClock size={18} />,
+    href: '/settings/business-hours',
   },
   {
     title: 'Integrations',

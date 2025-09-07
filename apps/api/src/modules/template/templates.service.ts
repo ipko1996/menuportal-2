@@ -14,6 +14,8 @@ import {
 import { DatabaseService } from '@/shared/database/database.service';
 import { DateRange } from '@/shared/pipes';
 
+import { BusinessHoursService } from '../business-hours/business-hours.service';
+import { WeekMenuDayDto } from '../week-menu/dto/week-menu-response.dto';
 import { WeekMenuService } from '../week-menu/week-menu.service';
 import Handlebars from './helpers/helper';
 
@@ -23,7 +25,8 @@ export class TemplatesService {
 
   constructor(
     private readonly weekMenuService: WeekMenuService,
-    private readonly databaseService: DatabaseService
+    private readonly databaseService: DatabaseService,
+    private readonly businessHoursService: BusinessHoursService
   ) {}
 
   public async renderWeeklyMenuHtml(
@@ -38,6 +41,35 @@ export class TemplatesService {
     const templateId = platform
       ? await this._getPlatformTemplateId(restaurantId, 'WEEKLY', platform)
       : await this._getDefaultTemplateId(restaurantId, 'WEEKLY');
+
+    // Take out not business days from menuData
+    const businessHours = await this.businessHoursService.findAll(restaurantId);
+    const businessDays = new Set(businessHours.map(bh => bh.dayOfWeek));
+
+    // Filter out non-business days from menuData
+    const filteredDays: Record<string, WeekMenuDayDto> = {};
+
+    for (const dateString of Object.keys(menuData.days)) {
+      const date = new Date(dateString);
+      const dayOfWeek = date
+        .toLocaleDateString('en-US', { weekday: 'long' })
+        .toUpperCase() as
+        | 'MONDAY'
+        | 'TUESDAY'
+        | 'WEDNESDAY'
+        | 'THURSDAY'
+        | 'FRIDAY'
+        | 'SATURDAY'
+        | 'SUNDAY';
+
+      // Only include days that are business days
+      if (businessDays.has(dayOfWeek)) {
+        filteredDays[dateString] = menuData.days[dateString];
+      }
+    }
+
+    // Update menuData with filtered days
+    menuData.days = filteredDays;
 
     return this._compileTemplate(templateId, menuData);
   }
