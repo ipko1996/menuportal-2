@@ -1,3 +1,4 @@
+import { relations } from 'drizzle-orm';
 import { pgTable, serial, varchar } from 'drizzle-orm/pg-core';
 
 import { restaurant } from './restaurant';
@@ -9,3 +10,10 @@ export const holiday = pgTable('holiday', {
     .notNull()
     .references(() => restaurant.id),
 });
+
+export const holidayRelations = relations(holiday, ({ one }) => ({
+  restaurant: one(restaurant, {
+    fields: [holiday.restaurantId],
+    references: [restaurant.id],
+  }),
+}));
