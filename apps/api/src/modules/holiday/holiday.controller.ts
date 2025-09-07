@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   UseGuards,
@@ -57,7 +58,7 @@ export class HolidayController {
     type: HolidayResponseDto,
   })
   update(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateHolidayDto: UpdateHolidayDto,
     @CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>
   ): Promise<HolidayResponseDto> {
@@ -67,7 +68,7 @@ export class HolidayController {
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a holiday', operationId: 'deleteHoliday' })
   remove(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>
   ) {
     return this.holidayService.remove(id, user.restaurant.id);

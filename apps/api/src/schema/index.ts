@@ -1,6 +1,7 @@
 export * from '../constants';
 export * from './add-on';
 export * from './availability';
+export * from './business-hours';
 export * from './dish';
 export * from './dish-menu';
 export * from './dish-type';

@@ -8,6 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 
 import { ClerkMiddleware } from '@/middleware/auth.middleware';
 import { AuthModule } from '@/modules/auth/auth.module';
+import { BusinessHoursModule } from '@/modules/business-hours/business-hours.module';
 import { DishModule } from '@/modules/dish/dish.module';
 import { DishtypeModule } from '@/modules/dishtype/dishtype.module';
 import { HolidayModule } from '@/modules/holiday/holiday.module';
@@ -29,6 +30,7 @@ import { DrizzleModule } from '../shared/database/database.module';
       isGlobal: true,
     }),
     AuthModule,
+    BusinessHoursModule,
     DishModule,
     DishtypeModule,
     HolidayModule,

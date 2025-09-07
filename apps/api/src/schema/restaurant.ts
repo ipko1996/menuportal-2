@@ -9,6 +9,7 @@ import {
 } from 'drizzle-orm/pg-core';
 
 import { addOn } from './add-on';
+import { businessHours } from './business-hours';
 import { dish } from './dish';
 import { holiday } from './holiday';
 import { menu } from './menu';
@@ -54,6 +55,7 @@ export const restaurantRelations = relations(restaurant, ({ many, one }) => ({
   schedules: many(schedules),
   socialAccounts: many(socialMediaAccount),
   snapshots: many(snapshot),
+  businessHours: many(businessHours),
 }));
 
 export type RestaurantSelect = typeof restaurant.$inferSelect;
