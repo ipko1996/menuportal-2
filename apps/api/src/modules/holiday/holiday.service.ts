@@ -1,7 +1,6 @@
 import {
   ConflictException,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { and, eq } from 'drizzle-orm';
@@ -21,7 +20,6 @@ export class HolidayService {
     createHolidayDto: CreateHolidayDto,
     restaurantId: number
   ): Promise<HolidayResponseDto> {
-    // Check for existing holiday on the same date for the restaurant
     const existingHoliday = await this.databaseService.db
       .select()
       .from(holiday)
@@ -40,7 +38,6 @@ export class HolidayService {
       );
     }
 
-    // Insert new holiday
     const newHoliday = await this.databaseService.db.transaction(async trx => {
       const [insertedHoliday] = await trx
         .insert(holiday)
@@ -50,7 +47,6 @@ export class HolidayService {
         })
         .returning();
 
-      // Insert availability record for the holiday date
       await trx.insert(availability).values({
         entityType: 'HOLIDAY' as const,
         entityId: insertedHoliday.id,
@@ -68,13 +64,8 @@ export class HolidayService {
     };
   }
 
-  async update(
-    id: number,
-    updateHolidayDto: UpdateHolidayDto,
-    restaurantId: number
-  ): Promise<HolidayResponseDto> {
-    // Check if the holiday exists
-    const [existingHoliday] = await this.databaseService.db
+  private async findHolidayById(id: number, restaurantId: number) {
+    const result = await this.databaseService.db
       .select({
         id: holiday.id,
         name: holiday.name,
@@ -82,17 +73,35 @@ export class HolidayService {
         date: availability.date,
       })
       .from(holiday)
-      .leftJoin(availability, eq(holiday.id, availability.entityId))
-      .where(and(eq(holiday.id, id), eq(holiday.restaurantId, restaurantId)))
+      // Use innerJoin to ensure a holiday always has an associated availability record.
+      // This simplifies error handling, as a missing date means the holiday is considered incomplete/not found.
+      .innerJoin(availability, eq(holiday.id, availability.entityId))
+      .where(
+        and(
+          eq(holiday.id, id),
+          eq(holiday.restaurantId, restaurantId),
+          // Ensure we are only joining with the correct entity type
+          eq(availability.entityType, 'HOLIDAY')
+        )
+      )
       .limit(1);
 
-    if (!existingHoliday) {
-      throw new NotFoundException('Holiday not found.');
+    if (result.length === 0) {
+      throw new NotFoundException(`Holiday with ID "${id}" not found.`);
     }
 
-    // Update the holiday details
-    return await this.databaseService.db.transaction(async trx => {
-      // Update holiday name if provided
+    // The innerJoin guarantees that result[0] and result[0].date are defined here.
+    return result[0];
+  }
+
+  async update(
+    id: number,
+    updateHolidayDto: UpdateHolidayDto,
+    restaurantId: number
+  ): Promise<HolidayResponseDto> {
+    await this.findHolidayById(id, restaurantId);
+
+    await this.databaseService.db.transaction(async trx => {
       if (updateHolidayDto.name) {
         await trx
           .update(holiday)
@@ -100,7 +109,6 @@ export class HolidayService {
           .where(eq(holiday.id, id));
       }
 
-      // Update availability date if provided
       if (updateHolidayDto.date) {
         await trx
           .update(availability)
@@ -112,29 +120,14 @@ export class HolidayService {
             )
           );
       }
-
-      return {
-        id: existingHoliday.id,
-        name: updateHolidayDto.name ?? existingHoliday.name,
-        date: updateHolidayDto.date ?? existingHoliday.date!, // TODO: solve this fucking shit
-        restaurantId: existingHoliday.restaurantId,
-      };
     });
+
+    return this.findHolidayById(id, restaurantId);
   }
 
   async remove(id: number, restaurantId: number) {
-    // Check if the holiday exists
-    const existingHoliday = await this.databaseService.db
-      .select()
-      .from(holiday)
-      .where(and(eq(holiday.id, id), eq(holiday.restaurantId, restaurantId)))
-      .limit(1);
+    await this.findHolidayById(id, restaurantId);
 
-    if (existingHoliday.length === 0) {
-      throw new ConflictException('Holiday not found.');
-    }
-
-    // Delete the holiday and associated availability
     await this.databaseService.db.transaction(async trx => {
       await trx
         .delete(availability)
