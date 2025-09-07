@@ -1,49 +1,36 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsPhoneNumber,
-  IsPositive,
-  IsString,
-  Min,
-} from 'class-validator';
+import { IsNumber, IsOptional } from 'class-validator';
 
-export class UpdateRestaurantSettingDto {
+export class RestaurantSettingResponseDto {
+  @ApiProperty({
+    description: 'The unique identifier for the restaurant.',
+    example: 1,
+  })
+  id: number;
+
   @ApiProperty({
     description: 'The name of the restaurant.',
     example: 'The Golden Spoon',
   })
-  @IsString()
-  @IsNotEmpty()
-  @IsOptional()
-  name?: string;
+  name: string;
 
   @ApiProperty({
     description: "The restaurant's contact phone number.",
     example: '+14155552671',
   })
-  @IsPhoneNumber('HU')
-  @IsOptional()
-  phoneNumber?: string;
+  phoneNumber: string;
 
   @ApiProperty({
     description: 'The physical address of the restaurant.',
     example: '123 Main St, Anytown, USA',
   })
-  @IsString()
-  @IsNotEmpty()
-  @IsOptional()
-  address?: string;
+  address: string;
 
   @ApiProperty({
     description: 'The price for takeaway orders.',
     example: 15.5,
-    required: false,
   })
-  @IsPositive()
   @IsNumber()
-  @Min(0)
   @IsOptional()
   takeawayPrice?: number;
 }

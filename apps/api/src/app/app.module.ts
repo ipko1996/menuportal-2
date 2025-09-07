@@ -16,6 +16,7 @@ import { PublishModule } from '@/modules/jobs/publish.module';
 import { MenuModule } from '@/modules/menu/menu.module';
 import { OfferModule } from '@/modules/offer/offer.module';
 import { PdfModule } from '@/modules/pdf/pdf.module';
+import { RestaurantModule } from '@/modules/restaurant/restaurant.module';
 import { ScheduleModule } from '@/modules/schedule/schedule.module';
 import { SocialModule } from '@/modules/social/social.module';
 import { TemplatesModule } from '@/modules/template/templates.module';
@@ -38,6 +39,7 @@ import { DrizzleModule } from '../shared/database/database.module';
     OfferModule,
     PdfModule,
     PublishModule,
+    RestaurantModule,
     ScheduleModule,
     SocialModule,
     TemplatesModule,

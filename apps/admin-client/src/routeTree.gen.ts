@@ -36,6 +36,7 @@ import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authe
 import { Route as AuthenticatedAppsIndexRouteImport } from './routes/_authenticated/apps/index'
 import { Route as ClerkauthSignUpRouteImport } from './routes/clerk/(auth)/sign-up'
 import { Route as ClerkauthSignInRouteImport } from './routes/clerk/(auth)/sign-in'
+import { Route as AuthenticatedSettingsRestaurantRouteImport } from './routes/_authenticated/settings/restaurant'
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings/notifications'
 import { Route as AuthenticatedSettingsIntegrationsRouteImport } from './routes/_authenticated/settings/integrations'
 import { Route as AuthenticatedSettingsDisplayRouteImport } from './routes/_authenticated/settings/display'
@@ -184,6 +185,12 @@ const ClerkauthSignInRoute = ClerkauthSignInRouteImport.update({
   path: '/sign-in',
   getParentRoute: () => ClerkauthRouteRoute,
 } as any)
+const AuthenticatedSettingsRestaurantRoute =
+  AuthenticatedSettingsRestaurantRouteImport.update({
+    id: '/restaurant',
+    path: '/restaurant',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any)
 const AuthenticatedSettingsNotificationsRoute =
   AuthenticatedSettingsNotificationsRouteImport.update({
     id: '/notifications',
@@ -270,6 +277,7 @@ export interface FileRoutesByFullPath {
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/settings/restaurant': typeof AuthenticatedSettingsRestaurantRoute
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
   '/apps': typeof AuthenticatedAppsIndexRoute
@@ -303,6 +311,7 @@ export interface FileRoutesByTo {
   '/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/settings/restaurant': typeof AuthenticatedSettingsRestaurantRoute
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
   '/apps': typeof AuthenticatedAppsIndexRoute
@@ -342,6 +351,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/display': typeof AuthenticatedSettingsDisplayRoute
   '/_authenticated/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
   '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
+  '/_authenticated/settings/restaurant': typeof AuthenticatedSettingsRestaurantRoute
   '/clerk/(auth)/sign-in': typeof ClerkauthSignInRoute
   '/clerk/(auth)/sign-up': typeof ClerkauthSignUpRoute
   '/_authenticated/apps/': typeof AuthenticatedAppsIndexRoute
@@ -379,6 +389,7 @@ export interface FileRouteTypes {
     | '/settings/display'
     | '/settings/integrations'
     | '/settings/notifications'
+    | '/settings/restaurant'
     | '/clerk/sign-in'
     | '/clerk/sign-up'
     | '/apps'
@@ -412,6 +423,7 @@ export interface FileRouteTypes {
     | '/settings/display'
     | '/settings/integrations'
     | '/settings/notifications'
+    | '/settings/restaurant'
     | '/clerk/sign-in'
     | '/clerk/sign-up'
     | '/apps'
@@ -450,6 +462,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/display'
     | '/_authenticated/settings/integrations'
     | '/_authenticated/settings/notifications'
+    | '/_authenticated/settings/restaurant'
     | '/clerk/(auth)/sign-in'
     | '/clerk/(auth)/sign-up'
     | '/_authenticated/apps/'
@@ -662,6 +675,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClerkauthSignInRouteImport
       parentRoute: typeof ClerkauthRouteRoute
     }
+    '/_authenticated/settings/restaurant': {
+      id: '/_authenticated/settings/restaurant'
+      path: '/restaurant'
+      fullPath: '/settings/restaurant'
+      preLoaderRoute: typeof AuthenticatedSettingsRestaurantRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteRoute
+    }
     '/_authenticated/settings/notifications': {
       id: '/_authenticated/settings/notifications'
       path: '/notifications'
@@ -766,6 +786,7 @@ interface AuthenticatedSettingsRouteRouteChildren {
   AuthenticatedSettingsDisplayRoute: typeof AuthenticatedSettingsDisplayRoute
   AuthenticatedSettingsIntegrationsRoute: typeof AuthenticatedSettingsIntegrationsRoute
   AuthenticatedSettingsNotificationsRoute: typeof AuthenticatedSettingsNotificationsRoute
+  AuthenticatedSettingsRestaurantRoute: typeof AuthenticatedSettingsRestaurantRoute
   AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
 }
 
@@ -780,6 +801,7 @@ const AuthenticatedSettingsRouteRouteChildren: AuthenticatedSettingsRouteRouteCh
       AuthenticatedSettingsIntegrationsRoute,
     AuthenticatedSettingsNotificationsRoute:
       AuthenticatedSettingsNotificationsRoute,
+    AuthenticatedSettingsRestaurantRoute: AuthenticatedSettingsRestaurantRoute,
     AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
   }
 

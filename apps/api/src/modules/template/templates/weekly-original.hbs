@@ -212,15 +212,14 @@
 <body>
   <div class='menu-container'>
     <div class='header'>
-      <div class='restaurant-name'>ZÓNA ÉTTEREM</div>
-      <div class='restaurant-name'>VESZPRÉM</div>
+      <div class='restaurant-name'>{{restaurant.name}}</div>
       <div class='restaurant-info'>
-        RADNÓTI TÉR 2<br />
-        TEL.: 88/426-706
+        {{restaurant.address}}<br />
+        {{#if restaurant.phoneNumber}}TEL.: {{restaurant.phoneNumber}}{{/if}}
       </div>
 
       <div class='week-title'>H E T I &nbsp; A J Á N L A T</div>
-      <div class='week-dates'>{{formatDateRange weekStart weekEnd}}</div>
+      <div class='week-dates'>{{formatDateRange menu.weekStart menu.weekEnd}}</div>
     </div>
 
     <div class='fixed-items'>
@@ -246,7 +245,7 @@
 
     <table class='menu-table'>
       <tbody>
-        {{#each (getDaysInOrder days weekStart)}}
+        {{#each (getDaysInOrder menu.days menu.weekStart)}}
         <tr>
           <td class='day-cell'>{{this.dayName}}</td>
           <td class='food-cell'>
@@ -295,9 +294,11 @@
     </table>
 
     <div class='footer'>
-      <p><strong>Elviteles doboz ára: 100 FT</strong></p>
+      {{#if restaurant.takeawayPrice}}
+      <p><strong>Elviteles doboz ára: {{restaurant.takeawayPrice}} FT</strong></p>
+      {{/if}}
       <p>Étlapunk aktuális ajánlata a Facebook oldalon tekinthető meg.</p>
-      <p><em>Jó étvágyat kíván az egész Zóna étterem személyzete!</em></p>
+      <p><em>Jó étvágyat kíván az egész {{restaurant.name}} személyzete!</em></p>
     </div>
   </div>
 

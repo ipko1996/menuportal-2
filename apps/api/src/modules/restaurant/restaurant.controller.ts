@@ -1,45 +1,60 @@
+import { Body, Controller, Get, Patch, UseGuards } from '@nestjs/common';
 import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-} from '@nestjs/common';
-import { RestaurantService } from './restaurant.service';
-import { CreateRestaurantDto } from './dto/create-restaurant.dto';
-import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 
-@Controller('restaurant')
-export class RestaurantController {
-  constructor(private readonly restaurantService: RestaurantService) {}
+import { CurrentUser } from '@/decorators/user.decorator';
+import { RoleAuthGuard, Roles } from '@/guards/role.guard';
+import { AppUser } from '@/shared/types';
 
-  @Post()
-  create(@Body() createRestaurantDto: CreateRestaurantDto) {
-    return this.restaurantService.create(createRestaurantDto);
-  }
+import { RestaurantSettingResponseDto } from './dto/restaurant-settings.response.dto';
+import { UpdateRestaurantSettingDto } from './dto/update-restaurant.dto';
+import { RestaurantSettingsService } from './restaurant.service';
+
+@ApiTags('Restaurant Settings')
+@UseGuards(RoleAuthGuard)
+@Roles('ADMIN', 'MANAGER')
+@ApiBearerAuth()
+@Controller('restaurant/settings')
+export class RestaurantSettingsController {
+  constructor(
+    private readonly restaurantSettingsService: RestaurantSettingsService
+  ) {}
 
   @Get()
-  findAll() {
-    return this.restaurantService.findAll();
+  @ApiOperation({
+    summary: "Retrieve the restaurant's details",
+    description:
+      'Fetches the core details associated with the current restaurant.',
+    operationId: 'findRestaurantSettings',
+  })
+  @ApiOkResponse({
+    description: 'The restaurant details.',
+    type: RestaurantSettingResponseDto,
+  })
+  findOne(@CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>) {
+    return this.restaurantSettingsService.findOne(user.restaurant.id);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.restaurantService.findOne(+id);
-  }
-
-  @Patch(':id')
+  @Patch()
+  @ApiOperation({
+    summary: 'Update restaurant details',
+    operationId: 'updateRestaurantSettings',
+  })
+  @ApiOkResponse({
+    description: 'The restaurant details have been successfully updated.',
+    type: RestaurantSettingResponseDto,
+  })
   update(
-    @Param('id') id: string,
-    @Body() updateRestaurantDto: UpdateRestaurantDto
+    @Body() updateRestaurantSettingDto: UpdateRestaurantSettingDto,
+    @CurrentUser() user: AppUser<'MANAGER' | 'ADMIN'>
   ) {
-    return this.restaurantService.update(+id, updateRestaurantDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.restaurantService.remove(+id);
+    return this.restaurantSettingsService.update(
+      updateRestaurantSettingDto,
+      user.restaurant.id
+    );
   }
 }

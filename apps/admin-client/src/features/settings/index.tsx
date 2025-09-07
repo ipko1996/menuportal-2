@@ -1,6 +1,7 @@
 import { Outlet } from '@tanstack/react-router';
 import {
   IconBrowserCheck,
+  IconBuildingCog,
   IconCalendarClock,
   IconNotification,
   IconPalette,
@@ -19,15 +20,6 @@ import SidebarNav from './components/sidebar-nav';
 export default function Settings() {
   return (
     <>
-      {/* ===== Top Heading ===== */}
-      <Header>
-        <Search />
-        <div className="ml-auto flex items-center space-x-4">
-          <ThemeSwitch />
-          <ProfileDropdown />
-        </div>
-      </Header>
-
       <Main fixed>
         <div className="space-y-0.5">
           <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
@@ -76,6 +68,11 @@ const sidebarNavItems = [
     title: 'Display',
     icon: <IconBrowserCheck size={18} />,
     href: '/settings/display',
+  },
+  {
+    title: 'Restaurant',
+    icon: <IconBuildingCog size={18} />,
+    href: '/settings/restaurant',
   },
   {
     title: 'Business hours',

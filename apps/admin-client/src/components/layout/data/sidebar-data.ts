@@ -21,6 +21,7 @@ import {
   IconCalendarClock,
   IconShare2,
   IconCalendarEvent,
+  IconBuildingCog,
 } from '@tabler/icons-react';
 import { AudioWaveform, Command, GalleryVerticalEnd } from 'lucide-react';
 import { ClerkLogo } from '@/assets/clerk-logo';
@@ -187,6 +188,11 @@ export const sidebarData: SidebarData = {
               title: 'Display',
               url: '/settings/display',
               icon: IconBrowserCheck,
+            },
+            {
+              title: 'Restaurant',
+              url: '/settings/restaurant',
+              icon: IconBuildingCog,
             },
             {
               title: 'Business hours',

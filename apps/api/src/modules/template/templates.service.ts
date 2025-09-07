@@ -15,6 +15,7 @@ import { DatabaseService } from '@/shared/database/database.service';
 import { DateRange } from '@/shared/pipes';
 
 import { BusinessHoursService } from '../business-hours/business-hours.service';
+import { RestaurantSettingsService } from '../restaurant/restaurant.service';
 import { WeekMenuDayDto } from '../week-menu/dto/week-menu-response.dto';
 import { WeekMenuService } from '../week-menu/week-menu.service';
 import Handlebars from './helpers/helper';
@@ -26,7 +27,8 @@ export class TemplatesService {
   constructor(
     private readonly weekMenuService: WeekMenuService,
     private readonly databaseService: DatabaseService,
-    private readonly businessHoursService: BusinessHoursService
+    private readonly businessHoursService: BusinessHoursService,
+    private readonly restaurantSettings: RestaurantSettingsService
   ) {}
 
   public async renderWeeklyMenuHtml(
@@ -34,10 +36,13 @@ export class TemplatesService {
     dateRange: DateRange,
     platform?: SocialMediaPlatform
   ): Promise<string> {
+    // 1. Fetch both menu and restaurant data
     const menuData = await this.weekMenuService.getMenusForWeek(
       dateRange,
       restaurantId
     );
+    const restaurantData = await this.restaurantSettings.findOne(restaurantId);
+
     const templateId = platform
       ? await this._getPlatformTemplateId(restaurantId, 'WEEKLY', platform)
       : await this._getDefaultTemplateId(restaurantId, 'WEEKLY');
@@ -71,7 +76,13 @@ export class TemplatesService {
     // Update menuData with filtered days
     menuData.days = filteredDays;
 
-    return this._compileTemplate(templateId, menuData);
+    // 2. Combine all data into a single object for the template
+    const templateData = {
+      menu: menuData,
+      restaurant: restaurantData,
+    };
+
+    return this._compileTemplate(templateId, templateData);
   }
 
   public async renderDailyMenuHtml(
@@ -79,15 +90,24 @@ export class TemplatesService {
     dateRange: DateRange,
     platform?: SocialMediaPlatform
   ): Promise<string> {
+    // 1. Fetch both menu and restaurant data
     const menuData = await this.weekMenuService.getMenusForWeek(
       dateRange,
       restaurantId
     );
+    const restaurantData = await this.restaurantSettings.findOne(restaurantId);
+
     const templateId = platform
       ? await this._getPlatformTemplateId(restaurantId, 'DAILY', platform)
       : await this._getDefaultTemplateId(restaurantId, 'DAILY');
 
-    return this._compileTemplate(templateId, menuData);
+    // 2. Combine all data into a single object for the template
+    const templateData = {
+      menu: menuData,
+      restaurant: restaurantData,
+    };
+
+    return this._compileTemplate(templateId, templateData);
   }
 
   private async _getDefaultTemplateId(

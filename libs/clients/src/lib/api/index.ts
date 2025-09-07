@@ -7,6 +7,7 @@ export * from './generated/menu/menu';
 export * from './generated/offer/offer';
 export * from './generated/pdf-image-generation/pdf-image-generation';
 export * from './generated/publish/publish';
+export * from './generated/restaurant-settings/restaurant-settings';
 export * from './generated/schedule/schedule';
 export * from './generated/social/social';
 export * from './generated/templates/templates';
