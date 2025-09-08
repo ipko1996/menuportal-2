@@ -1,0 +1,14 @@
+{
+  "name": "gotenberg",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "deploy": {
+      "command": "fly deploy",
+      "options": {
+        "cwd": "apps/gotenberg"
+      }
+    }
+  }
+}
