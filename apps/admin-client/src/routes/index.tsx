@@ -33,6 +33,9 @@ import {
 
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useState, useEffect } from 'react';
+import dashboardImage from '@/assets/images/dashboard.png';
+import menuEditor from '@/assets/images/menu-editor.png';
+import scheduling from '@/assets/images/scheduling.png';
 
 export const Route = createFileRoute('/')({
   component: LandingPage,
@@ -297,7 +300,7 @@ function LandingPage() {
 
           <div className="relative max-w-4xl mx-auto">
             <img
-              src="/images/dashboard.png"
+              src={dashboardImage}
               alt="Menuportal Dashboard"
               className="rounded-lg shadow-2xl border"
             />
@@ -433,7 +436,7 @@ function LandingPage() {
             </div>
             <div>
               <img
-                src="/images/menu-editor.png"
+                src={menuEditor}
                 alt="Menu Creation Interface"
                 className="rounded-lg shadow-lg border"
               />
@@ -463,7 +466,7 @@ function LandingPage() {
             </div>
             <div className="lg:order-1">
               <img
-                src="/images/scheduling.png"
+                src={scheduling}
                 alt="Social Media Integration"
                 className="rounded-lg shadow-lg border"
               />

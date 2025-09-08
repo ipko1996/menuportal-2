@@ -43,7 +43,7 @@ export const createBusinessHour = (
 ) => {
   return axiosInstance<BusinessHourResponseDto>(
     {
-      url: `/api/business-hours`,
+      url: `/business-hours`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: createBusinessHourDto,
@@ -133,13 +133,13 @@ export const findAllBusinessHours = (
   signal?: AbortSignal
 ) => {
   return axiosInstance<BusinessHourResponseDto[]>(
-    { url: `/api/business-hours`, method: 'GET', signal },
+    { url: `/business-hours`, method: 'GET', signal },
     options
   );
 };
 
 export const getFindAllBusinessHoursQueryKey = () => {
-  return [`/api/business-hours`] as const;
+  return [`/business-hours`] as const;
 };
 
 export const getFindAllBusinessHoursQueryOptions = <
@@ -290,7 +290,7 @@ export const createBulkBusinessHours = (
 ) => {
   return axiosInstance<BusinessHourResponseDto[]>(
     {
-      url: `/api/business-hours/bulk`,
+      url: `/business-hours/bulk`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: createBulkBusinessHourDto,
@@ -382,7 +382,7 @@ export const updateBusinessHour = (
 ) => {
   return axiosInstance<BusinessHourResponseDto>(
     {
-      url: `/api/business-hours/${id}`,
+      url: `/business-hours/${id}`,
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       data: updateBusinessHourDto,
@@ -470,7 +470,7 @@ export const deleteBusinessHour = (
   options?: SecondParameter<typeof axiosInstance>
 ) => {
   return axiosInstance<BusinessHourResponseDto>(
-    { url: `/api/business-hours/${id}`, method: 'DELETE' },
+    { url: `/business-hours/${id}`, method: 'DELETE' },
     options
   );
 };

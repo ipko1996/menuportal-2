@@ -32,13 +32,13 @@ export const getAllSocialAccountsForRestaurant = (
   signal?: AbortSignal
 ) => {
   return axiosInstance<SocialDto[]>(
-    { url: `/api/social`, method: 'GET', signal },
+    { url: `/social`, method: 'GET', signal },
     options
   );
 };
 
 export const getGetAllSocialAccountsForRestaurantQueryKey = () => {
-  return [`/api/social`] as const;
+  return [`/social`] as const;
 };
 
 export const getGetAllSocialAccountsForRestaurantQueryOptions = <

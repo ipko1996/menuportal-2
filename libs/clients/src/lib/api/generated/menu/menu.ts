@@ -41,7 +41,7 @@ export const createMenu = (
 ) => {
   return axiosInstance<MenuResponseDto>(
     {
-      url: `/api/menu`,
+      url: `/menu`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: createMenuDto,
@@ -126,14 +126,11 @@ export const getAllMenus = (
   options?: SecondParameter<typeof axiosInstance>,
   signal?: AbortSignal
 ) => {
-  return axiosInstance<null>(
-    { url: `/api/menu`, method: 'GET', signal },
-    options
-  );
+  return axiosInstance<null>({ url: `/menu`, method: 'GET', signal }, options);
 };
 
 export const getGetAllMenusQueryKey = () => {
-  return [`/api/menu`] as const;
+  return [`/menu`] as const;
 };
 
 export const getGetAllMenusQueryOptions = <
@@ -262,13 +259,13 @@ export const getMenuById = (
   signal?: AbortSignal
 ) => {
   return axiosInstance<null>(
-    { url: `/api/menu/${id}`, method: 'GET', signal },
+    { url: `/menu/${id}`, method: 'GET', signal },
     options
   );
 };
 
 export const getGetMenuByIdQueryKey = (id?: string) => {
-  return [`/api/menu/${id}`] as const;
+  return [`/menu/${id}`] as const;
 };
 
 export const getGetMenuByIdQueryOptions = <
@@ -410,7 +407,7 @@ export const updateMenu = (
 ) => {
   return axiosInstance<MenuResponseDto>(
     {
-      url: `/api/menu/${id}`,
+      url: `/menu/${id}`,
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       data: updateMenuDto,
@@ -494,10 +491,7 @@ export const deleteMenu = (
   id: number,
   options?: SecondParameter<typeof axiosInstance>
 ) => {
-  return axiosInstance<null>(
-    { url: `/api/menu/${id}`, method: 'DELETE' },
-    options
-  );
+  return axiosInstance<null>({ url: `/menu/${id}`, method: 'DELETE' }, options);
 };
 
 export const getDeleteMenuMutationOptions = <

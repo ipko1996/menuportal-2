@@ -41,7 +41,7 @@ export const createOffer = (
 ) => {
   return axiosInstance<OfferResponseDto>(
     {
-      url: `/api/offer`,
+      url: `/offer`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: createOfferDto,
@@ -126,14 +126,11 @@ export const getAllOffers = (
   options?: SecondParameter<typeof axiosInstance>,
   signal?: AbortSignal
 ) => {
-  return axiosInstance<null>(
-    { url: `/api/offer`, method: 'GET', signal },
-    options
-  );
+  return axiosInstance<null>({ url: `/offer`, method: 'GET', signal }, options);
 };
 
 export const getGetAllOffersQueryKey = () => {
-  return [`/api/offer`] as const;
+  return [`/offer`] as const;
 };
 
 export const getGetAllOffersQueryOptions = <
@@ -262,13 +259,13 @@ export const getOfferById = (
   signal?: AbortSignal
 ) => {
   return axiosInstance<OfferResponseDto>(
-    { url: `/api/offer/${id}`, method: 'GET', signal },
+    { url: `/offer/${id}`, method: 'GET', signal },
     options
   );
 };
 
 export const getGetOfferByIdQueryKey = (id?: number) => {
-  return [`/api/offer/${id}`] as const;
+  return [`/offer/${id}`] as const;
 };
 
 export const getGetOfferByIdQueryOptions = <
@@ -410,7 +407,7 @@ export const updateOffer = (
 ) => {
   return axiosInstance<OfferResponseDto>(
     {
-      url: `/api/offer/${id}`,
+      url: `/offer/${id}`,
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       data: updateOfferDto,
@@ -495,7 +492,7 @@ export const deleteOffer = (
   options?: SecondParameter<typeof axiosInstance>
 ) => {
   return axiosInstance<null>(
-    { url: `/api/offer/${id}`, method: 'DELETE' },
+    { url: `/offer/${id}`, method: 'DELETE' },
     options
   );
 };

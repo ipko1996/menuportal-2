@@ -37,13 +37,13 @@ export const getCurrentUser = (
   signal?: AbortSignal
 ) => {
   return axiosInstance<UserDto>(
-    { url: `/api/auth`, method: 'GET', signal },
+    { url: `/auth`, method: 'GET', signal },
     options
   );
 };
 
 export const getGetCurrentUserQueryKey = () => {
-  return [`/api/auth`] as const;
+  return [`/auth`] as const;
 };
 
 export const getGetCurrentUserQueryOptions = <
@@ -171,13 +171,13 @@ export const getCurrentUserWithRestaurant = (
   signal?: AbortSignal
 ) => {
   return axiosInstance<UserDtoWithRestaurant>(
-    { url: `/api/auth/with-restaurant`, method: 'GET', signal },
+    { url: `/auth/with-restaurant`, method: 'GET', signal },
     options
   );
 };
 
 export const getGetCurrentUserWithRestaurantQueryKey = () => {
-  return [`/api/auth/with-restaurant`] as const;
+  return [`/auth/with-restaurant`] as const;
 };
 
 export const getGetCurrentUserWithRestaurantQueryOptions = <
@@ -326,13 +326,13 @@ export const getSocials = (
   signal?: AbortSignal
 ) => {
   return axiosInstance<SocialAccountDto[]>(
-    { url: `/api/auth/socials`, method: 'GET', signal },
+    { url: `/auth/socials`, method: 'GET', signal },
     options
   );
 };
 
 export const getGetSocialsQueryKey = () => {
-  return [`/api/auth/socials`] as const;
+  return [`/auth/socials`] as const;
 };
 
 export const getGetSocialsQueryOptions = <
@@ -462,12 +462,7 @@ export const socialCallback = (
   signal?: AbortSignal
 ) => {
   return axiosInstance<null>(
-    {
-      url: `/api/auth/social/${platform}/callback`,
-      method: 'GET',
-      params,
-      signal,
-    },
+    { url: `/auth/social/${platform}/callback`, method: 'GET', params, signal },
     options
   );
 };
@@ -477,7 +472,7 @@ export const getSocialCallbackQueryKey = (
   params?: SocialCallbackParams
 ) => {
   return [
-    `/api/auth/social/${platform}/callback`,
+    `/auth/social/${platform}/callback`,
     ...(params ? [params] : []),
   ] as const;
 };

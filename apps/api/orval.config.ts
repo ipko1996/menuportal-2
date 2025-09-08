@@ -3,7 +3,7 @@ import { defineConfig } from 'orval';
 export default defineConfig({
   menuportal: {
     input: {
-      target: 'http://localhost:3005/api/docs-json',
+      target: 'http://localhost:3005/docs-json',
     },
     output: {
       namingConvention: 'kebab-case',

@@ -33,13 +33,13 @@ export const getMenusForWeek = (
   signal?: AbortSignal
 ) => {
   return axiosInstance<WeekMenuResponseDto>(
-    { url: `/api/week-menu/${weekNumber}`, method: 'GET', signal },
+    { url: `/week-menu/${weekNumber}`, method: 'GET', signal },
     options
   );
 };
 
 export const getGetMenusForWeekQueryKey = (weekNumber?: unknown) => {
-  return [`/api/week-menu/${weekNumber}`] as const;
+  return [`/week-menu/${weekNumber}`] as const;
 };
 
 export const getGetMenusForWeekQueryOptions = <

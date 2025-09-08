@@ -35,8 +35,8 @@ async function bootstrap() {
     })
   );
 
-  const globalPrefix = 'api';
-  app.setGlobalPrefix(globalPrefix);
+  // const globalPrefix = 'api';
+  // app.setGlobalPrefix(globalPrefix);
 
   // Swagger configuration
   const config = new DocumentBuilder()
@@ -64,7 +64,7 @@ async function bootstrap() {
 
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, documentFactory, {
-    jsonDocumentUrl: `/${globalPrefix}/docs-json`,
+    jsonDocumentUrl: `/docs-json`,
   });
 
   app.enableCors({
@@ -86,9 +86,7 @@ async function bootstrap() {
   const port = process.env.PORT ?? 3005;
   await app.listen(port, '0.0.0.0');
 
-  Logger.log(
-    `🚀 Application is running on: http://localhost:${port}/${globalPrefix}`
-  );
+  Logger.log(`🚀 Application is running on: http://localhost:${port}`);
   Logger.log(
     `📚 Swagger documentation available at: http://localhost:${port}/docs`
   );

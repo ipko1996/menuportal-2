@@ -37,7 +37,7 @@ export const getWeeklyMenu = (
 ) => {
   return axiosInstance<Blob>(
     {
-      url: `/api/pdf/weekly/${restaurantId}/${weekNumber}`,
+      url: `/pdf/weekly/${restaurantId}/${weekNumber}`,
       method: 'GET',
       params,
       responseType: 'blob',
@@ -53,7 +53,7 @@ export const getGetWeeklyMenuQueryKey = (
   params?: GetWeeklyMenuParams
 ) => {
   return [
-    `/api/pdf/weekly/${restaurantId}/${weekNumber}`,
+    `/pdf/weekly/${restaurantId}/${weekNumber}`,
     ...(params ? [params] : []),
   ] as const;
 };
@@ -217,7 +217,7 @@ export const getDailyMenu = (
 ) => {
   return axiosInstance<null>(
     {
-      url: `/api/pdf/daily/${restaurantId}/${date}`,
+      url: `/pdf/daily/${restaurantId}/${date}`,
       method: 'GET',
       params,
       signal,
@@ -232,7 +232,7 @@ export const getGetDailyMenuQueryKey = (
   params?: GetDailyMenuParams
 ) => {
   return [
-    `/api/pdf/daily/${restaurantId}/${date}`,
+    `/pdf/daily/${restaurantId}/${date}`,
     ...(params ? [params] : []),
   ] as const;
 };

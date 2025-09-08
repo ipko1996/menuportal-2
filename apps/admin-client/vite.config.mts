@@ -7,6 +7,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react-swc';
 import { defineConfig } from 'vite';
 import path from 'path';
+import { cloudflare } from '@cloudflare/vite-plugin';
 
 export default defineConfig(() => ({
   root: import.meta.dirname,
@@ -21,6 +22,7 @@ export default defineConfig(() => ({
   },
   plugins: [
     react(),
+    cloudflare(),
     nxViteTsPaths(),
     tailwindcss(),
     nxCopyAssetsPlugin(['*.md']),
@@ -34,7 +36,7 @@ export default defineConfig(() => ({
   //  plugins: [ nxViteTsPaths() ],
   // },
   build: {
-    outDir: '../../dist/apps/admin-client',
+    outDir: 'dist',
     emptyOutDir: true,
     reportCompressedSize: true,
     commonjsOptions: {

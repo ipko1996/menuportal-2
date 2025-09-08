@@ -40,7 +40,7 @@ export const renderWeeklyTemplate = (
 ) => {
   return axiosInstance<string>(
     {
-      url: `/api/templates/weekly/${restaurantId}/${weekNumber}`,
+      url: `/templates/weekly/${restaurantId}/${weekNumber}`,
       method: 'GET',
       params,
       signal,
@@ -55,7 +55,7 @@ export const getRenderWeeklyTemplateQueryKey = (
   params?: RenderWeeklyTemplateParams
 ) => {
   return [
-    `/api/templates/weekly/${restaurantId}/${weekNumber}`,
+    `/templates/weekly/${restaurantId}/${weekNumber}`,
     ...(params ? [params] : []),
   ] as const;
 };
@@ -246,7 +246,7 @@ export const renderDailyTemplate = (
 ) => {
   return axiosInstance<string>(
     {
-      url: `/api/templates/daily/${restaurantId}/${date}`,
+      url: `/templates/daily/${restaurantId}/${date}`,
       method: 'GET',
       params,
       signal,
@@ -261,7 +261,7 @@ export const getRenderDailyTemplateQueryKey = (
   params?: RenderDailyTemplateParams
 ) => {
   return [
-    `/api/templates/daily/${restaurantId}/${date}`,
+    `/templates/daily/${restaurantId}/${date}`,
     ...(params ? [params] : []),
   ] as const;
 };

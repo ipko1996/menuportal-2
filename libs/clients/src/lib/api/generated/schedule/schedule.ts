@@ -41,7 +41,7 @@ export const getScheduleSettings = (
   signal?: AbortSignal
 ) => {
   return axiosInstance<GetScheduleSettingsResponseDto>(
-    { url: `/api/schedule/settings/${scheduleType}`, method: 'GET', signal },
+    { url: `/schedule/settings/${scheduleType}`, method: 'GET', signal },
     options
   );
 };
@@ -49,7 +49,7 @@ export const getScheduleSettings = (
 export const getGetScheduleSettingsQueryKey = (
   scheduleType?: 'WEEKLY' | 'DAILY'
 ) => {
-  return [`/api/schedule/settings/${scheduleType}`] as const;
+  return [`/schedule/settings/${scheduleType}`] as const;
 };
 
 export const getGetScheduleSettingsQueryOptions = <
@@ -216,7 +216,7 @@ export const updateCoreScheduleSettings = (
 ) => {
   return axiosInstance<null>(
     {
-      url: `/api/schedule/settings/${scheduleType}`,
+      url: `/schedule/settings/${scheduleType}`,
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       data: updateScheduleDto,
@@ -307,7 +307,7 @@ export const createScheduleSettings = (
 ) => {
   return axiosInstance<null>(
     {
-      url: `/api/schedule/settings`,
+      url: `/schedule/settings`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: createScheduleDto,
@@ -399,7 +399,7 @@ export const updatePlatformScheduleSettings = (
 ) => {
   return axiosInstance<null>(
     {
-      url: `/api/schedule/settings/platforms/${platformScheduleId}`,
+      url: `/schedule/settings/platforms/${platformScheduleId}`,
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       data: updatePlatformScheduleDto,
@@ -494,7 +494,7 @@ export const scheduleWeek = (
   signal?: AbortSignal
 ) => {
   return axiosInstance<null>(
-    { url: `/api/schedule/${weekNumber}`, method: 'POST', signal },
+    { url: `/schedule/${weekNumber}`, method: 'POST', signal },
     options
   );
 };
@@ -575,7 +575,7 @@ export const cancelScheduledWeek = (
   options?: SecondParameter<typeof axiosInstance>
 ) => {
   return axiosInstance<null>(
-    { url: `/api/schedule/${weekNumber}`, method: 'DELETE' },
+    { url: `/schedule/${weekNumber}`, method: 'DELETE' },
     options
   );
 };

@@ -33,7 +33,7 @@ export const createHoliday = (
 ) => {
   return axiosInstance<HolidayResponseDto>(
     {
-      url: `/api/holiday`,
+      url: `/holiday`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: createHolidayDto,
@@ -124,7 +124,7 @@ export const updateHoliday = (
 ) => {
   return axiosInstance<HolidayResponseDto>(
     {
-      url: `/api/holiday/${id}`,
+      url: `/holiday/${id}`,
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       data: updateHolidayDto,
@@ -212,7 +212,7 @@ export const deleteHoliday = (
   options?: SecondParameter<typeof axiosInstance>
 ) => {
   return axiosInstance<null>(
-    { url: `/api/holiday/${id}`, method: 'DELETE' },
+    { url: `/holiday/${id}`, method: 'DELETE' },
     options
   );
 };

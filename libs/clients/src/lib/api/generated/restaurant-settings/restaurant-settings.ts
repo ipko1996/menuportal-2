@@ -39,13 +39,13 @@ export const findRestaurantSettings = (
   signal?: AbortSignal
 ) => {
   return axiosInstance<RestaurantSettingResponseDto>(
-    { url: `/api/restaurant/settings`, method: 'GET', signal },
+    { url: `/restaurant/settings`, method: 'GET', signal },
     options
   );
 };
 
 export const getFindRestaurantSettingsQueryKey = () => {
-  return [`/api/restaurant/settings`] as const;
+  return [`/restaurant/settings`] as const;
 };
 
 export const getFindRestaurantSettingsQueryOptions = <
@@ -195,7 +195,7 @@ export const updateRestaurantSettings = (
 ) => {
   return axiosInstance<RestaurantSettingResponseDto>(
     {
-      url: `/api/restaurant/settings`,
+      url: `/restaurant/settings`,
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       data: updateRestaurantSettingDto,

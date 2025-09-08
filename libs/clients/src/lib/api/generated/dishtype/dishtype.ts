@@ -32,13 +32,13 @@ export const getAvailableDishtypes = (
   signal?: AbortSignal
 ) => {
   return axiosInstance<DishTypeResponseDto[]>(
-    { url: `/api/dishtype`, method: 'GET', signal },
+    { url: `/dishtype`, method: 'GET', signal },
     options
   );
 };
 
 export const getGetAvailableDishtypesQueryKey = () => {
-  return [`/api/dishtype`] as const;
+  return [`/dishtype`] as const;
 };
 
 export const getGetAvailableDishtypesQueryOptions = <

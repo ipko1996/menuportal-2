@@ -44,7 +44,7 @@ export const createDish = (
 ) => {
   return axiosInstance<DishResponseDto>(
     {
-      url: `/api/dish`,
+      url: `/dish`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: createDishDto,
@@ -134,7 +134,7 @@ export const getPaginatedDishes = (
   signal?: AbortSignal
 ) => {
   return axiosInstance<DishPaginatedResponseDto>(
-    { url: `/api/dish`, method: 'GET', params, signal },
+    { url: `/dish`, method: 'GET', params, signal },
     options
   );
 };
@@ -142,7 +142,7 @@ export const getPaginatedDishes = (
 export const getGetPaginatedDishesQueryKey = (
   params?: GetPaginatedDishesParams
 ) => {
-  return [`/api/dish`, ...(params ? [params] : [])] as const;
+  return [`/dish`, ...(params ? [params] : [])] as const;
 };
 
 export const getGetPaginatedDishesQueryOptions = <
@@ -299,7 +299,7 @@ export const searchDishesByName = (
   signal?: AbortSignal
 ) => {
   return axiosInstance<DishResponseDto[]>(
-    { url: `/api/dish/search`, method: 'GET', params, signal },
+    { url: `/dish/search`, method: 'GET', params, signal },
     options
   );
 };
@@ -307,7 +307,7 @@ export const searchDishesByName = (
 export const getSearchDishesByNameQueryKey = (
   params?: SearchDishesByNameParams
 ) => {
-  return [`/api/dish/search`, ...(params ? [params] : [])] as const;
+  return [`/dish/search`, ...(params ? [params] : [])] as const;
 };
 
 export const getSearchDishesByNameQueryOptions = <
@@ -464,13 +464,13 @@ export const getDishById = (
   signal?: AbortSignal
 ) => {
   return axiosInstance<DishResponseDto>(
-    { url: `/api/dish/${id}`, method: 'GET', signal },
+    { url: `/dish/${id}`, method: 'GET', signal },
     options
   );
 };
 
 export const getGetDishByIdQueryKey = (id?: number) => {
-  return [`/api/dish/${id}`] as const;
+  return [`/dish/${id}`] as const;
 };
 
 export const getGetDishByIdQueryOptions = <
@@ -612,7 +612,7 @@ export const updateDishById = (
 ) => {
   return axiosInstance<DishResponseDto>(
     {
-      url: `/api/dish/${id}`,
+      url: `/dish/${id}`,
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       data: updateDishDto,
@@ -699,10 +699,7 @@ export const deleteDishById = (
   id: number,
   options?: SecondParameter<typeof axiosInstance>
 ) => {
-  return axiosInstance<null>(
-    { url: `/api/dish/${id}`, method: 'DELETE' },
-    options
-  );
+  return axiosInstance<null>({ url: `/dish/${id}`, method: 'DELETE' }, options);
 };
 
 export const getDeleteDishByIdMutationOptions = <

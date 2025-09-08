@@ -23,7 +23,7 @@ export const publishControllerTriggerPublishingJob = (
   signal?: AbortSignal
 ) => {
   return axiosInstance<null>(
-    { url: `/api/jobs/publish`, method: 'POST', signal },
+    { url: `/jobs/publish`, method: 'POST', signal },
     options
   );
 };
