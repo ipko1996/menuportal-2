@@ -29,6 +29,10 @@ FROM node:20-alpine
 
 WORKDIR /usr/src/app
 
+
+RUN apk add --no-cache imagemagick ghostscript && \
+    sed -i 's/rights="none" pattern="PDF"/rights="read" pattern="PDF"/' /etc/ImageMagick-7/policy.xml
+
 # Copy pruned manifest from build output (runtime deps only)
 COPY --from=builder /usr/src/app/dist/apps/api/package.json .
 COPY --from=builder /usr/src/app/dist/apps/api/pnpm-lock.yaml .
