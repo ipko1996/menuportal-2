@@ -12,56 +12,77 @@ A cookie-k (sütik) kis szöveges fájlok, amelyeket a weboldal az Ön böngész
 
 Ezek a cookie-k a weboldal alapvető működéséhez szükségesek.
 
-| Cookie neve       | Szolgáltató | Cél                              | Időtartam  |
-| ----------------- | ----------- | -------------------------------- | ---------- |
-| \_\_clerk_session | Clerk       | Felhasználói munkamenet kezelése | Munkamenet |
-| \_\_clerk_jwt     | Clerk       | Hitelesítési token               | 1 óra      |
-| theme_preference  | MenuPortal  | Sötét/világos mód beállítás      | 1 év       |
+| Cookie neve               | Szolgáltató | Cél                              | Időtartam |
+| ------------------------- | ----------- | -------------------------------- | --------- |
+| `__session`               | Clerk       | Felhasználói munkamenet kezelése | 1 hét     |
+| `__session_{suffix}`      | Clerk       | Többszörös munkamenet kezelése   | 1 hét     |
+| `__client_uat`            | Clerk       | Kliens autentikációs token       | 1 hét     |
+| `__client_uat_{suffix}`   | Clerk       | Többszörös kliens token          | 1 hét     |
+| `__clerk_db_jwt`          | Clerk       | Adatbázis JWT token              | 1 hét     |
+| `__clerk_db_jwt_{suffix}` | Clerk       | Többszörös JWT token             | 1 hét     |
 
-### 2.2 Funkcionális cookie-k
+### 2.2 Teljesítmény és biztonsági cookie-k
 
-Ezek a cookie-k a felhasználói élmény javítását szolgálják.
+A Cloudflare által használt cookie-k a weboldal teljesítményének optimalizálására és biztonságának növelésére.
 
-| Cookie neve   | Szolgáltató | Cél                              | Időtartam |
-| ------------- | ----------- | -------------------------------- | --------- |
-| language      | MenuPortal  | Nyelvi preferencia               | 1 év      |
-| sidebar_state | MenuPortal  | Oldalsáv állapota (nyitva/zárva) | 30 nap    |
+| Cookie neve | Szolgáltató | Cél                            | Időtartam  |
+| ----------- | ----------- | ------------------------------ | ---------- |
+| `__cf_bm`   | Cloudflare  | Bot védelem és forgalomkezelés | 30 perc    |
+| `_cfuvid`   | Cloudflare  | Egyedi látogatók azonosítása   | Munkamenet |
 
-### 2.3 Teljesítmény cookie-k
+### 2.3 Felhasználói preferencia cookie-k
 
-A Cloudflare által használt cookie-k a weboldal teljesítményének optimalizálására.
-
-| Cookie neve  | Szolgáltató | Cél                         | Időtartam  |
-| ------------ | ----------- | --------------------------- | ---------- |
-| \_\_cf_bm    | Cloudflare  | Bot védelem                 | 30 perc    |
-| cf_clearance | Cloudflare  | Biztonsági ellenőrzés       | 30 perc    |
-| \_cfuvid     | Cloudflare  | Látogatók megkülönböztetése | Munkamenet |
-
-### 2.4 Cloudflare R2 Storage
-
-A Cloudflare R2 nem használ cookie-kat, de a feltöltött képek és exportált fájlok URL-jei ideiglenesen cache-elődhetnek a böngészőben.
+| Cookie neve          | Szolgáltató | Cél                           | Időtartam |
+| -------------------- | ----------- | ----------------------------- | --------- |
+| `cookie-consent`     | MenuPortal  | Cookie hozzájárulás állapota  | 1 év      |
+| `cookie-preferences` | MenuPortal  | Cookie kategóriák beállításai | 1 év      |
 
 ## 3. LOCALSTORAGE HASZNÁLATA
 
 A cookie-k mellett localStorage-t is használunk az alábbi adatok tárolására:
 
-- Felhasználói preferenciák (pl. táblázat rendezés)
-- Ideiglenes űrlapadatok (mentés előtt)
-- Cache-elt adatok a gyorsabb betöltéshez
+### 3.1 Felhasználói autentikáció és környezet
 
-## 4. HARMADIK FÉLTŐL SZÁRMAZÓ COOKIE-K
+- `__clerk_environment`: Clerk autentikációs környezet konfigurációja
+- `clerk_telemetry_throttler`: Telemetria korlátozás adatok
+- `clerk_active_context`: Aktív felhasználói kontextus
+
+### 3.2 Felhasználói beállítások
+
+- Cookie preferenciák részletes beállításai
+- Felhasználói interfész beállítások
+
+**Fontos:** A localStorage adatok csak az Ön böngészőjében maradnak és nem kerülnek továbbításra.
+
+## 4. HARMADIK FÉLTŐL SZÁRMAZÓ SZOLGÁLTATÁSOK
 
 ### 4.1 Clerk Authentication
 
-A Clerk felhasználói azonosítási szolgáltatás saját cookie-kat használ a biztonságos bejelentkezés érdekében. A Clerk email szolgáltatásokat is biztosít (regisztrációs email, jelszó visszaállítás).
+A Clerk felhasználói azonosítási szolgáltatás cookie-kat használ a biztonságos bejelentkezés és munkamenet kezelés érdekében. A Clerk szolgáltatás magában foglalja:
 
-### 4.2 Cloudflare Analytics
+- Felhasználói regisztráció és bejelentkezés
+- Munkamenet kezelés
+- Email szolgáltatások (regisztrációs email, jelszó visszaállítás)
+- Kétfaktoros hitelesítés támogatás
 
-**Fontos:** A Cloudflare Analytics **NEM használ cookie-kat** és nem gyűjt személyes adatokat. Ez egy privacy-first analitikai megoldás, amely csak aggregált, anonimizált adatokat gyűjt a weboldal teljesítményéről.
+### 4.2 Cloudflare CDN és Biztonság
 
-### 4.3 Közösségi média
+A Cloudflare szolgáltatás cookie-kat használ:
 
-Amikor engedélyezi a Facebook vagy Instagram integrációt, ezek a platformok saját cookie-kat helyezhetnek el.
+- DDoS védelem
+- Bot detektálás
+- Gyorsítótárazás optimalizálás
+- Biztonságos tartalom kézbesítés
+
+**Fontos:** A Cloudflare Analytics **NEM használ cookie-kat** és nem gyűjt személyes adatokat. Ez egy privacy-first analitikai megoldás.
+
+### 4.3 Cloudflare R2 Storage
+
+A fájlok és képek tárolásához használt Cloudflare R2 nem helyez el cookie-kat, de a feltöltött tartalmak URL-jei ideiglenesen cache-elődhetnek.
+
+### 4.4 Közösségi média Integráció
+
+Amikor engedélyezi a Facebook vagy Instagram integrációt, ezek a platformok saját cookie-kat használhatnak, de ez csak akkor történik meg, ha Ön kifejezetten aktiválja ezt a funkciót.
 
 ## 5. COOKIE-K KEZELÉSE
 
@@ -87,50 +108,61 @@ Böngészőjében bármikor törölheti a cookie-kat:
 
 ## 6. MI TÖRTÉNIK, HA LETILTJA A COOKIE-KAT?
 
-### 6.1 Elengedhetetlen cookie-k
+### 6.1 Elengedhetetlen cookie-k letiltása
 
 Ezek letiltása esetén:
 
 - Nem tud bejelentkezni a szolgáltatásba
-- A weboldal alapvető funkciói nem működnek
+- A munkamenet nem marad fenn
+- A weboldal alapvető funkciói nem működnek megfelelően
 
-### 6.2 Funkcionális cookie-k
+### 6.2 Teljesítmény cookie-k letiltása
 
 Ezek letiltása esetén:
 
-- Minden látogatáskor újra be kell állítania preferenciáit
-- A felhasználói élmény romolhat
+- A weboldal lassabban töltődhet be
+- Fokozott bot támadások előfordulhatnak
+- A biztonság szintje csökkenhet
+
+### 6.3 Preferencia cookie-k letiltása
+
+Ezek letiltása esetén:
+
+- Minden látogatáskor újra meg kell adnia a cookie hozzájárulását
+- Nem őrződnek meg a beállításai
 
 ## 7. COOKIE-K ÉS SZEMÉLYES ADATOK
 
-Néhány cookie személyes adatokat tárolhat (pl. felhasználói azonosító). Ezek kezeléséről részletesen az Adatkezelési Tájékoztatónkban olvashat.
+Néhány cookie személyes adatokat tartalmazhat (pl. felhasználói azonosító a Clerk token-ekben). Ezek kezeléséről részletesen az Adatkezelési Tájékoztatónkban olvashat.
 
-## 8. TOVÁBBI INFORMÁCIÓK
+## 8. FEJLESZTŐI KÖRNYEZET
 
-### 8.1 Cookie-król általában
+A fejlesztési fázisban további cookie-k és localStorage elemek jelenhetnek meg, amelyek a tesztelés és hibakeresés céljából kerülnek alkalmazásra. Ezek az éles verzióban nem lesznek jelen.
+
+## 9. TOVÁBBI INFORMÁCIÓK
+
+### 9.1 Cookie-król általában
 
 - All About Cookies: https://www.allaboutcookies.org
 - Your Online Choices: https://www.youronlinechoices.eu
 
-### 8.2 Böngésző útmutatók
+### 9.2 Böngésző útmutatók
 
 - Chrome: https://support.google.com/chrome/answer/95647
 - Firefox: https://support.mozilla.org/en-US/kb/cookies
 - Safari: https://support.apple.com/guide/safari/manage-cookies-and-website-data
 - Edge: https://support.microsoft.com/en-us/microsoft-edge/delete-cookies
 
-## 9. VÁLTOZÁSOK
+## 10. VÁLTOZÁSOK
 
 Fenntartjuk a jogot, hogy cookie tájékoztatónkat frissítsük. Jelentős változások esetén értesítjük felhasználóinkat.
 
-## 10. KAPCSOLAT
+## 11. KAPCSOLAT
 
 Kérdés esetén keressen minket:
 
-**Minta János e.v.**  
-**E-mail:** info@menuportal.hu  
-**Telefon:** +36 30 123 4567  
-**Weboldal:** https://menuportal.hu
+**IPKOVICH BÁLINT E.V.**  
+**E-mail:** info@menuportal.hu
 
 ---
 
@@ -152,9 +184,9 @@ _Utolsó frissítés: 2025. január 10._
 
 ### Cookie beállítások panel:
 
-- ✅ **Elengedhetetlen cookie-k** (nem kikapcsolható)
-  _A weboldal működéséhez szükségesek_
-- ☐ **Funkcionális cookie-k**
-  _Felhasználói preferenciák tárolása_
-- ☐ **Teljesítmény cookie-k**
-  _Weboldal teljesítményének optimalizálása_
+- [x] **Elengedhetetlen cookie-k** (nem kikapcsolható)  
+       _A weboldal működéséhez és bejelentkezéshez szükségesek_
+- [ ] **Teljesítmény és biztonsági cookie-k**  
+       _Weboldal védelem és teljesítmény optimalizálás_
+- [ ] **Preferencia cookie-k**  
+      _Felhasználói beállítások mentése_

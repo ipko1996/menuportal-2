@@ -163,13 +163,13 @@ function LandingPage() {
 
   return (
     <MainPageLayout title="Menuportal - Simplifying Menu Management for Restaurants">
-            {/* Hero Section */}
+      {/* Hero Section */}
       <section className="relative py-20 lg:py-32">
         <div className="container mx-auto px-4 text-center">
-          <Badge variant="secondary" className="mb-4">
+          {/* <Badge variant="secondary" className="mb-4">
             <IconSparkles className="h-4 w-4 mr-2" />
             Trusted by 500+ restaurants
-          </Badge>
+          </Badge> */}
 
           <h1 className="text-4xl lg:text-6xl font-bold tracking-tight text-balance mb-6">
             The Modern Way to Manage Menus
@@ -552,6 +552,6 @@ function LandingPage() {
           </div>
         </div>
       </section>
-      </MainPageLayout>
+    </MainPageLayout>
   );
 }
