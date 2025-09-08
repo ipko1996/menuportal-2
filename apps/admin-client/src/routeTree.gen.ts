@@ -11,6 +11,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
+import { Route as CookiePolicyRouteImport } from './routes/cookie-policy'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as errors503RouteImport } from './routes/(errors)/503'
@@ -53,6 +55,16 @@ const ClerkRouteImport = createFileRoute('/clerk')()
 const ClerkRoute = ClerkRouteImport.update({
   id: '/clerk',
   path: '/clerk',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
+  id: '/privacy-policy',
+  path: '/privacy-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CookiePolicyRoute = CookiePolicyRouteImport.update({
+  id: '/cookie-policy',
+  path: '/cookie-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
@@ -254,6 +266,8 @@ const AuthenticatedSchedulerHistoryRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cookie-policy': typeof CookiePolicyRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/scheduler': typeof AuthenticatedSchedulerRouteRouteWithChildren
   '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/clerk': typeof ClerkAuthenticatedRouteRoute
@@ -290,6 +304,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cookie-policy': typeof CookiePolicyRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/clerk': typeof ClerkAuthenticatedRouteRoute
   '/forgot-password': typeof authForgotPasswordRoute
   '/otp': typeof authOtpRoute
@@ -326,6 +342,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/cookie-policy': typeof CookiePolicyRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/_authenticated/scheduler': typeof AuthenticatedSchedulerRouteRouteWithChildren
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/clerk/(auth)': typeof ClerkauthRouteRouteWithChildren
@@ -366,6 +384,8 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/cookie-policy'
+    | '/privacy-policy'
     | '/scheduler'
     | '/settings'
     | '/clerk'
@@ -402,6 +422,8 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/cookie-policy'
+    | '/privacy-policy'
     | '/clerk'
     | '/forgot-password'
     | '/otp'
@@ -437,6 +459,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/cookie-policy'
+    | '/privacy-policy'
     | '/_authenticated/scheduler'
     | '/_authenticated/settings'
     | '/clerk/(auth)'
@@ -477,6 +501,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  CookiePolicyRoute: typeof CookiePolicyRoute
+  PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   ClerkauthRouteRoute: typeof ClerkauthRouteRouteWithChildren
   ClerkRoute: typeof ClerkRouteWithChildren
   authForgotPasswordRoute: typeof authForgotPasswordRoute
@@ -498,6 +524,20 @@ declare module '@tanstack/react-router' {
       path: '/clerk'
       fullPath: '/clerk'
       preLoaderRoute: typeof ClerkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy-policy': {
+      id: '/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof PrivacyPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cookie-policy': {
+      id: '/cookie-policy'
+      path: '/cookie-policy'
+      fullPath: '/cookie-policy'
+      preLoaderRoute: typeof CookiePolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -861,6 +901,8 @@ const ClerkRouteWithChildren = ClerkRoute._addFileChildren(ClerkRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  CookiePolicyRoute: CookiePolicyRoute,
+  PrivacyPolicyRoute: PrivacyPolicyRoute,
   ClerkauthRouteRoute: ClerkauthRouteRouteWithChildren,
   ClerkRoute: ClerkRouteWithChildren,
   authForgotPasswordRoute: authForgotPasswordRoute,

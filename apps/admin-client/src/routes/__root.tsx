@@ -21,6 +21,7 @@ import { IconKeyOff, IconExternalLink } from '@tabler/icons-react';
 import { useAuthStore } from '@/stores/authStore';
 import { setTokenProvider, setupAxiosInstance } from '@mono-repo/clients/utils';
 import { useEffect } from 'react';
+import { ConsentPrompt } from '@/components/consent-prompt'; 
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 const BACKEND_URL =
@@ -86,6 +87,7 @@ export const Route = createRootRouteWithContext<{
           <TokenProvider />
           <Outlet />
         </ClerkProvider>
+        <ConsentPrompt /> 
         <Toaster duration={5000} />
         {import.meta.env.MODE === 'development' && (
           <>
