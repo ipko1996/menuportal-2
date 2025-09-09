@@ -1,6 +1,6 @@
 # COOKIE (SÜTI) TÁJÉKOZTATÓ
 
-**Hatályos:** 2025. január 10-től
+**Hatályos:** 2025. szeptember 9-től
 
 ## 1. MI AZ A COOKIE?
 
@@ -166,27 +166,4 @@ Kérdés esetén keressen minket:
 
 ---
 
-_Utolsó frissítés: 2025. január 10._
-
-## COOKIE BANNER SZÖVEG JAVASLAT
-
-### Magyar verzió:
-
-**Címsor:** "Ez a weboldal sütiket használ"
-
-**Szöveg:** "A MenuPortal cookie-kat használ a weboldal megfelelő működéséhez és a felhasználói élmény javításához. A weboldal használatával elfogadja a sütik használatát."
-
-**Gombok:**
-
-- "Összes elfogadása"
-- "Csak szükséges"
-- "Beállítások"
-
-### Cookie beállítások panel:
-
-- [x] **Elengedhetetlen cookie-k** (nem kikapcsolható)  
-       _A weboldal működéséhez és bejelentkezéshez szükségesek_
-- [ ] **Teljesítmény és biztonsági cookie-k**  
-       _Weboldal védelem és teljesítmény optimalizálás_
-- [ ] **Preferencia cookie-k**  
-      _Felhasználói beállítások mentése_
+_Utolsó frissítés: 2025. szeptember 9._
