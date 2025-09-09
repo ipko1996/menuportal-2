@@ -67,8 +67,16 @@ async function bootstrap() {
     jsonDocumentUrl: `/docs-json`,
   });
 
+  const allowedOrigins = [];
+  if (environment === 'production' && process.env.MENUPORTAL_FRONTEND_URL) {
+    allowedOrigins.push(process.env.MENUPORTAL_FRONTEND_URL);
+  } else {
+    allowedOrigins.push('http://localhost:3000');
+    allowedOrigins.push('http://localhost:4200');
+  }
+
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:4200'],
+    origin: allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
   });

@@ -76,6 +76,9 @@
       "options": {
         "command": "docker run --env-file ./.env --network=mono-repo_services-network -p 3000:3000 api:latest"
       }
+    },
+    "deploy": {
+      "command": "fly deploy -c apps/api/fly.toml --dockerfile apps/api/Dockerfile"
     }
   }
 }

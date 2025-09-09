@@ -43,13 +43,17 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 RUN pnpm fetch
 RUN pnpm install --prod --frozen-lockfile
 RUN pnpm add tslib
+RUN pnpm add drizzle-kit drizzle-orm
 
 # Copy compiled app (no TypeScript sources)
 COPY --from=builder /usr/src/app/dist/apps/api/ .
 
+COPY --from=builder /usr/src/app/apps/api/drizzle-prod.config.ts .
+COPY --from=builder /usr/src/app/apps/api/migrations ./migrations
+
 ENV NODE_ENV=production
 
-EXPOSE 3000
+EXPOSE 3005
 
 # Run the compiled app
 CMD ["node", "main.js"]

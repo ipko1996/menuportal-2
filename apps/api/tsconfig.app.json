@@ -24,6 +24,7 @@
     "src/**/*.ts",
     "types/**/*.d.ts",
     "**/*.d.ts",
-    "trigger.config.ts"
+    "trigger.config.ts",
+    "migrate.ts"
   ]
 }

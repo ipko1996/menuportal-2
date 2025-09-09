@@ -91,7 +91,7 @@ export default [
       'sonarjs/no-inverted-boolean-check': 'error',
       'sonarjs/no-nested-switch': 'error',
       'sonarjs/no-nested-template-literals': 'error',
-      'sonarjs/no-one-iteration-loop': 'error',
+      // 'sonarjs/no-one-iteration-loop': 'error',
       'sonarjs/no-use-of-empty-return-value': 'error',
 
       // Unicorn best practices rules
