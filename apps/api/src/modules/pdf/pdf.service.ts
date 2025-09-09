@@ -21,6 +21,8 @@ export interface GeneratedFile {
 @Injectable()
 export class PdfService {
   private readonly gotenbergUrl: string;
+  private readonly gotebergUsername: string;
+  private readonly gotebergPassword: string;
 
   constructor(
     private readonly httpService: HttpService,
@@ -30,6 +32,10 @@ export class PdfService {
     this.gotenbergUrl =
       this.configService.get<string>('GOTENBERG_URL') ||
       'http://localhost:3001';
+    this.gotebergUsername =
+      this.configService.get<string>('GOTENBERG_USERNAME') || '';
+    this.gotebergPassword =
+      this.configService.get<string>('GOTENBERG_PASSWORD') || '';
   }
 
   async generateWeeklyMenuFile(
@@ -130,10 +136,15 @@ export class PdfService {
     form.append('marginLeft', '0');
     form.append('marginRight', '0');
 
+    const credentials = Buffer.from(
+      `${this.gotebergUsername}:${this.gotebergPassword}`
+    ).toString('base64');
+    const authHeader = `Basic ${credentials}`;
+
     try {
       const response = await firstValueFrom(
         this.httpService.post(url, form, {
-          headers: form.getHeaders(),
+          headers: { ...form.getHeaders(), Authorization: authHeader },
           responseType: 'arraybuffer',
         })
       );
