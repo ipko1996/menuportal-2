@@ -67,13 +67,12 @@ async function bootstrap() {
     jsonDocumentUrl: `/docs-json`,
   });
 
-  const allowedOrigins = [];
-  if (environment === 'production' && process.env.MENUPORTAL_FRONTEND_URL) {
-    allowedOrigins.push(process.env.MENUPORTAL_FRONTEND_URL);
-  } else {
-    allowedOrigins.push('http://localhost:3000');
-    allowedOrigins.push('http://localhost:4200');
-  }
+  const allowedOrigins =
+    environment === 'production' && process.env.ALLOWED_ORIGINS
+      ? process.env.ALLOWED_ORIGINS.split(',')
+          .map(origin => origin.trim())
+          .filter(Boolean)
+      : ['http://localhost:3000', 'http://localhost:4200'];
 
   app.enableCors({
     origin: allowedOrigins,
