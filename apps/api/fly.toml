@@ -14,12 +14,12 @@ release_command = "pnpm exec drizzle-kit migrate --config=/usr/src/app/drizzle-p
 [http_service]
 internal_port = 3005
 force_https = true
-auto_stop_machines = 'suspend'
+auto_stop_machines = 'stop'
 auto_start_machines = true
 min_machines_running = 1
 processes = ['app']
 
 [[vm]]
-memory = '1gb'
+memory = '512mb'
 cpu_kind = 'shared'
 cpus = 1
