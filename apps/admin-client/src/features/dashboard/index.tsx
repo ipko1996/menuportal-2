@@ -28,11 +28,10 @@ import {
   getGetMenusForWeekQueryKey,
   type DayOffersDto,
   type DayMenuDto,
-  type DayHolidayDto, // Import the correct DTO
+  type DayHolidayDto,
   type UpdateOfferDto,
   type UpdateMenuDto,
   getWeeklyMenu,
-  renderWeeklyTemplate,
   useGetCurrentUserWithRestaurant,
   useFindAllBusinessHours,
   useCreateHoliday,
@@ -106,7 +105,7 @@ export default function Dashboard() {
   const weekDaysToDisplay = useMemo(() => {
     const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
     const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-    if (activeBusinessDays.size === 0) return days;
+    if (activeBusinessDays.size === 0) return [];
     return days.filter(day =>
       activeBusinessDays.has(
         format(day, 'EEEE').toUpperCase() as BusinessHourResponseDtoDayOfWeek

@@ -40,7 +40,7 @@ export class ScheduleService {
   async getScheduleSettings(
     restaurantId: number,
     scheduleType: ScheduleType
-  ): Promise<GetScheduleSettingsResponseDto> {
+  ): Promise<GetScheduleSettingsResponseDto | null> {
     this.logger.log(
       `Fetching '${scheduleType}' schedule settings for restaurant ${restaurantId}`
     );
@@ -56,9 +56,8 @@ export class ScheduleService {
     });
 
     if (!schedule) {
-      throw new NotFoundException(
-        `No '${scheduleType}' schedule settings found for restaurant ${restaurantId}`
-      );
+      // eslint-disable-next-line unicorn/no-null
+      return null;
     }
 
     const { time } = this.cronHelperService.cronToDayTime(

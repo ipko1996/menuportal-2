@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from '@mono-repo/ui/dropdown-menu';
 import { Button } from '@mono-repo/ui/button';
+import { Link } from '@tanstack/react-router';
 
 interface WeeklyCalendarProps {
   daysToDisplay: Date[];
@@ -189,10 +190,22 @@ export default function WeeklyCalendar({
 }: WeeklyCalendarProps): React.ReactElement {
   if (daysToDisplay.length === 0) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-240px)] min-h-[500px] border rounded-lg bg-card">
-        <p className="text-muted-foreground">
-          No business days configured for this week.
-        </p>
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-240px)] min-h-[500px] border rounded-lg bg-card">
+        <div className="text-center space-y-4">
+          <p className="text-muted-foreground text-lg">
+            No business hours configured
+          </p>
+          <p className="text-sm text-muted-foreground max-w-md">
+            To get started with your weekly menu planning, please set up your
+            business hours first.
+          </p>
+          <Button asChild className="mt-4">
+            <Link to="/settings/business-hours" className="text-primary">
+              Configure Business Hours
+            </Link>
+            {/* <a href="/settings/business-hours">Configure Business Hours</a> */}
+          </Button>
+        </div>
       </div>
     );
   }

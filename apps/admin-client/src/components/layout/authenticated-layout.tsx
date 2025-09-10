@@ -37,7 +37,7 @@ export function AuthenticatedLayout({ children }: Props) {
           <Header>
             {/* <TopNav links={topNav} /> */}
             <div className="ml-auto flex items-center space-x-4">
-              <Search />
+              {/* <Search /> */}
               <ThemeSwitch />
               <UserButton />
             </div>
