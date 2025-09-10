@@ -8,6 +8,7 @@ import {
   IconShare2,
   IconTool,
   IconUser,
+  IconCoin,
 } from '@tabler/icons-react';
 import { Separator } from '@mono-repo/ui/separator';
 import { Header } from '@/components/layout/header';
@@ -69,6 +70,11 @@ const sidebarNavItems = [
   //   icon: <IconBrowserCheck size={18} />,
   //   href: '/settings/display',
   // },
+  {
+    title: 'Prices',
+    icon: <IconCoin size={18} />,
+    href: '/settings/prices',
+  },
   {
     title: 'Restaurant',
     icon: <IconBuildingCog size={18} />,

@@ -22,6 +22,7 @@ import {
   IconShare2,
   IconCalendarEvent,
   IconBuildingCog,
+  IconCoin,
 } from '@tabler/icons-react';
 import { AudioWaveform, Command, GalleryVerticalEnd } from 'lucide-react';
 import { ClerkLogo } from '@/assets/clerk-logo';
@@ -189,6 +190,11 @@ export const sidebarData: SidebarData = {
             //   url: '/settings/display',
             //   icon: IconBrowserCheck,
             // },
+            {
+              title: 'Prices',
+              url: '/settings/prices',
+              icon: IconCoin,
+            },
             {
               title: 'Restaurant',
               url: '/settings/restaurant',

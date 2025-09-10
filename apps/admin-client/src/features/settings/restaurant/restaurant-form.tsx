@@ -113,15 +113,6 @@ export function RestaurantSettingsForm() {
 
   return (
     <div className="max-w-2xl mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">
-          Restaurant Settings
-        </h1>
-        <p className="text-gray-600 mt-2">
-          Manage your restaurant's basic information and settings.
-        </p>
-      </div>
-
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           {isLoading ? (

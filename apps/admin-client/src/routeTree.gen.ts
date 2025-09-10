@@ -34,6 +34,7 @@ import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authe
 import { Route as ClerkauthSignUpRouteImport } from './routes/clerk/(auth)/sign-up'
 import { Route as ClerkauthSignInRouteImport } from './routes/clerk/(auth)/sign-in'
 import { Route as AuthenticatedSettingsRestaurantRouteImport } from './routes/_authenticated/settings/restaurant'
+import { Route as AuthenticatedSettingsPricesRouteImport } from './routes/_authenticated/settings/prices'
 import { Route as AuthenticatedSettingsIntegrationsRouteImport } from './routes/_authenticated/settings/integrations'
 import { Route as AuthenticatedSettingsBusinessHoursRouteImport } from './routes/_authenticated/settings/business-hours'
 import { Route as AuthenticatedSettingsAppearanceRouteImport } from './routes/_authenticated/settings/appearance'
@@ -175,6 +176,12 @@ const AuthenticatedSettingsRestaurantRoute =
     path: '/restaurant',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
   } as any)
+const AuthenticatedSettingsPricesRoute =
+  AuthenticatedSettingsPricesRouteImport.update({
+    id: '/prices',
+    path: '/prices',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any)
 const AuthenticatedSettingsIntegrationsRoute =
   AuthenticatedSettingsIntegrationsRouteImport.update({
     id: '/integrations',
@@ -249,6 +256,7 @@ export interface FileRoutesByFullPath {
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/business-hours': typeof AuthenticatedSettingsBusinessHoursRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
+  '/settings/prices': typeof AuthenticatedSettingsPricesRoute
   '/settings/restaurant': typeof AuthenticatedSettingsRestaurantRoute
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
@@ -281,6 +289,7 @@ export interface FileRoutesByTo {
   '/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/settings/business-hours': typeof AuthenticatedSettingsBusinessHoursRoute
   '/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
+  '/settings/prices': typeof AuthenticatedSettingsPricesRoute
   '/settings/restaurant': typeof AuthenticatedSettingsRestaurantRoute
   '/clerk/sign-in': typeof ClerkauthSignInRoute
   '/clerk/sign-up': typeof ClerkauthSignUpRoute
@@ -317,6 +326,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/appearance': typeof AuthenticatedSettingsAppearanceRoute
   '/_authenticated/settings/business-hours': typeof AuthenticatedSettingsBusinessHoursRoute
   '/_authenticated/settings/integrations': typeof AuthenticatedSettingsIntegrationsRoute
+  '/_authenticated/settings/prices': typeof AuthenticatedSettingsPricesRoute
   '/_authenticated/settings/restaurant': typeof AuthenticatedSettingsRestaurantRoute
   '/clerk/(auth)/sign-in': typeof ClerkauthSignInRoute
   '/clerk/(auth)/sign-up': typeof ClerkauthSignUpRoute
@@ -353,6 +363,7 @@ export interface FileRouteTypes {
     | '/settings/appearance'
     | '/settings/business-hours'
     | '/settings/integrations'
+    | '/settings/prices'
     | '/settings/restaurant'
     | '/clerk/sign-in'
     | '/clerk/sign-up'
@@ -385,6 +396,7 @@ export interface FileRouteTypes {
     | '/settings/appearance'
     | '/settings/business-hours'
     | '/settings/integrations'
+    | '/settings/prices'
     | '/settings/restaurant'
     | '/clerk/sign-in'
     | '/clerk/sign-up'
@@ -420,6 +432,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/appearance'
     | '/_authenticated/settings/business-hours'
     | '/_authenticated/settings/integrations'
+    | '/_authenticated/settings/prices'
     | '/_authenticated/settings/restaurant'
     | '/clerk/(auth)/sign-in'
     | '/clerk/(auth)/sign-up'
@@ -625,6 +638,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRestaurantRouteImport
       parentRoute: typeof AuthenticatedSettingsRouteRoute
     }
+    '/_authenticated/settings/prices': {
+      id: '/_authenticated/settings/prices'
+      path: '/prices'
+      fullPath: '/settings/prices'
+      preLoaderRoute: typeof AuthenticatedSettingsPricesRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteRoute
+    }
     '/_authenticated/settings/integrations': {
       id: '/_authenticated/settings/integrations'
       path: '/integrations'
@@ -713,6 +733,7 @@ interface AuthenticatedSettingsRouteRouteChildren {
   AuthenticatedSettingsAppearanceRoute: typeof AuthenticatedSettingsAppearanceRoute
   AuthenticatedSettingsBusinessHoursRoute: typeof AuthenticatedSettingsBusinessHoursRoute
   AuthenticatedSettingsIntegrationsRoute: typeof AuthenticatedSettingsIntegrationsRoute
+  AuthenticatedSettingsPricesRoute: typeof AuthenticatedSettingsPricesRoute
   AuthenticatedSettingsRestaurantRoute: typeof AuthenticatedSettingsRestaurantRoute
   AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
 }
@@ -725,6 +746,7 @@ const AuthenticatedSettingsRouteRouteChildren: AuthenticatedSettingsRouteRouteCh
       AuthenticatedSettingsBusinessHoursRoute,
     AuthenticatedSettingsIntegrationsRoute:
       AuthenticatedSettingsIntegrationsRoute,
+    AuthenticatedSettingsPricesRoute: AuthenticatedSettingsPricesRoute,
     AuthenticatedSettingsRestaurantRoute: AuthenticatedSettingsRestaurantRoute,
     AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
   }
