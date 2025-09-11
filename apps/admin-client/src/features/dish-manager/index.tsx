@@ -18,7 +18,7 @@ import {
 } from '@mono-repo/api-client';
 import { useDebounceValue } from 'usehooks-ts';
 import { toast } from 'sonner';
-import { useGetAvailableDishtypes } from '@mono-repo/api-client';
+import { useGetRestaurantDishTypes } from '@mono-repo/api-client';
 import { CreateDishDialog } from './components/create-dish-dialog';
 import { EditDishDialog } from './components/edit-dish-dialog';
 import { DeleteDishDialog } from './components/delete-dish-dialog';
@@ -39,7 +39,7 @@ export default function DishManager() {
   const itemsPerPage = 10;
 
   const { data: dishTypes = [], isLoading: dishTypesLoading } =
-    useGetAvailableDishtypes();
+    useGetRestaurantDishTypes();
 
   const paginationParams: GetPaginatedDishesParams = useMemo(
     () => ({

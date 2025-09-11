@@ -4,16 +4,43 @@ import { and, eq, inArray, sql } from 'drizzle-orm';
 import { dishType, restaurantDishType } from '@/schema';
 import { DatabaseService } from '@/shared/database/database.service';
 
+import { DishTypeWithDataResponseDto } from './dto/dishtype-response.dto';
+import { UpdateRestaurantDishTypesDto } from './dto/update-dish-type.dto';
+
 @Injectable()
 export class DishtypeService {
   private readonly logger = new Logger(DishtypeService.name);
 
   constructor(private readonly databaseService: DatabaseService) {}
 
-  async findAll() {
+  async findAll(restaurantId: number): Promise<DishTypeWithDataResponseDto[]> {
     return await this.databaseService.db
       .select({
-        id: dishType.id,
+        dishTypeId: dishType.id,
+        name: dishType.dishTypeName,
+        dishTypeValue: dishType.dishTypeValue,
+        price: restaurantDishType.price,
+        isActive: restaurantDishType.isActive,
+        isOnTheMenu: restaurantDishType.isOnTheMenu,
+      })
+      .from(dishType)
+      .innerJoin(
+        restaurantDishType,
+        eq(dishType.id, restaurantDishType.dishTypeId)
+      )
+      .where(
+        and(
+          eq(dishType.enabled, true),
+          eq(restaurantDishType.isActive, true),
+          eq(restaurantDishType.restaurantId, restaurantId)
+        )
+      );
+  }
+
+  async findAllEnabled() {
+    return await this.databaseService.db
+      .select({
+        dishTypeId: dishType.id,
         name: dishType.dishTypeName,
         dishTypeValue: dishType.dishTypeValue,
       })
@@ -22,59 +49,58 @@ export class DishtypeService {
   }
 
   async upsertDishTypesForRestaurant(
-    data: { id: number; price: number }[],
+    dto: UpdateRestaurantDishTypesDto,
     restaurantId: number
   ) {
-    if (!data || data.length === 0) {
-      return;
-    }
+    return await this.databaseService.db.transaction(async tx => {
+      const { settings } = dto;
 
-    const dishTypeIds = data.map(item => item.id);
+      if (!settings || settings.length === 0) {
+        return;
+      }
 
-    // ## 1. Validate Dish Types
-    // First, check if all provided dish type IDs are valid (exist) and active (enabled).
-    const validDishTypes = await this.databaseService.db
-      .select({ id: dishType.id })
-      .from(dishType)
-      .where(
-        and(inArray(dishType.id, dishTypeIds), eq(dishType.enabled, true))
-      );
+      const dishTypeIds = settings.map(item => item.dishTypeId);
 
-    // If the count of valid dish types doesn't match the input, find the invalid ones and throw an error.
-    if (validDishTypes.length !== dishTypeIds.length) {
-      const validIdSet = new Set(validDishTypes.map(dt => dt.id));
-      const invalidIds = dishTypeIds.filter(id => !validIdSet.has(id));
-      throw new BadRequestException(
-        `The following dish type IDs are either invalid or disabled: ${invalidIds.join(
-          ', '
-        )}`
-      );
-    }
+      const validDishTypes = await tx
+        .select({ id: dishType.id })
+        .from(dishType)
+        .where(
+          and(inArray(dishType.id, dishTypeIds), eq(dishType.enabled, true))
+        );
 
-    // ## 2. Prepare Data for Upsert
-    // Map the input data to the format required by the 'restaurantDishType' table schema.
-    const dataToInsert = data.map(item => ({
-      dishTypeId: item.id,
-      restaurantId,
-      price: item.price,
-    }));
+      if (validDishTypes.length !== dishTypeIds.length) {
+        const validIdSet = new Set(validDishTypes.map(dt => dt.id));
+        const invalidIds = dishTypeIds.filter(id => !validIdSet.has(id));
+        throw new BadRequestException(
+          `The following dish type IDs are either invalid or disabled: ${invalidIds.join(
+            ', '
+          )}`
+        );
+      }
 
-    // ## 3. Execute Upsert Operation
-    // Insert the new data. If a row with the same 'restaurantId' and 'dishTypeId'
-    // already exists (a conflict on the unique constraint), update its 'price'.
-    await this.databaseService.db
-      .insert(restaurantDishType)
-      .values(dataToInsert)
-      .onConflictDoUpdate({
-        // The target must be the columns of the unique constraint.
-        target: [
-          restaurantDishType.restaurantId,
-          restaurantDishType.dishTypeId,
-        ],
-        // Set the price to the value from the new data that was attempted to be inserted.
-        set: {
-          price: sql`excluded.price`,
-        },
-      });
+      // ## 2. Prepare Data for Upsert from the DTO
+      const dataToUpsert = settings.map(item => ({
+        dishTypeId: item.dishTypeId,
+        restaurantId,
+        price: item.price,
+        isActive: item.isActive,
+        isOnTheMenu: item.isOnTheMenu,
+      }));
+
+      await tx
+        .insert(restaurantDishType)
+        .values(dataToUpsert)
+        .onConflictDoUpdate({
+          target: [
+            restaurantDishType.restaurantId,
+            restaurantDishType.dishTypeId,
+          ],
+          set: {
+            price: sql`excluded.price`,
+            isActive: sql`excluded.is_active`,
+            isOnTheMenu: sql`excluded.is_on_the_menu`,
+          },
+        });
+    });
   }
 }

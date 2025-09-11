@@ -24,11 +24,416 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import type { BodyType,ErrorType } from '../../../utils/axios-instance';
 import { axiosInstance } from '../../../utils/axios-instance';
 import type {
+  BaseDishTypeResponseDto,
+  DishTypeWithDataResponseDto,
   RestaurantSettingResponseDto,
+  UpdateRestaurantDishTypesDto,
   UpdateRestaurantSettingDto,
 } from '../../schemas';
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+/**
+ * Retrieves all system dish types, augmented with the restaurant's specific settings (price, status).
+ * @summary Get a restaurant's dish type settings
+ */
+export const getRestaurantDishTypes = (
+  options?: SecondParameter<typeof axiosInstance>,
+  signal?: AbortSignal
+) => {
+  return axiosInstance<DishTypeWithDataResponseDto[]>(
+    { url: `/restaurant/settings/dish-types`, method: 'GET', signal },
+    options
+  );
+};
+
+export const getGetRestaurantDishTypesQueryKey = () => {
+  return [`/restaurant/settings/dish-types`] as const;
+};
+
+export const getGetRestaurantDishTypesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getRestaurantDishTypes>>,
+  TError = ErrorType<unknown>
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof getRestaurantDishTypes>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<typeof axiosInstance>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetRestaurantDishTypesQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getRestaurantDishTypes>>
+  > = ({ signal }) => getRestaurantDishTypes(requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getRestaurantDishTypes>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetRestaurantDishTypesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getRestaurantDishTypes>>
+>;
+export type GetRestaurantDishTypesQueryError = ErrorType<unknown>;
+
+export function useGetRestaurantDishTypes<
+  TData = Awaited<ReturnType<typeof getRestaurantDishTypes>>,
+  TError = ErrorType<unknown>
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getRestaurantDishTypes>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRestaurantDishTypes>>,
+          TError,
+          Awaited<ReturnType<typeof getRestaurantDishTypes>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetRestaurantDishTypes<
+  TData = Awaited<ReturnType<typeof getRestaurantDishTypes>>,
+  TError = ErrorType<unknown>
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getRestaurantDishTypes>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRestaurantDishTypes>>,
+          TError,
+          Awaited<ReturnType<typeof getRestaurantDishTypes>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetRestaurantDishTypes<
+  TData = Awaited<ReturnType<typeof getRestaurantDishTypes>>,
+  TError = ErrorType<unknown>
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getRestaurantDishTypes>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Get a restaurant's dish type settings
+ */
+
+export function useGetRestaurantDishTypes<
+  TData = Awaited<ReturnType<typeof getRestaurantDishTypes>>,
+  TError = ErrorType<unknown>
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getRestaurantDishTypes>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetRestaurantDishTypesQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+/**
+ * Bulk creates, updates, or deactivates dish type associations, including their prices and statuses.
+ * @summary Update a restaurant's dish type settings
+ */
+export const updateRestaurantDishTypes = (
+  updateRestaurantDishTypesDto: BodyType<UpdateRestaurantDishTypesDto>,
+  options?: SecondParameter<typeof axiosInstance>
+) => {
+  return axiosInstance<DishTypeWithDataResponseDto[]>(
+    {
+      url: `/restaurant/settings/dish-types`,
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      data: updateRestaurantDishTypesDto,
+    },
+    options
+  );
+};
+
+export const getUpdateRestaurantDishTypesMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateRestaurantDishTypes>>,
+    TError,
+    { data: BodyType<UpdateRestaurantDishTypesDto> },
+    TContext
+  >;
+  request?: SecondParameter<typeof axiosInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateRestaurantDishTypes>>,
+  TError,
+  { data: BodyType<UpdateRestaurantDishTypesDto> },
+  TContext
+> => {
+  const mutationKey = ['updateRestaurantDishTypes'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateRestaurantDishTypes>>,
+    { data: BodyType<UpdateRestaurantDishTypesDto> }
+  > = props => {
+    const { data } = props ?? {};
+
+    return updateRestaurantDishTypes(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateRestaurantDishTypesMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateRestaurantDishTypes>>
+>;
+export type UpdateRestaurantDishTypesMutationBody =
+  BodyType<UpdateRestaurantDishTypesDto>;
+export type UpdateRestaurantDishTypesMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update a restaurant's dish type settings
+ */
+export const useUpdateRestaurantDishTypes = <
+  TError = ErrorType<unknown>,
+  TContext = unknown
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateRestaurantDishTypes>>,
+      TError,
+      { data: BodyType<UpdateRestaurantDishTypesDto> },
+      TContext
+    >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof updateRestaurantDishTypes>>,
+  TError,
+  { data: BodyType<UpdateRestaurantDishTypesDto> },
+  TContext
+> => {
+  const mutationOptions = getUpdateRestaurantDishTypesMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+/**
+ * Fetches the master list of all dish types available in the system for a restaurant to configure.
+ * @summary Get all globally enabled dish types
+ */
+export const getSystemDishTypes = (
+  options?: SecondParameter<typeof axiosInstance>,
+  signal?: AbortSignal
+) => {
+  return axiosInstance<BaseDishTypeResponseDto[]>(
+    { url: `/restaurant/settings/dish-types/master`, method: 'GET', signal },
+    options
+  );
+};
+
+export const getGetSystemDishTypesQueryKey = () => {
+  return [`/restaurant/settings/dish-types/master`] as const;
+};
+
+export const getGetSystemDishTypesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getSystemDishTypes>>,
+  TError = ErrorType<unknown>
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof getSystemDishTypes>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<typeof axiosInstance>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetSystemDishTypesQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getSystemDishTypes>>
+  > = ({ signal }) => getSystemDishTypes(requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getSystemDishTypes>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetSystemDishTypesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getSystemDishTypes>>
+>;
+export type GetSystemDishTypesQueryError = ErrorType<unknown>;
+
+export function useGetSystemDishTypes<
+  TData = Awaited<ReturnType<typeof getSystemDishTypes>>,
+  TError = ErrorType<unknown>
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getSystemDishTypes>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSystemDishTypes>>,
+          TError,
+          Awaited<ReturnType<typeof getSystemDishTypes>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetSystemDishTypes<
+  TData = Awaited<ReturnType<typeof getSystemDishTypes>>,
+  TError = ErrorType<unknown>
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getSystemDishTypes>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSystemDishTypes>>,
+          TError,
+          Awaited<ReturnType<typeof getSystemDishTypes>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetSystemDishTypes<
+  TData = Awaited<ReturnType<typeof getSystemDishTypes>>,
+  TError = ErrorType<unknown>
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getSystemDishTypes>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/**
+ * @summary Get all globally enabled dish types
+ */
+
+export function useGetSystemDishTypes<
+  TData = Awaited<ReturnType<typeof getSystemDishTypes>>,
+  TError = ErrorType<unknown>
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getSystemDishTypes>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof axiosInstance>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetSystemDishTypesQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
 
 /**
  * Fetches the core details associated with the current restaurant.

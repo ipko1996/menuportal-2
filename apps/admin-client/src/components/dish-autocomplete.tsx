@@ -16,7 +16,7 @@ import {
   useCreateDish,
   useGetDishById,
   useSearchDishesByName,
-  useGetAvailableDishtypes,
+  useGetRestaurantDishTypes,
   type DishTypeResponseDto,
   type DishResponseDto,
 } from '@mono-repo/api-client';
@@ -73,7 +73,7 @@ export function DishAutocomplete({
     null
   );
 
-  const { data: dishTypes = [] } = useGetAvailableDishtypes();
+  const { data: dishTypes = [] } = useGetRestaurantDishTypes();
 
   const { data: dish, isLoading: dishLoading } = useGetDishById(value, {
     query: { enabled: value > 0 },

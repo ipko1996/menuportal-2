@@ -1,8 +1,13 @@
 import { useState, useEffect } from 'react';
-
-import { DishAutocomplete } from '@/components/dish-autocomplete';
+import { Plus, X, ChevronDown } from 'lucide-react';
+import { DishAutocomplete, getDishIcon } from '@/components/dish-autocomplete';
 import {
+  DropdownMenuContent,
+  DropdownMenuTrigger,
   Input,
+  DropdownMenuItem,
+  DropdownMenu,
+  Label,
   Button,
   Form,
   FormControl,
@@ -12,7 +17,11 @@ import {
   FormMessage,
 } from '@mono-repo/ui';
 import { ConfirmationDialog } from './confirmation-dialog';
-import { CreateOfferDto, DayOffersDto } from '@mono-repo/api-client';
+import {
+  CreateOfferDto,
+  DayOffersDto,
+  useGetRestaurantDishTypes,
+} from '@mono-repo/api-client';
 import { format } from 'date-fns';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -31,25 +40,34 @@ export function OfferForm({
   editingItem,
   onDelete,
 }: OfferFormProps) {
+  const { data: availableDishTypes = [] } = useGetRestaurantDishTypes();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  // State to manage the visibility and type of the dish selector
+  const [selectedDishTypeId, setSelectedDishTypeId] = useState<number | null>(
+    null
+  );
+
   const form = useForm<OfferFormData>({
     resolver: zodResolver(offerFormSchema),
     defaultValues: {
       dishId: 0,
       price: 0,
-      availability: '',
+      availability: format(new Date(), 'yyyy-MM-dd'),
     },
   });
 
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
   useEffect(() => {
-    if (editingItem) {
+    // If editing an existing offer, show the dish selector with the correct type
+    if (editingItem && editingItem.dish) {
+      setSelectedDishTypeId(editingItem.dish.dishTypeId);
       form.reset({
-        dishId: editingItem.dish?.dishId || 0,
+        dishId: editingItem.dish.dishId || 0,
         price: editingItem.price || 0,
         availability: format(selectedDate, 'yyyy-MM-dd') || '',
       });
-    } else if (selectedDate) {
+    } else {
+      // If creating a new offer, start with no dish selector visible
+      setSelectedDishTypeId(null);
       form.reset({
         dishId: 0,
         price: 0,
@@ -65,8 +83,13 @@ export function OfferForm({
     });
   };
 
-  const resetForm = () => {
-    form.reset();
+  const handleSelectDishType = (dishTypeId: number) => {
+    setSelectedDishTypeId(dishTypeId);
+  };
+
+  const removeDish = () => {
+    setSelectedDishTypeId(null);
+    form.setValue('dishId', 0, { shouldValidate: true });
   };
 
   const handleDeleteClick = () => setShowDeleteConfirm(true);
@@ -82,23 +105,75 @@ export function OfferForm({
     <>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="dishId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Dish</FormLabel>
-                <FormControl>
-                  <DishAutocomplete
-                    value={field.value}
-                    onChange={field.onChange}
-                    autoFocus={!isEditing}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>Dish</Label>
+              {selectedDishTypeId !== null && (
+                // Show a remove button only when a dish is selected
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={removeDish}
+                  aria-label="Remove dish"
+                  className="h-7 w-7"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+
+            {selectedDishTypeId !== null ? (
+              // If a dish type is selected, show the autocomplete input
+              <FormField
+                control={form.control}
+                name="dishId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <DishAutocomplete
+                        value={field.value}
+                        onChange={field.onChange}
+                        defaultDishTypeId={selectedDishTypeId}
+                        autoFocus={!isEditing}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ) : (
+              // Otherwise, show the button to add a dish
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full justify-between"
+                    disabled={availableDishTypes.length === 0}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Plus className="h-4 w-4" />
+                      Add a dish
+                    </div>
+                    <ChevronDown className="h-4 w-4 opacity-50" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56">
+                  {availableDishTypes.map(type => (
+                    <DropdownMenuItem
+                      key={type.id}
+                      onClick={() => handleSelectDishType(type.id)}
+                      className="flex cursor-pointer items-center gap-2"
+                    >
+                      {getDishIcon(type.id, availableDishTypes)}
+                      <span>{type.name}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
-          />
+          </div>
 
           <FormField
             control={form.control}
@@ -113,7 +188,7 @@ export function OfferForm({
                     {...field}
                     value={field.value || ''}
                     onChange={e =>
-                      field.onChange(parseInt(e.target.value) || 0)
+                      field.onChange(parseInt(e.target.value, 10) || 0)
                     }
                     placeholder="Enter price in cents"
                   />
@@ -147,7 +222,11 @@ export function OfferForm({
                 Delete
               </Button>
             ) : (
-              <Button type="button" variant="outline" onClick={resetForm}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => form.reset()}
+              >
                 Reset
               </Button>
             )}

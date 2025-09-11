@@ -1,5 +1,11 @@
 import { relations } from 'drizzle-orm';
-import { decimal, integer, pgTable, unique } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  decimal,
+  integer,
+  pgTable,
+  unique,
+} from 'drizzle-orm/pg-core';
 
 import { dishType } from './dish-type';
 import { restaurant } from './restaurant';
@@ -18,11 +24,13 @@ export const restaurantDishType = pgTable(
       precision: 5,
       scale: 0,
     }).notNull(),
+    isActive: boolean('is_active').default(true).notNull(),
+    isOnTheMenu: boolean('is_on_the_menu').default(false).notNull(),
   },
   table => [
     unique('dish_type_restaurant_unique').on(
-      table.dishTypeId,
-      table.restaurantId
+      table.restaurantId,
+      table.dishTypeId
     ),
   ]
 );

@@ -1,7 +1,6 @@
 export * from './generated/auth/auth';
 export * from './generated/business-hours/business-hours';
 export * from './generated/dish/dish';
-export * from './generated/dishtype/dishtype';
 export * from './generated/holiday/holiday';
 export * from './generated/menu/menu';
 export * from './generated/offer/offer';

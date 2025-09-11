@@ -9,10 +9,11 @@
 /**
  * The type value of the dish
  */
-export type DishTypeResponseDtoDishTypeValue =
-  (typeof DishTypeResponseDtoDishTypeValue)[keyof typeof DishTypeResponseDtoDishTypeValue];
+export type BaseDishTypeResponseDtoDishTypeValue =
+  (typeof BaseDishTypeResponseDtoDishTypeValue)[keyof typeof BaseDishTypeResponseDtoDishTypeValue];
 
-export const DishTypeResponseDtoDishTypeValue = {
+ 
+export const BaseDishTypeResponseDtoDishTypeValue = {
   SOUP: 'SOUP',
   MEAT_SOUP: 'MEAT_SOUP',
   MAIN_DISH: 'MAIN_DISH',

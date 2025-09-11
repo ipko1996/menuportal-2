@@ -22,7 +22,7 @@ import { format } from 'date-fns';
 import {
   DayMenuDto,
   Dish,
-  useGetAvailableDishtypes,
+  useGetRestaurantDishTypes,
   CreateMenuDto,
 } from '@mono-repo/api-client';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -43,6 +43,7 @@ interface MenuFormProps {
 }
 
 const createDefaultDish = (dishTypeId: number): FormDish => ({
+  // Use a combination of timestamp and a random number for a more unique key
   key: Date.now() + Math.random(),
   dishId: 0,
   dishTypeId,
@@ -56,7 +57,7 @@ export function MenuForm({
   editingItem,
   onDelete,
 }: MenuFormProps) {
-  const { data: availableDishTypes = [] } = useGetAvailableDishtypes();
+  const { data: availableDishTypes = [] } = useGetRestaurantDishTypes();
   const [dishes, setDishes] = useState<FormDish[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -66,7 +67,7 @@ export function MenuForm({
       menuName: 'Menü',
       dishes: [],
       price: 0,
-      availability: '',
+      availability: format(new Date(), 'yyyy-MM-dd'),
     },
   });
 
@@ -74,7 +75,9 @@ export function MenuForm({
     formState: { isSubmitted },
   } = form;
 
+  // Effect to initialize the form for creating or editing a menu
   useEffect(() => {
+    // If we are editing an existing menu, populate the form with its data
     if (editingItem) {
       const mainDishType = availableDishTypes.find(
         dt => dt.dishTypeValue === 'MAIN_DISH'
@@ -86,6 +89,7 @@ export function MenuForm({
           dishId: d.dishId || 0,
           dishTypeId: d.dishTypeId || defaultDishTypeId,
         })) || [];
+
       setDishes(editingDishes);
       form.reset({
         menuName: editingItem.menuName || 'Menü',
@@ -93,31 +97,19 @@ export function MenuForm({
         availability: format(selectedDate, 'yyyy-MM-dd'),
         dishes: editingDishes.map(d => d.dishId).filter(id => id > 0),
       });
-    } else if (availableDishTypes.length > 0) {
-      const soupType = availableDishTypes.find(
-        dt => dt.dishTypeValue === 'SOUP' || dt.dishTypeValue === 'MEAT_SOUP'
-      );
-      const mainDishType = availableDishTypes.find(
-        dt => dt.dishTypeValue === 'MAIN_DISH'
-      );
-      const soupTypeId = soupType?.id || mainDishType?.id || 0;
-      const mainDishTypeId = mainDishType?.id || 0;
-      if (soupTypeId && mainDishTypeId) {
-        const defaultDishes = [
-          createDefaultDish(soupTypeId),
-          createDefaultDish(mainDishTypeId),
-        ];
-        setDishes(defaultDishes);
-        form.reset({
-          menuName: 'Menü',
-          price: 0,
-          availability: format(selectedDate, 'yyyy-MM-dd'),
-          dishes: [],
-        });
-      }
+    } else {
+      // If creating a new menu, start with an empty state
+      setDishes([]);
+      form.reset({
+        menuName: 'Menü',
+        price: 0,
+        availability: format(selectedDate, 'yyyy-MM-dd'),
+        dishes: [], // Ensure form's dishes array is also empty
+      });
     }
   }, [selectedDate, editingItem, availableDishTypes, form]);
 
+  // Effect to sync the local `dishes` state with the react-hook-form state
   useEffect(() => {
     const dishIds = dishes.map(d => d.dishId).filter(id => id > 0);
     form.setValue('dishes', dishIds, { shouldValidate: isSubmitted });
@@ -134,15 +126,15 @@ export function MenuForm({
     setDishes(prev => [...prev, createDefaultDish(dishTypeId)]);
   };
 
-  const removeDish = (key: number) => {
-    if (dishes.length > 2) {
-      setDishes(prev => prev.filter(dish => dish.key !== key));
-    }
+  const removeDish = (keyToRemove: number) => {
+    setDishes(prev => prev.filter(dish => dish.key !== keyToRemove));
   };
 
-  const updateDish = (key: number, dishId: number) => {
+  const updateDish = (keyToUpdate: number, newDishId: number) => {
     setDishes(prev =>
-      prev.map(dish => (dish.key === key ? { ...dish, dishId } : dish))
+      prev.map(dish =>
+        dish.key === keyToUpdate ? { ...dish, dishId: newDishId } : dish
+      )
     );
   };
 
@@ -174,8 +166,8 @@ export function MenuForm({
                 </FormControl>
 
                 {!isEditing && (
-                  <div className="pt">
-                    <div className="flex flex-wrap gap-2 pt-1.5">
+                  <div className="pt-1.5">
+                    <div className="flex flex-wrap gap-2">
                       {nameSuggestions.map(name => (
                         <Badge
                           key={name}
@@ -220,7 +212,7 @@ export function MenuForm({
                     <DropdownMenuItem
                       key={type.id}
                       onClick={() => addDish(type.id)}
-                      className="flex items-center gap-2 cursor-pointer"
+                      className="flex cursor-pointer items-center gap-2"
                     >
                       {getDishIcon(type.id, availableDishTypes)}
                       <span>{type.name}</span>
@@ -231,28 +223,35 @@ export function MenuForm({
             </div>
 
             <div className="space-y-2">
-              {dishes.map((dish, index) => (
-                <div key={dish.key} className="flex items-center gap-2">
-                  <div className="flex-1">
-                    <DishAutocomplete
-                      value={dish.dishId}
-                      onChange={newDishId => updateDish(dish.key, newDishId)}
-                      defaultDishTypeId={dish.dishTypeId}
-                      autoFocus={index === 0 && !isEditing}
-                    />
-                  </div>
-                  {dishes.length > 2 && (
+              {dishes.length > 0 ? (
+                dishes.map((dish, index) => (
+                  <div key={dish.key} className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <DishAutocomplete
+                        value={dish.dishId}
+                        onChange={newDishId => updateDish(dish.key, newDishId)}
+                        defaultDishTypeId={dish.dishTypeId}
+                        autoFocus={index === 0 && !isEditing}
+                      />
+                    </div>
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
                       onClick={() => removeDish(dish.key)}
+                      aria-label="Remove dish"
                     >
                       <X className="h-4 w-4" />
                     </Button>
-                  )}
+                  </div>
+                ))
+              ) : (
+                <div className="flex h-24 items-center justify-center rounded-md border border-dashed">
+                  <p className="text-sm text-muted-foreground">
+                    No dishes added yet.
+                  </p>
                 </div>
-              ))}
+              )}
             </div>
             {form.formState.errors.dishes && (
               <p className="text-sm font-medium text-destructive">

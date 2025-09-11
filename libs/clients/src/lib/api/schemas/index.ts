@@ -6,6 +6,8 @@
  * OpenAPI spec version: 1.0
  */
 
+export * from './base-dish-type-response-dto';
+export * from './base-dish-type-response-dto-dish-type-value';
 export * from './business-hour-response-dto';
 export * from './business-hour-response-dto-day-of-week';
 export * from './create-bulk-business-hour-dto';
@@ -25,6 +27,10 @@ export * from './dish-paginated-response-dto';
 export * from './dish-response-dto';
 export * from './dish-type-response-dto';
 export * from './dish-type-response-dto-dish-type-value';
+export * from './dish-type-with-data-response-dto';
+export * from './dish-type-with-data-response-dto-dish-type-value';
+export * from './dish-type-with-price-response-dto';
+export * from './dish-type-with-price-response-dto-dish-type-value';
 export * from './get-daily-menu-format';
 export * from './get-daily-menu-params';
 export * from './get-daily-menu-platform';
@@ -47,6 +53,7 @@ export * from './render-daily-template-params';
 export * from './render-daily-template-platform';
 export * from './render-weekly-template-params';
 export * from './render-weekly-template-platform';
+export * from './restaurant-dish-type-setting-dto';
 export * from './restaurant-dto';
 export * from './restaurant-setting-response-dto';
 export * from './search-dishes-by-name-params';
@@ -63,6 +70,7 @@ export * from './update-holiday-dto';
 export * from './update-menu-dto';
 export * from './update-offer-dto';
 export * from './update-platform-schedule-dto';
+export * from './update-restaurant-dish-types-dto';
 export * from './update-restaurant-setting-dto';
 export * from './update-schedule-dto';
 export * from './user-dto';
