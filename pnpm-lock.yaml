@@ -12,11 +12,11 @@ importers:
         specifier: ^3.879.0
         version: 3.884.0
       '@clerk/clerk-react':
-        specifier: ^5.40.0
-        version: 5.46.2(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+        specifier: ^5.47.0
+        version: 5.47.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@clerk/fastify':
-        specifier: ^2.4.13
-        version: 2.4.30(fastify@5.6.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+        specifier: ^2.4.31
+        version: 2.4.31(fastify@5.6.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@fastify/static':
         specifier: ^8.2.0
         version: 8.2.0
@@ -1302,25 +1302,25 @@ packages:
   '@bufbuild/protobuf@2.7.0':
     resolution: {integrity: sha512-qn6tAIZEw5i/wiESBF4nQxZkl86aY4KoO0IkUa2Lh+rya64oTOdJQFlZuMwI1Qz9VBJQrQC4QlSA2DNek5gCOA==}
 
-  '@clerk/backend@2.13.0':
-    resolution: {integrity: sha512-MjEeDjlteMcEC+RUmrtlwkrJ+1Zv7Gb+atCg6mD+1N8/01v66LjYWKk2eQ+T0v+znQkSiFS8JPQ8yqaLH2sbqg==}
+  '@clerk/backend@2.14.0':
+    resolution: {integrity: sha512-EaPXIaOb3IVyn+3NRX9GVZeKk1eL1ugWOiyPzy7hfJvxRYhTBatZrwd32+nCkQ6igvRpRG4O+o5vWS1tSErbrg==}
     engines: {node: '>=18.17.0'}
 
-  '@clerk/clerk-react@5.46.2':
-    resolution: {integrity: sha512-Gk2YVg4k72ZSCJu/fYw5GQuku1vwfHrMmYRt1/2+vyDdotZsFjKA0AcH3cPkzHlVBuCwYonN+7BfQBBq3HzX9g==}
+  '@clerk/clerk-react@5.47.0':
+    resolution: {integrity: sha512-of2Y6dg36eL7TwAP4DbGOMWW6DJpJSIuCn6g1jJqJkh4NGljHC7vz3H18OERRM5UQXmBG3twjC8CNAQxQrquRA==}
     engines: {node: '>=18.17.0'}
     peerDependencies:
       react: ^18.0.0 || ^19.0.0 || ^19.0.0-0
       react-dom: ^18.0.0 || ^19.0.0 || ^19.0.0-0
 
-  '@clerk/fastify@2.4.30':
-    resolution: {integrity: sha512-Ab5/DGRj+SvREfeL1mOHMt0yPV7HjQvpOjw6qElARPV0cbsM/KsgWak0DvkJt0E5bIqsJyb8b4kU+Ud3KtF1Dg==}
+  '@clerk/fastify@2.4.31':
+    resolution: {integrity: sha512-IlVJ4DJmlEw5RQCx+1iKMHAOOcHBAnycuWtDymiHfal8b0M8TyJ6lIy7botooKDja0rxyVuPG1WiyLB2jHADSQ==}
     engines: {node: '>=20'}
     peerDependencies:
       fastify: '>=5'
 
-  '@clerk/shared@3.24.2':
-    resolution: {integrity: sha512-gGnB08PWdM6gHVhlyrQ32xwWt/bIyg8nQhrxUCnNSf/xlPC2mFUtx24JYLsFRjbIGg/uA3z2qVnllBMkxejIDA==}
+  '@clerk/shared@3.25.0':
+    resolution: {integrity: sha512-2Vb6NQqBA+1g7kfGct/OlSFmzU54/s4BQp3qeHwDqW1FgaU4MuXbqfBClI6AatxOC8Ux8W16Rvf705ViwFSxlw==}
     engines: {node: '>=18.17.0'}
     peerDependencies:
       react: ^18.0.0 || ^19.0.0 || ^19.0.0-0
@@ -1331,8 +1331,8 @@ packages:
       react-dom:
         optional: true
 
-  '@clerk/types@4.85.0':
-    resolution: {integrity: sha512-0s7KZbWpX4e9/CHl29sYGGBUBbZa7qlXp74OaaXfm1WTzYGiOOTyyE54j2WTz91+TZxIZZu5UA5rfn9qc79hYA==}
+  '@clerk/types@4.86.0':
+    resolution: {integrity: sha512-YFaOYIAZWbpXehAmtgUB0YNf1v5b/hlwePvdqxlD5vdwrNsap28RpupWZat0hp1+PTtb9uAwSa5AFCOxkYLUJQ==}
     engines: {node: '>=18.17.0'}
 
   '@cloudflare/kv-asset-handler@0.3.4':
@@ -13109,10 +13109,10 @@ snapshots:
 
   '@bufbuild/protobuf@2.7.0': {}
 
-  '@clerk/backend@2.13.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)':
+  '@clerk/backend@2.14.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)':
     dependencies:
-      '@clerk/shared': 3.24.2(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      '@clerk/types': 4.85.0
+      '@clerk/shared': 3.25.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      '@clerk/types': 4.86.0
       cookie: 1.0.2
       standardwebhooks: 1.0.0
       tslib: 2.8.1
@@ -13120,19 +13120,19 @@ snapshots:
       - react
       - react-dom
 
-  '@clerk/clerk-react@5.46.2(react-dom@19.0.0(react@19.0.0))(react@19.0.0)':
+  '@clerk/clerk-react@5.47.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)':
     dependencies:
-      '@clerk/shared': 3.24.2(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      '@clerk/types': 4.85.0
+      '@clerk/shared': 3.25.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      '@clerk/types': 4.86.0
       react: 19.0.0
       react-dom: 19.0.0(react@19.0.0)
       tslib: 2.8.1
 
-  '@clerk/fastify@2.4.30(fastify@5.6.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)':
+  '@clerk/fastify@2.4.31(fastify@5.6.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)':
     dependencies:
-      '@clerk/backend': 2.13.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      '@clerk/shared': 3.24.2(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      '@clerk/types': 4.85.0
+      '@clerk/backend': 2.14.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      '@clerk/shared': 3.25.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      '@clerk/types': 4.86.0
       cookies: 0.9.1
       fastify: 5.6.0
       fastify-plugin: 5.0.1
@@ -13140,9 +13140,9 @@ snapshots:
       - react
       - react-dom
 
-  '@clerk/shared@3.24.2(react-dom@19.0.0(react@19.0.0))(react@19.0.0)':
+  '@clerk/shared@3.25.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)':
     dependencies:
-      '@clerk/types': 4.85.0
+      '@clerk/types': 4.86.0
       dequal: 2.0.3
       glob-to-regexp: 0.4.1
       js-cookie: 3.0.5
@@ -13152,7 +13152,7 @@ snapshots:
       react: 19.0.0
       react-dom: 19.0.0(react@19.0.0)
 
-  '@clerk/types@4.85.0':
+  '@clerk/types@4.86.0':
     dependencies:
       csstype: 3.1.3
 
