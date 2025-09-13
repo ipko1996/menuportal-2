@@ -5,4 +5,4 @@ main = "src/index.ts"
 workers_dev = false
 
 [triggers]
-crons = ["*/15 * * * *"]
+crons = ["*/15 * * * 2"]

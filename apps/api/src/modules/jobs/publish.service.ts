@@ -59,10 +59,10 @@ export class PublishService {
 
     // 2. Lock the posts to prevent concurrent processing.
     const postIds = duePosts.map(p => p.post.id);
-    // await this.databaseService.db
-    //   .update(postSchema)
-    //   .set({ status: 'PUBLISHING' })
-    //   .where(inArray(postSchema.id, postIds));
+    await this.databaseService.db
+      .update(postSchema)
+      .set({ status: 'PUBLISHING' })
+      .where(inArray(postSchema.id, postIds));
 
     let successCount = 0;
     let failedCount = 0;
@@ -103,10 +103,10 @@ export class PublishService {
         this.logger.log(`Image uploaded to R2: ${imageUrl}`);
 
         // Persist the generated image URL to the database.
-        // await this.databaseService.db
-        //   .update(postSchema)
-        //   .set({ generatedImageUrl: imageUrl })
-        //   .where(eq(postSchema.id, post.id));
+        await this.databaseService.db
+          .update(postSchema)
+          .set({ generatedImageUrl: imageUrl })
+          .where(eq(postSchema.id, post.id));
 
         // 3c. Decrypt the access token for the API call.
         const accessToken = this.encryptionService.decrypt(
@@ -180,10 +180,10 @@ export class PublishService {
         }
 
         // 3e. Update the post status to PUBLISHED and store the URL.
-        // await this.databaseService.db
-        //   .update(postSchema)
-        //   .set({ status: 'PUBLISHED', postUrl: publishedUrl })
-        //   .where(eq(postSchema.id, post.id));
+        await this.databaseService.db
+          .update(postSchema)
+          .set({ status: 'PUBLISHED', postUrl: publishedUrl })
+          .where(eq(postSchema.id, post.id));
 
         this.logger.log(`✅ Successfully published post ${post.id}`);
         successCount++;
@@ -197,10 +197,10 @@ export class PublishService {
         );
 
         // Update post status to FAILED with the reason.
-        // await this.databaseService.db
-        //   .update(postSchema)
-        //   .set({ status: 'FAILED', failureReasonDetails: errorMessage })
-        //   .where(eq(postSchema.id, post.id));
+        await this.databaseService.db
+          .update(postSchema)
+          .set({ status: 'FAILED', failureReasonDetails: errorMessage })
+          .where(eq(postSchema.id, post.id));
       }
     }
 
