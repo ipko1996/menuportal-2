@@ -19,6 +19,7 @@ import {
   TableRow,
 } from '@mono-repo/ui';
 import {
+  DishTypeWithDataResponseDto,
   useUpdateDishById,
   type DishResponseDto,
   type DishTypeResponseDto,
@@ -29,7 +30,7 @@ import { useInvalidateDishes } from '../hooks/use-invalidate-dishes';
 interface DishTableProps {
   dishes: DishResponseDto[];
   isSearching: boolean;
-  dishTypes: DishTypeResponseDto[];
+  dishTypes: DishTypeWithDataResponseDto[];
   itemsPerPage: number;
   totalFilteredDishes: number;
   searchTerm: string;
@@ -143,9 +144,12 @@ export function DishTable({
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
                   {dishTypes.map(type => (
-                    <SelectItem key={type.id} value={type.id.toString()}>
+                    <SelectItem
+                      key={type.dishTypeId}
+                      value={type.dishTypeId.toString()}
+                    >
                       <div className="flex items-center gap-2">
-                        {getDishIcon(type.id, dishTypes)}
+                        {getDishIcon(type.dishTypeId, dishTypes)}
                         {type.name}
                       </div>
                     </SelectItem>
@@ -239,11 +243,11 @@ export function DishTable({
                           <SelectContent>
                             {dishTypes.map(type => (
                               <SelectItem
-                                key={type.id}
-                                value={type.id.toString()}
+                                key={type.dishTypeId}
+                                value={type.dishTypeId.toString()}
                               >
                                 <div className="flex items-center gap-2">
-                                  {getDishIcon(type.id, dishTypes)}
+                                  {getDishIcon(type.dishTypeId, dishTypes)}
                                   <span className="text-xs">{type.name}</span>
                                 </div>
                               </SelectItem>

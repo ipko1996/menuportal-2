@@ -3,7 +3,6 @@ import {
   useFindRestaurantSettings,
   useUpdateRestaurantSettings,
   getFindRestaurantSettingsQueryKey,
-  RestaurantDto,
   UpdateRestaurantSettingDto,
 } from '@mono-repo/api-client';
 import { Button } from '@mono-repo/ui/button';
@@ -18,7 +17,7 @@ import {
 import { Input } from '@mono-repo/ui/input';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2, RotateCcw, Save } from 'lucide-react';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -35,6 +34,11 @@ const restaurantSettingsSchema = z.object({
     .string()
     .min(1, 'Address is required')
     .max(200, 'Address must be less than 200 characters'),
+  menuPrice: z
+    .number()
+    .min(0, 'Menu price must be positive')
+    .optional()
+    .or(z.literal('')),
   takeawayPrice: z
     .number()
     .min(0, 'Takeaway price must be positive')
@@ -50,7 +54,7 @@ export function RestaurantSettingsForm() {
   const { data, isLoading } = useFindRestaurantSettings();
   const { mutate: updateRestaurantSettings } = useUpdateRestaurantSettings({
     mutation: {
-      onSuccess: data => {
+      onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: getFindRestaurantSettingsQueryKey(),
         });
@@ -68,18 +72,19 @@ export function RestaurantSettingsForm() {
       name: '',
       phoneNumber: '',
       address: '',
-      takeawayPrice: undefined,
+      menuPrice: 0,
+      takeawayPrice: 0,
     },
   });
 
-  // Update form when data is loaded
   useEffect(() => {
     if (data) {
       form.reset({
         name: data.name || '',
         phoneNumber: data.phoneNumber || '',
         address: data.address || '',
-        takeawayPrice: data.takeawayPrice || undefined,
+        menuPrice: data.menuPrice || 0,
+        takeawayPrice: data.takeawayPrice || 0,
       });
     }
   }, [data, form]);
@@ -89,6 +94,7 @@ export function RestaurantSettingsForm() {
       name: formData.name,
       phoneNumber: formData.phoneNumber,
       address: formData.address,
+      menuPrice: Number(formData.menuPrice),
       takeawayPrice:
         formData.takeawayPrice === ''
           ? undefined
@@ -106,6 +112,7 @@ export function RestaurantSettingsForm() {
         name: data.name || '',
         phoneNumber: data.phoneNumber || '',
         address: data.address || '',
+        menuPrice: data.menuPrice || 0,
         takeawayPrice: data.takeawayPrice || undefined,
       });
     }
@@ -189,6 +196,30 @@ export function RestaurantSettingsForm() {
 
               <FormField
                 control={form.control}
+                name="menuPrice"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-gray-800">
+                      Menu Price
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        min="0"
+                        placeholder="Enter menu price"
+                        className="w-full"
+                        disabled={form.formState.isSubmitting}
+                        onChange={e => field.onChange(e.target.valueAsNumber)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
                 name="takeawayPrice"
                 render={({ field }) => (
                   <FormItem>
@@ -199,12 +230,11 @@ export function RestaurantSettingsForm() {
                       <Input
                         {...field}
                         type="number"
-                        step="0.01"
                         min="0"
                         placeholder="Enter takeaway price (optional)"
                         className="w-full"
                         disabled={form.formState.isSubmitting}
-                        value={field.value || ''}
+                        value={field.value ?? ''}
                         onChange={e => {
                           const value = e.target.value;
                           field.onChange(value === '' ? '' : parseFloat(value));

@@ -222,26 +222,20 @@
       <div class='week-dates'>{{formatDateRange menu.weekStart menu.weekEnd}}</div>
     </div>
 
+    {{#if dishTypes}}
     <div class='fixed-items'>
       <table>
-        <tr>
-          <td class='item-name'><strong>Levesek:</strong></td>
-          <td class='item-price'><strong>900.-</strong></td>
-        </tr>
-        <tr>
-          <td class='item-name'><strong>Húsos levesek:</strong></td>
-          <td class='item-price'><strong>1000.-</strong></td>
-        </tr>
-        <tr>
-          <td class='item-name'><strong>Saláták:</strong></td>
-          <td class='item-price'><strong>800.-</strong></td>
-        </tr>
-        <tr>
-          <td class='item-name'><strong>Köretek:</strong></td>
-          <td class='item-price'><strong>800.-</strong></td>
-        </tr>
+        <tbody>
+          {{#each dishTypes}}
+          <tr>
+            <td class='item-name'><strong>{{this.name}}:</strong></td>
+            <td class='item-price'><strong>{{formatPrice this.price}}</strong></td>
+          </tr>
+          {{/each}}
+        </tbody>
       </table>
     </div>
+    {{/if}}
 
     <table class='menu-table'>
       <tbody>

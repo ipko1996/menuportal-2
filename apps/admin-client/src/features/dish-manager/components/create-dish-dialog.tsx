@@ -18,6 +18,7 @@ import { useCreateDish } from '@mono-repo/api-client';
 import type {
   DishResponseDto,
   DishTypeResponseDto,
+  DishTypeWithDataResponseDto,
 } from '@mono-repo/api-client';
 import { getDishIcon } from '@/components/dish-autocomplete';
 import { useInvalidateDishes } from '../hooks/use-invalidate-dishes';
@@ -25,7 +26,7 @@ import { useInvalidateDishes } from '../hooks/use-invalidate-dishes';
 interface CreateDishDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  dishTypes: DishTypeResponseDto[];
+  dishTypes: DishTypeWithDataResponseDto[];
 }
 
 export function CreateDishDialog({
@@ -83,9 +84,12 @@ export function CreateDishDialog({
               </SelectTrigger>
               <SelectContent>
                 {dishTypes.map(type => (
-                  <SelectItem key={type.id} value={type.id.toString()}>
+                  <SelectItem
+                    key={type.dishTypeId}
+                    value={type.dishTypeId.toString()}
+                  >
                     <div className="flex items-center gap-2">
-                      {getDishIcon(type.id, dishTypes)}
+                      {getDishIcon(type.dishTypeId, dishTypes)}
                       {type.name}
                     </div>
                   </SelectItem>

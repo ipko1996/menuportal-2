@@ -15,27 +15,27 @@ import {
 import {
   useCreateDish,
   useGetDishById,
-  useSearchDishesByName,
+  useGetPaginatedDishes,
   useGetRestaurantDishTypes,
-  type DishTypeResponseDto,
   type DishResponseDto,
+  DishTypeWithDataResponseDto,
 } from '@mono-repo/api-client';
 import { Button, cn, Input } from '@mono-repo/ui';
 
 interface DishAutocompleteProps {
   value: number;
   onChange: (dishId: number) => void;
+  dishTypeId: number;
   placeholder?: string;
   openOnFocus?: boolean;
-  defaultDishTypeId?: number;
   autoFocus?: boolean;
 }
 
 export const getDishIcon = (
   dishTypeId: number,
-  dishTypes: DishTypeResponseDto[] = []
+  dishTypes: DishTypeWithDataResponseDto[] = []
 ) => {
-  const dishType = dishTypes.find(type => type.id === dishTypeId);
+  const dishType = dishTypes.find(type => type.dishTypeId === dishTypeId);
   if (!dishType) return <Utensils className="h-4 w-4" />;
 
   switch (dishType.dishTypeValue) {
@@ -58,9 +58,9 @@ export const getDishIcon = (
 export function DishAutocomplete({
   value,
   onChange,
+  dishTypeId, // Renamed from defaultDishTypeId
   placeholder = 'Search dishes...',
   openOnFocus = false,
-  defaultDishTypeId,
   autoFocus = false,
 }: DishAutocompleteProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -97,14 +97,17 @@ export function DishAutocomplete({
       noResultsSearchTerm && debouncedSearchTerm.startsWith(noResultsSearchTerm)
     );
 
-  const { data: dishes = [], isLoading: dishesLoading } = useSearchDishesByName(
-    { name: debouncedSearchTerm },
-    {
-      query: {
-        enabled: canSearch,
-      },
-    }
-  );
+  const { data: paginatedDishes, isLoading: dishesLoading } =
+    useGetPaginatedDishes(
+      { search: debouncedSearchTerm, dishTypeId: dishTypeId },
+      {
+        query: {
+          enabled: canSearch,
+        },
+      }
+    );
+
+  const dishes: DishResponseDto[] = paginatedDishes?.data || [];
 
   useEffect(() => {
     if (
@@ -163,20 +166,11 @@ export function DishAutocomplete({
   };
 
   const handleAddNewDish = () => {
-    if (searchTerm.trim() && dishTypes.length > 0) {
-      const dishTypeToAdd =
-        dishTypes.find(type => type.id === defaultDishTypeId) ||
-        dishTypes.find(type => type.dishTypeValue === 'MAIN_DISH');
-
-      if (!dishTypeToAdd) {
-        console.error('Default dish type could not be determined.');
-        return;
-      }
-
+    if (searchTerm.trim()) {
       createDish({
         data: {
           dishName: searchTerm,
-          dishTypeId: dishTypeToAdd.id,
+          dishTypeId: dishTypeId,
         },
       });
     }
@@ -232,7 +226,8 @@ export function DishAutocomplete({
   const showAddButton =
     searchTerm.trim().length > 0 && !hasExactMatch && !isCreating;
 
-  const iconDishTypeId = dish ? dish.dishTypeId : defaultDishTypeId ?? 0;
+  // Simplified icon logic
+  const iconDishTypeId = dish ? dish.dishTypeId : dishTypeId;
 
   return (
     <div ref={containerRef} className="relative">

@@ -174,9 +174,6 @@ export default function DishTypeSettingsForm() {
                           {dishType.name}
                         </CardTitle>
                         <div className="flex items-center gap-2">
-                          <Badge variant="secondary" className="text-xs">
-                            {dishType.dishTypeValue}
-                          </Badge>
                           {setting?.isActive && (
                             <Badge variant="default" className="text-xs">
                               Active
@@ -209,7 +206,7 @@ export default function DishTypeSettingsForm() {
                           <FormItem className="flex-shrink-0">
                             <FormLabel className="text-sm font-medium flex items-center gap-2">
                               <DollarSign className="h-4 w-4" />
-                              Price (in cents)
+                              Price (in Forint)
                             </FormLabel>
                             <FormControl>
                               <Input

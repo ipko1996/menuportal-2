@@ -6,5 +6,6 @@ import { DishtypeService } from './dishtype.service';
 @Module({
   controllers: [DishtypeController],
   providers: [DishtypeService],
+  exports: [DishtypeService],
 })
 export class DishtypeModule {}

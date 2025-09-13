@@ -15,4 +15,6 @@ export interface UpdateRestaurantSettingDto {
   address: string;
   /** The price for takeaway orders. */
   takeawayPrice?: number;
+  /** The price for menu. */
+  menuPrice?: number;
 }

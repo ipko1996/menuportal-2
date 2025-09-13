@@ -85,11 +85,18 @@ export function OfferForm({
 
   const handleSelectDishType = (dishTypeId: number) => {
     setSelectedDishTypeId(dishTypeId);
+    const selectedType = availableDishTypes.find(
+      type => type.dishTypeId === dishTypeId
+    );
+    if (selectedType) {
+      form.setValue('price', selectedType.price, { shouldValidate: true });
+    }
   };
 
   const removeDish = () => {
     setSelectedDishTypeId(null);
     form.setValue('dishId', 0, { shouldValidate: true });
+    form.setValue('price', 0, { shouldValidate: true });
   };
 
   const handleDeleteClick = () => setShowDeleteConfirm(true);
@@ -134,7 +141,7 @@ export function OfferForm({
                       <DishAutocomplete
                         value={field.value}
                         onChange={field.onChange}
-                        defaultDishTypeId={selectedDishTypeId}
+                        dishTypeId={selectedDishTypeId}
                         autoFocus={!isEditing}
                       />
                     </FormControl>
@@ -162,11 +169,11 @@ export function OfferForm({
                 <DropdownMenuContent align="start" className="w-56">
                   {availableDishTypes.map(type => (
                     <DropdownMenuItem
-                      key={type.id}
-                      onClick={() => handleSelectDishType(type.id)}
+                      key={type.dishTypeId}
+                      onClick={() => handleSelectDishType(type.dishTypeId)}
                       className="flex cursor-pointer items-center gap-2"
                     >
-                      {getDishIcon(type.id, availableDishTypes)}
+                      {getDishIcon(type.dishTypeId, availableDishTypes)}
                       <span>{type.name}</span>
                     </DropdownMenuItem>
                   ))}

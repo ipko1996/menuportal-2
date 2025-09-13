@@ -15,6 +15,7 @@ import { DatabaseService } from '@/shared/database/database.service';
 import { DateRange } from '@/shared/pipes';
 
 import { BusinessHoursService } from '../business-hours/business-hours.service';
+import { DishtypeService } from '../dishtype/dishtype.service';
 import { RestaurantSettingsService } from '../restaurant/restaurant.service';
 import { WeekMenuDayDto } from '../week-menu/dto/week-menu-response.dto';
 import { WeekMenuService } from '../week-menu/week-menu.service';
@@ -28,7 +29,8 @@ export class TemplatesService {
     private readonly weekMenuService: WeekMenuService,
     private readonly databaseService: DatabaseService,
     private readonly businessHoursService: BusinessHoursService,
-    private readonly restaurantSettings: RestaurantSettingsService
+    private readonly restaurantSettings: RestaurantSettingsService,
+    private readonly dishTypeService: DishtypeService
   ) {}
 
   public async renderWeeklyMenuHtml(
@@ -50,6 +52,11 @@ export class TemplatesService {
     // Take out not business days from menuData
     const businessHours = await this.businessHoursService.findAll(restaurantId);
     const businessDays = new Set(businessHours.map(bh => bh.dayOfWeek));
+
+    const allDishTypes = await this.dishTypeService.findAll(restaurantId);
+    const menuDishTypes = allDishTypes.filter(
+      dishType => dishType.isActive && dishType.isOnTheMenu
+    );
 
     // Filter out non-business days from menuData
     const filteredDays: Record<string, WeekMenuDayDto> = {};
@@ -80,6 +87,7 @@ export class TemplatesService {
     const templateData = {
       menu: menuData,
       restaurant: restaurantData,
+      dishTypes: menuDishTypes,
     };
 
     return this._compileTemplate(templateId, templateData);

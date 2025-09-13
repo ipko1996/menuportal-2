@@ -28,11 +28,6 @@ export const restaurant = pgTable(
     name: varchar('name').notNull(),
     phoneNumber: varchar('phone_number').notNull(),
     address: varchar('address').notNull(),
-    takeawayPrice: decimal('takeaway_price', {
-      mode: 'number',
-      precision: 5,
-      scale: 0,
-    }),
     createdAt: timestamp('created_at', {
       mode: 'string',
       withTimezone: true,

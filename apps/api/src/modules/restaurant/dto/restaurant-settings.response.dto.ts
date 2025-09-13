@@ -33,4 +33,12 @@ export class RestaurantSettingResponseDto {
   @IsNumber()
   @IsOptional()
   takeawayPrice?: number;
+
+  @ApiProperty({
+    description: 'The price for menu.',
+    example: 15.5,
+  })
+  @IsNumber()
+  @IsOptional()
+  menuPrice?: number;
 }

@@ -46,4 +46,15 @@ export class UpdateRestaurantSettingDto {
   @Min(0)
   @IsOptional()
   takeawayPrice?: number;
+
+  @ApiProperty({
+    description: 'The price for menu.',
+    example: 15.5,
+    required: false,
+  })
+  @IsPositive()
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  menuPrice?: number;
 }

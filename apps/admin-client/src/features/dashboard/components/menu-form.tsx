@@ -24,6 +24,7 @@ import {
   Dish,
   useGetRestaurantDishTypes,
   CreateMenuDto,
+  useFindRestaurantSettings,
 } from '@mono-repo/api-client';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -58,6 +59,7 @@ export function MenuForm({
   onDelete,
 }: MenuFormProps) {
   const { data: availableDishTypes = [] } = useGetRestaurantDishTypes();
+  const { data: restaurantSettings } = useFindRestaurantSettings();
   const [dishes, setDishes] = useState<FormDish[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -82,7 +84,7 @@ export function MenuForm({
       const mainDishType = availableDishTypes.find(
         dt => dt.dishTypeValue === 'MAIN_DISH'
       );
-      const defaultDishTypeId = mainDishType?.id || 0;
+      const defaultDishTypeId = mainDishType?.dishTypeId || 0;
       const editingDishes =
         editingItem.dishes?.map((d: Dish) => ({
           key: d.dishId || Math.random(),
@@ -102,12 +104,12 @@ export function MenuForm({
       setDishes([]);
       form.reset({
         menuName: 'Menü',
-        price: 0,
+        price: restaurantSettings?.menuPrice || 0,
         availability: format(selectedDate, 'yyyy-MM-dd'),
         dishes: [], // Ensure form's dishes array is also empty
       });
     }
-  }, [selectedDate, editingItem, availableDishTypes, form]);
+  }, [selectedDate, editingItem, availableDishTypes, form, restaurantSettings]);
 
   // Effect to sync the local `dishes` state with the react-hook-form state
   useEffect(() => {
@@ -210,11 +212,11 @@ export function MenuForm({
                 <DropdownMenuContent align="end" className="w-48">
                   {availableDishTypes.map(type => (
                     <DropdownMenuItem
-                      key={type.id}
-                      onClick={() => addDish(type.id)}
+                      key={type.dishTypeId}
+                      onClick={() => addDish(type.dishTypeId)}
                       className="flex cursor-pointer items-center gap-2"
                     >
-                      {getDishIcon(type.id, availableDishTypes)}
+                      {getDishIcon(type.dishTypeId, availableDishTypes)}
                       <span>{type.name}</span>
                     </DropdownMenuItem>
                   ))}
@@ -230,7 +232,7 @@ export function MenuForm({
                       <DishAutocomplete
                         value={dish.dishId}
                         onChange={newDishId => updateDish(dish.key, newDishId)}
-                        defaultDishTypeId={dish.dishTypeId}
+                        dishTypeId={dish.dishTypeId}
                         autoFocus={index === 0 && !isEditing}
                       />
                     </div>

@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '@mono-repo/ui';
 import {
+  DishTypeWithDataResponseDto,
   useUpdateDishById,
   type DishResponseDto,
   type DishTypeResponseDto,
@@ -24,7 +25,7 @@ interface EditDishDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   dish: DishResponseDto;
-  dishTypes: DishTypeResponseDto[];
+  dishTypes: DishTypeWithDataResponseDto[];
 }
 
 export function EditDishDialog({
@@ -89,9 +90,12 @@ export function EditDishDialog({
               </SelectTrigger>
               <SelectContent>
                 {dishTypes.map(type => (
-                  <SelectItem key={type.id} value={type.id.toString()}>
+                  <SelectItem
+                    key={type.dishTypeId}
+                    value={type.dishTypeId.toString()}
+                  >
                     <div className="flex items-center gap-2">
-                      {getDishIcon(type.id, dishTypes)}
+                      {getDishIcon(type.dishTypeId, dishTypes)}
                       {type.name}
                     </div>
                   </SelectItem>

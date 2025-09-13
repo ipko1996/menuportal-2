@@ -11,11 +11,6 @@ export interface RestaurantDto {
   phoneNumber: string;
   /** Address of the restaurant */
   address: string;
-  /**
-   * Takeaway price of the restaurant
-   * @nullable
-   */
-  takeawayPrice?: string | null;
   /** Unique identifier of the restaurant */
   id: number;
   /** Name of the restaurant */

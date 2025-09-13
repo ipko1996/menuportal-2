@@ -31,16 +31,6 @@ export class RestaurantDto
   address!: string;
 
   @ApiProperty({
-    example: '15.99',
-    description: 'Takeaway price of the restaurant',
-    nullable: true,
-    required: false,
-    type: String,
-  })
-  @IsOptional()
-  @IsString()
-  takeawayPrice!: number | null;
-  @ApiProperty({
     example: 1,
     description: 'Unique identifier of the restaurant',
   })
