@@ -2,6 +2,7 @@ import { ApiProperty, getSchemaPath } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsDateString,
   IsDefined,
   IsNumber,
   IsObject,
@@ -13,6 +14,7 @@ import {
 import {
   MenuStatusApi,
   MenuStatusApiValues,
+  ScheduleType,
   SocialMediaPlatform,
   socialMediaPlatformValues,
 } from '@/constants';
@@ -239,6 +241,22 @@ export class Post {
     example: 'INSTAGRAM',
   })
   platform: SocialMediaPlatform;
+
+  @ApiProperty({
+    description: 'Scheduled date and time for the post in ISO 8601 format',
+    example: '2025-08-04T09:00:00Z',
+    type: String,
+  })
+  @IsDateString()
+  scheduledAt: string;
+
+  @ApiProperty({
+    description: 'Type of schedule for the post',
+    enum: ['DAILY', 'WEEKLY'],
+    example: 'WEEKLY',
+  })
+  @IsString()
+  scheduleType: ScheduleType;
 }
 
 export class WeekMenuResponseDto {

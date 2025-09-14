@@ -4,8 +4,11 @@ import { and, eq, gte, inArray, lte, notExists } from 'drizzle-orm';
 
 import {
   MenuStatus,
+  platformSchedules,
   post,
   postSnapshot,
+  schedules,
+  ScheduleType,
   socialMediaAccount,
   SocialMediaPlatform,
 } from '@/schema';
@@ -25,6 +28,8 @@ export class PostService {
         postId: postSnapshot.postId,
         status: post.status,
         platform: socialMediaAccount.platform,
+        scheduledAt: post.scheduledAt,
+        scheduleType: schedules.scheduleType,
       })
       .from(postSnapshot)
       .leftJoin(post, eq(post.id, postSnapshot.postId))
@@ -32,8 +37,19 @@ export class PostService {
         socialMediaAccount,
         eq(socialMediaAccount.id, post.socialMediaAccountId)
       )
+      .leftJoin(
+        platformSchedules,
+        eq(platformSchedules.id, post.platformScheduleId)
+      )
+      .leftJoin(schedules, eq(schedules.id, platformSchedules.scheduleId))
       .where(and(inArray(postSnapshot.snapshotId, ids)))
-      .groupBy(postSnapshot.postId, post.status, socialMediaAccount.platform);
+      .groupBy(
+        postSnapshot.postId,
+        post.status,
+        socialMediaAccount.platform,
+        post.scheduledAt,
+        schedules.scheduleType
+      );
 
     return posts.filter(
       (
@@ -42,6 +58,8 @@ export class PostService {
         postId: number;
         status: MenuStatus;
         platform: SocialMediaPlatform;
+        scheduledAt: string;
+        scheduleType: ScheduleType;
       } => p.platform !== null && p.status !== null
     );
   }

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import CronExpressionParser from 'cron-parser';
+import { fromZonedTime } from 'date-fns-tz';
 
 import { ScheduleType } from '@/constants';
 
@@ -7,26 +8,24 @@ import { ScheduleType } from '@/constants';
 export class CronHelperService {
   private readonly logger = new Logger(CronHelperService.name);
 
-  public dayTimeToCron(scheduleType: ScheduleType, time: string): string {
-    const timeParts = time.split(':');
+  public dayTimeToCron(scheduleType: ScheduleType, localTime: string): string {
+    const HUNGARY_TIMEZONE = 'Europe/Budapest';
 
-    if (timeParts.length !== 2) {
-      this.logger.error(`Invalid time format: "${time}". Expected "HH:mm".`);
-      throw new Error(`Invalid time format: "${time}". Expected "HH:mm".`);
-    }
+    const localDateTimeString = `2000-01-01 ${localTime}`;
 
-    const [hour, minute] = timeParts;
+    const zonedDate = fromZonedTime(localDateTimeString, HUNGARY_TIMEZONE);
+    const utcHour = zonedDate.getUTCHours();
+    const utcMinute = zonedDate.getUTCMinutes();
 
     if (scheduleType === 'DAILY') {
-      return `${minute} ${hour} * * 0-6`;
+      return `${utcMinute} ${utcHour} * * 0-6`;
     }
     if (scheduleType === 'WEEKLY') {
-      return `${minute} ${hour} * * 1`;
+      return `${utcMinute} ${utcHour} * * 1`;
     }
-    this.logger.error(`Unsupported schedule type: "${scheduleType}".`);
+
     throw new Error(`Unsupported schedule type: "${scheduleType}".`);
   }
-
   /**
    * Converts a cron expression string back to a schedule type and time string.
    * @param cronExpression The cron expression to parse.
@@ -83,7 +82,7 @@ export class CronHelperService {
 
       const interval = CronExpressionParser.parse(cronExpression, {
         currentDate: startOfDay,
-        // tz: 'UTC',
+        tz: 'Europe/Budapest',
       });
       const nextRun = interval.next().toDate();
 

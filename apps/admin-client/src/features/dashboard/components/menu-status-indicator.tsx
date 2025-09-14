@@ -339,11 +339,22 @@ export const stateComponentMap: Record<
     const scheduledPosts =
       posts?.filter(post => post.status === PostStatus.SCHEDULED) ?? [];
     console.log(state);
+    const weekSchedulePost = scheduledPosts.find(
+      post => post.scheduleType === 'WEEKLY'
+    );
     return (
       <MenuStatusCard
         statusConfig={stateUIConfig.Scheduled}
         weekNumber={weekNumber}
-        statusText="Posts Mon 9 AM"
+        statusText={`Scheduled at ${
+          weekSchedulePost
+            ? new Date(weekSchedulePost.scheduledAt).toLocaleString([], {
+                weekday: 'long',
+                hour: '2-digit',
+                minute: '2-digit',
+              })
+            : ''
+        }`}
         statusTextColor="text-blue-700 dark:text-blue-300"
       >
         <div className="flex items-center gap-2">

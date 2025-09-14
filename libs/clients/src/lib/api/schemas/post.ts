@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 import type { PostPlatform } from './post-platform';
+import type { PostScheduleType } from './post-schedule-type';
 import type { PostStatus } from './post-status';
 
 export interface Post {
@@ -15,4 +16,8 @@ export interface Post {
   status: PostStatus;
   /** Social media platform where the post is published */
   platform: PostPlatform;
+  /** Scheduled date and time for the post in ISO 8601 format */
+  scheduledAt: string;
+  /** Type of schedule for the post */
+  scheduleType: PostScheduleType;
 }

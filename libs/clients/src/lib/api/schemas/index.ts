@@ -48,6 +48,7 @@ export * from './page-meta-dto';
 export * from './platform-creation-dto';
 export * from './post';
 export * from './post-platform';
+export * from './post-schedule-type';
 export * from './post-status';
 export * from './render-daily-template-params';
 export * from './render-daily-template-platform';
