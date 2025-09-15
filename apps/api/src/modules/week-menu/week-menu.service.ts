@@ -82,6 +82,8 @@ export class WeekMenuService {
       // All same status cases
       if (posts.every(p => p.status === 'PUBLISHED')) {
         weekStatus = 'PUBLISHED';
+      } else if (posts.every(p => p.status === 'PUBLISHING')) {
+        weekStatus = 'PUBLISHING';
       } else if (posts.every(p => p.status === 'FAILED')) {
         weekStatus = 'FAILED';
       } else if (posts.every(p => p.status === 'SCHEDULED')) {

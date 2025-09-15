@@ -204,6 +204,15 @@ const stateUIConfig = {
       'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900 dark:text-amber-100 dark:border-amber-600',
     textColor: 'text-amber-800 dark:text-amber-100',
   },
+  [PostState.Publishing]: {
+    label: 'Publishing',
+    icon: Send,
+    bgColor: 'bg-blue-50 dark:bg-blue-950',
+    borderColor: 'border-blue-200 dark:border-blue-700',
+    iconContainerClasses:
+      'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900 dark:text-blue-100 dark:border-blue-600',
+    textColor: 'text-blue-800 dark:text-blue-100',
+  },
   [PostState.NoScheduling_SetUp]: {
     label: 'No Scheduling',
     icon: Settings,
@@ -310,6 +319,18 @@ export const stateComponentMap: Record<
           </>
         )}
       </Button>
+    </MenuStatusCard>
+  ),
+  [PostState.Publishing]: ({ state, dispatch, actions, weekNumber }) => (
+    <MenuStatusCard
+      statusConfig={stateUIConfig.Publishing}
+      weekNumber={weekNumber}
+      statusText="Publishing"
+    >
+      <span className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+        <Clock className="h-3 w-3 mr-2 animate-spin" />
+        Please wait
+      </span>
     </MenuStatusCard>
   ),
   [PostState.Overdue]: ({ state, dispatch, weekNumber, actions }) => (

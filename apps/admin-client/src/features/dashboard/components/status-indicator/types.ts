@@ -18,6 +18,7 @@ export enum PostState {
   CannotSchedule_Nothing = 'CannotSchedule_Nothing',
   Partially_Failed = 'Partially_Failed',
   NoScheduling_SetUp = 'NoScheduling_SetUp',
+  Publishing = 'Publishing',
 }
 
 /**

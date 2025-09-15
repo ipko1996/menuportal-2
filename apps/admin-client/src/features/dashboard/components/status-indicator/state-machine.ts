@@ -1,5 +1,12 @@
 import { Reducer } from 'react';
-import { parseISO, getDay, addHours, isAfter } from 'date-fns';
+import {
+  parseISO,
+  getDay,
+  addHours,
+  isAfter,
+  addMinutes,
+  isBefore,
+} from 'date-fns';
 
 import { ActionType, ActionWithPayload, NewState, PostState } from './types';
 import {
@@ -89,11 +96,14 @@ export function determinePostState({
     isEmpty,
     weekEnd,
     isAccountSetup,
+    posts,
   } = weekData;
 
   if (!isAccountSetup) {
     return PostState.NoScheduling_SetUp;
   }
+
+  const weeklyPosts = posts.filter(p => p.scheduleType === 'WEEKLY');
 
   // 3. Evaluate state based on the weekStatus from the backend.
   switch (weekStatus) {
@@ -133,16 +143,40 @@ export function determinePostState({
       // Fallback for any other DRAFT case (e.g., future week with content).
       return PostState.Draft;
 
-    case WeekMenuResponseDtoWeekStatus.SCHEDULED:
-      // A scheduled post for the current or past week is an error state.
-      if (isCurrentWeek || isPast) {
+    case WeekMenuResponseDtoWeekStatus.SCHEDULED: {
+      // This should never happen tho
+      if (weeklyPosts.length === 0 || !weeklyPosts[0]?.scheduledAt) {
+        // If it's marked as scheduled but has no weekly posts with a date, it's an error.
         console.error(
-          `Error: Week ending ${weekEnd} has status SCHEDULED but is in the past or present.`
+          `Error: Week ending ${weekEnd} has status SCHEDULED but no scheduled weekly post was found.`
         );
         return PostState.Failed_SeeDetails;
       }
-      // Otherwise, it's correctly scheduled for the future.
+
+      const scheduledAt = parseISO(weeklyPosts[0].scheduledAt);
+      const publishingWindowEnd = addMinutes(scheduledAt, 15);
+
+      // If we are past the scheduled time but within the 15-minute polling tolerance,
+      // we are in a "Publishing" state.
+      if (isAfter(now, scheduledAt) && isBefore(now, publishingWindowEnd)) {
+        return PostState.Publishing;
+      }
+
+      // If we are past the 15-minute tolerance window and it's still "Scheduled",
+      // something went wrong with the publishing process.
+      if (isAfter(now, publishingWindowEnd)) {
+        console.error(
+          `Error: Week ending ${weekEnd} is still SCHEDULED well after its scheduled time of ${scheduledAt.toISOString()}.`
+        );
+        return PostState.Failed_SeeDetails;
+      }
+
+      // If the current time is before the scheduled time, it's correctly scheduled.
       return PostState.Scheduled;
+    }
+
+    case WeekMenuResponseDtoWeekStatus.PUBLISHING:
+      return PostState.Publishing;
 
     case WeekMenuResponseDtoWeekStatus.PUBLISHED:
       // Published is a final, valid state for any week.
