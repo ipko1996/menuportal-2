@@ -1,16 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import CronExpressionParser from 'cron-parser';
-import { fromZonedTime } from 'date-fns-tz';
+import { fromZonedTime, toZonedTime } from 'date-fns-tz';
 
 import { ScheduleType } from '@/constants';
+
+const HUNGARY_TIMEZONE = 'Europe/Budapest';
 
 @Injectable()
 export class CronHelperService {
   private readonly logger = new Logger(CronHelperService.name);
 
   public dayTimeToCron(scheduleType: ScheduleType, localTime: string): string {
-    const HUNGARY_TIMEZONE = 'Europe/Budapest';
-
     const localDateTimeString = `2000-01-01 ${localTime}`;
 
     const zonedDate = fromZonedTime(localDateTimeString, HUNGARY_TIMEZONE);
@@ -43,9 +43,16 @@ export class CronHelperService {
 
     const [minute, hour, , , dayOfWeek] = parts;
 
-    // Pad with '0' to ensure HH:mm format
-    const formattedHour = hour.padStart(2, '0');
-    const formattedMinute = minute.padStart(2, '0');
+    // Create a date object with the UTC time from the cron expression
+    const utcDate = new Date();
+    utcDate.setUTCHours(Number(hour), Number(minute), 0, 0);
+
+    // Convert the UTC date to the target timezone
+    const zonedDate = toZonedTime(utcDate, HUNGARY_TIMEZONE);
+
+    // Format the time in HH:mm format
+    const formattedHour = String(zonedDate.getHours()).padStart(2, '0');
+    const formattedMinute = String(zonedDate.getMinutes()).padStart(2, '0');
     const formattedTime = `${formattedHour}:${formattedMinute}`;
 
     let scheduleType: ScheduleType;
