@@ -89,7 +89,7 @@ export class CronHelperService {
 
       const interval = CronExpressionParser.parse(cronExpression, {
         currentDate: startOfDay,
-        tz: 'Europe/Budapest',
+        tz: HUNGARY_TIMEZONE,
       });
       const nextRun = interval.next().toDate();
 
