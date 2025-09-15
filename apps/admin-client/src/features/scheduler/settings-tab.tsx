@@ -22,7 +22,9 @@ import {
   useUpdatePlatformScheduleSettings,
   useUpdateCoreScheduleSettings,
   useGetAllSocialAccountsForRestaurant,
+  getGetScheduleSettingsQueryKey,
 } from '@mono-repo/api-client';
+import { useQueryClient } from '@tanstack/react-query';
 
 const platformSettingsSchema = z.object({
   id: z.number().nullable(),
@@ -385,6 +387,8 @@ const LoadingState: FC = () => (
 );
 
 export function SettingsTab() {
+  const queryClient = useQueryClient();
+
   const { data: socialAccounts, isLoading: isLoadingAccounts } =
     useGetAllSocialAccountsForRestaurant();
   const {
@@ -392,10 +396,27 @@ export function SettingsTab() {
     isLoading: isLoadingSchedule,
     isError: isScheduleError,
   } = useGetScheduleSettings(SCHEDULE_TYPE);
+  console.log(scheduleData);
 
   const createSettingsMutation = useCreateScheduleSettings();
-  const updateCoreMutation = useUpdateCoreScheduleSettings();
-  const updatePlatformMutation = useUpdatePlatformScheduleSettings();
+  const updateCoreMutation = useUpdateCoreScheduleSettings({
+    mutation: {
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({
+          queryKey: getGetScheduleSettingsQueryKey(SCHEDULE_TYPE),
+        });
+      },
+    },
+  });
+  const updatePlatformMutation = useUpdatePlatformScheduleSettings({
+    mutation: {
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({
+          queryKey: getGetScheduleSettingsQueryKey(SCHEDULE_TYPE),
+        });
+      },
+    },
+  });
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),

@@ -11,11 +11,18 @@ export class CronHelperService {
   private readonly logger = new Logger(CronHelperService.name);
 
   public dayTimeToCron(scheduleType: ScheduleType, localTime: string): string {
-    const localDateTimeString = `2000-01-01 ${localTime}`;
+    const localDateTimeString = `2025-07-01 ${localTime}`;
 
     const zonedDate = fromZonedTime(localDateTimeString, HUNGARY_TIMEZONE);
     const utcHour = zonedDate.getUTCHours();
     const utcMinute = zonedDate.getUTCMinutes();
+
+    this.logger.debug({
+      zonedDate,
+      utcHour,
+      utcMinute,
+      scheduleType,
+    });
 
     if (scheduleType === 'DAILY') {
       return `${utcMinute} ${utcHour} * * 0-6`;
@@ -26,6 +33,7 @@ export class CronHelperService {
 
     throw new Error(`Unsupported schedule type: "${scheduleType}".`);
   }
+
   /**
    * Converts a cron expression string back to a schedule type and time string.
    * @param cronExpression The cron expression to parse.
@@ -89,7 +97,7 @@ export class CronHelperService {
 
       const interval = CronExpressionParser.parse(cronExpression, {
         currentDate: startOfDay,
-        tz: HUNGARY_TIMEZONE,
+        tz: 'UTC',
       });
       const nextRun = interval.next().toDate();
 
