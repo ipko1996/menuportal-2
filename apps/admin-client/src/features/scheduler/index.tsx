@@ -25,16 +25,19 @@ export default function Scheduler() {
       href: '/scheduler/scheduled-posts',
       title: 'Scheduled Posts',
       icon: <Calendar className="h-4 w-4 mr-2" />,
+      disabled: true,
     },
     {
       href: '/scheduler/pending-posts',
       title: 'Pending Posts',
       icon: <Clock className="h-4 w-4 mr-2" />,
+      disabled: true,
     },
     {
       href: '/scheduler/history',
       title: 'History',
       icon: <History className="h-4 w-4 mr-2" />,
+      disabled: true,
     },
     {
       href: '/scheduler/templates',
