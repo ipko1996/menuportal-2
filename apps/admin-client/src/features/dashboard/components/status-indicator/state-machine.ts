@@ -131,7 +131,7 @@ export function determinePostState({
       // getDay() -> Sunday = 0, Saturday = 6
       if (isPlanningWeek && (getDay(now) === 0 || getDay(now) === 6)) {
         return isEmpty
-          ? PostState.CannotSchedule_Closed // Empty planning week on weekend
+          ? PostState.CannotSchedule_Nothing // Empty planning week on weekend
           : PostState.Overdue;
       }
 
