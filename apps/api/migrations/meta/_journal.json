@@ -15,6 +15,13 @@
       "when": 1757751655347,
       "tag": "0001_woozy_kylun",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1759584848122,
+      "tag": "0002_omniscient_sentinels",
+      "breakpoints": true
     }
   ]
 }

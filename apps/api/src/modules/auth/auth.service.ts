@@ -107,6 +107,7 @@ export class AuthService {
         .select({
           platform: socialMediaAccount.platform,
           isActive: socialMediaAccount.isActive,
+          accountName: socialMediaAccount.accountName,
         })
         .from(socialMediaAccount)
         .where(eq(socialMediaAccount.restaurantId, restaurantId));
@@ -161,6 +162,17 @@ export class AuthService {
       );
     }
 
+    if (pages.length > 1) {
+      this.logger.error(
+        `Multiple Facebook pages found for user ${id}: ${pages
+          .map(p => p.name)
+          .join(', ')}`
+      );
+      throw new BadRequestException(
+        'Multiple Facebook pages found. Please ensure you manage only one page for now.'
+      );
+    }
+
     // For now, we'll use the first page. You might want to let users choose which page to connect
     const selectedPage = pages[0];
 
@@ -178,6 +190,7 @@ export class AuthService {
     const valuesToInsert = {
       restaurantId: restaurant.id,
       platform,
+      accountName: selectedPage.name,
       platformAccountId: selectedPage.id, // Use page ID, not user ID
       accessToken: encryptedAccessToken,
       tokenExpiresAt: undefined,
@@ -195,6 +208,7 @@ export class AuthService {
           ],
           set: {
             accessToken: valuesToInsert.accessToken,
+            accountName: valuesToInsert.accountName,
             tokenExpiresAt: valuesToInsert.tokenExpiresAt,
             platformAccountId: valuesToInsert.platformAccountId,
             isActive: true,

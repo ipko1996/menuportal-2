@@ -7,7 +7,7 @@ import {
   Button,
   Badge,
 } from '@mono-repo/ui';
-import { Switch } from '@radix-ui/react-switch';
+import { Switch } from '@mono-repo/ui/switch';
 import type React from 'react';
 import { useAuth } from '@clerk/clerk-react';
 
@@ -23,6 +23,7 @@ interface Integration {
   icon: React.ReactNode;
   connected: boolean;
   enabled: boolean;
+  accountName?: string;
 }
 
 export function IntegrationsForm() {
@@ -60,10 +61,16 @@ export function IntegrationsForm() {
               ...integration,
               connected: true,
               enabled: connectedAccount.isActive,
+              accountName: connectedAccount.accountName,
             };
           }
           // Reset to default if not in the connected list
-          return { ...integration, connected: false, enabled: false };
+          return {
+            ...integration,
+            connected: false,
+            enabled: false,
+            accountName: undefined,
+          };
         })
       );
     }
@@ -198,6 +205,15 @@ export function IntegrationsForm() {
                     {integration.name}
                   </CardTitle>
                   <CardDescription>{integration.description}</CardDescription>
+
+                  {integration.connected && integration.accountName && (
+                    <p className="pt-1 text-sm text-muted-foreground">
+                      Connected as:{' '}
+                      <span className="font-medium text-primary">
+                        {integration.accountName}
+                      </span>
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="flex items-center space-x-2">

@@ -19,4 +19,10 @@ export class SocialAccountDto {
     example: true,
   })
   isActive: boolean;
+
+  @ApiProperty({
+    description: 'The name of the connected social media account.',
+    example: 'My Facebook Page',
+  })
+  accountName: string;
 }

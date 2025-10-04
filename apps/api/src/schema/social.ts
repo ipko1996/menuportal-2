@@ -31,6 +31,7 @@ export const socialMediaAccount = pgTable(
     platform: SocialMediaPlatformEnum('platform').notNull(),
 
     platformAccountId: text('platform_account_id').notNull(),
+    accountName: text('account_name').notNull(),
 
     accessToken: text('access_token').notNull(),
     tokenExpiresAt: timestamp('token_expires_at', {
