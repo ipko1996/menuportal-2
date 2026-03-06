@@ -1,77 +1,181 @@
-# MonoRepo
+# Menuportal
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+Menuportal is a SaaS tool for restaurants to plan weekly menus, generate print‑ready menus, and automatically publish them to social media.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is almost ready ✨.
+This repository is an Nx monorepo that contains the admin web app, API, and background workers that power Menuportal.
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+## Features
 
-## Finish your CI setup
+- **Visual weekly planner**: Drag‑and‑drop calendar for planning menus and special offers by day and service.
+- **Dish library**: Re‑use frequently served dishes across weeks instead of rebuilding menus from scratch.
+- **Print‑ready PDFs**: Generate clean, branded PDF menus that can be printed or shared with guests.
+- **Social media automation**: Schedule posts for Facebook/Instagram so weekly menus are published automatically.
+- **Scheduling dashboard**: See which menus are scheduled, already posted, or pending.
+- **Restaurant settings**: Configure restaurant details, business hours, prices, notifications, and integrations.
+- **Auth & accounts**: Clerk‑based authentication, forgot‑password, OTP flows, and an authenticated app shell.
 
-[Click here to finish setting up your workspace!](https://cloud.nx.app)
+Most of these flows live in the `admin-client` app and its feature folders (dashboard, dish manager, scheduler, settings, and auth).
 
+## Monorepo structure
 
-## Run tasks
+- **`apps/admin-client`** – React + Vite admin UI for restaurant owners.
+- **`apps/api`** – NestJS API (Fastify) backed by PostgreSQL and `drizzle-orm`.
+- **`apps/cron-caller`** – Cloudflare Worker used for scheduled/background jobs (e.g. triggering social publishing).
+- **`libs/ui`** – Shared design system and UI components built on Radix UI and Tailwind CSS.
+- **`libs/clients`** – API client utilities and shared HTTP configuration.
 
-To run tasks with Nx use:
+Nx orchestrates builds, tests, and deployments across these projects.
 
-```sh
-npx nx <target> <project-name>
+## Tech stack
+
+- **Frontend**
+  - React 19, Vite 6, TypeScript.
+  - TanStack Router (file‑based routing) and TanStack Query.
+  - Tailwind CSS v4, custom UI library (`@mono-repo/ui`), Radix UI, Lucide/Tabler icons.
+  - Clerk for authentication.
+- **Backend**
+  - NestJS 11 on Fastify.
+  - PostgreSQL via `drizzle-orm` and `drizzle-kit` migrations.
+  - Docker/Fly.io support for deployment.
+- **Infrastructure & tooling**
+  - Nx monorepo (`nx`, `@nx/*`).
+  - Cloudflare Workers (`wrangler`) for cron/scheduled tasks.
+  - ESLint, Prettier, Vitest, TypeScript.
+
+## Getting started
+
+### Prerequisites
+
+- Node.js 20+ (LTS recommended).
+- `pnpm` (preferred) or another Node package manager.
+- A running PostgreSQL instance.
+- A Clerk account with a **publishable key** (for authentication).
+
+### Install dependencies
+
+From the repository root:
+
+```bash
+pnpm install
 ```
 
-For example:
+## Environment configuration
 
-```sh
-npx nx build myproject
+### Frontend (`apps/admin-client`)
+
+Create an `.env` file in `apps/admin-client` (or use your preferred Vite env setup) and set at least:
+
+```env
+VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+VITE_MENUPORTAL_BACKEND_URL=http://localhost:3005
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+The `VITE_CLERK_PUBLISHABLE_KEY` is required; without it, the app will render a helpful setup screen instead of the dashboard.
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### Backend (`apps/api`)
 
-## Add new projects
+The API and database migrations expect a `DATABASE_URL` environment variable:
 
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
-
-To install a new plugin you can use the `nx add` command. Here's an example of adding the React plugin:
-```sh
-npx nx add @nx/react
+```env
+DATABASE_URL=postgres://user:password@localhost:5432/menuportal
 ```
 
-Use the plugin's generator to create new projects. For example, to create a new React app or library:
+Export this variable in your shell or load it via a `.env` file before running API or migration commands.
 
-```sh
-# Generate an app
-npx nx g @nx/react:app demo
+Additional secrets (e.g. Clerk secret keys, social media API credentials) should also be provided via environment variables as you integrate those services.
 
-# Generate a library
-npx nx g @nx/react:lib some-lib
+## Running the apps locally
+
+### Start the API
+
+From the repository root:
+
+```bash
+pnpm nx serve api
 ```
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
+This uses the `api` project’s `serve` target (NestJS + Fastify). Make sure `DATABASE_URL` is set and your database is reachable.
 
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### Run database migrations
 
+With `DATABASE_URL` configured:
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+```bash
+pnpm nx run api:database:migrate
+```
 
-## Install Nx Console
+Other database tasks are available:
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+- `pnpm nx run api:database:generate`
+- `pnpm nx run api:database:push`
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+See `apps/api/project.json` for details.
 
-## Useful links
+### Start the admin client
 
-Learn more:
+In a separate terminal:
 
-- [Learn more about this workspace setup](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+```bash
+pnpm nx dev admin-client
+```
 
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+or:
+
+```bash
+pnpm nx serve admin-client
+```
+
+This starts the Vite dev server for the admin UI. By default it listens on the port configured in `apps/admin-client/vite.config.mts` (commonly `http://localhost:4200`).
+
+### Optional: cron worker (Cloudflare)
+
+The `apps/cron-caller` app is a Cloudflare Worker used for scheduled tasks:
+
+- Local dev:
+
+  ```bash
+  cd apps/cron-caller
+  pnpm wrangler dev --local
+  ```
+
+- Deploy:
+
+  ```bash
+  cd apps/cron-caller
+  pnpm wrangler deploy
+  ```
+
+Refer to `apps/cron-caller/README.md` for more detailed instructions.
+
+## Nx commands
+
+You can run any task via Nx:
+
+```bash
+pnpm nx <target> <project>
+```
+
+Examples:
+
+- `pnpm nx dev admin-client`
+- `pnpm nx build admin-client`
+- `pnpm nx serve api`
+
+Use the Nx project graph to explore dependencies:
+
+```bash
+pnpm nx graph
+```
+
+## Contributing
+
+Contributions and issues are welcome. If you’re opening a PR, please:
+
+- Keep changes focused and well‑scoped.
+- Run linting and tests where applicable:
+  - `pnpm nx lint <project>`
+  - `pnpm nx test <project>` (where tests exist).
+
+## License
+
+This project is licensed under the **MIT License**.
